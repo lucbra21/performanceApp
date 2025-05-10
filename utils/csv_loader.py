@@ -5,28 +5,32 @@ import pandas as pd
 from dash import html
 
 def parse_contents(contents, filename):
-    """Parses the content of an uploaded CSV or Excel file and returns a DataFrame and a preview table or an error message."""
+    """Analiza el contenido de un archivo CSV cargado y devuelve un DataFrame y una tabla de vista previa."""
     content_type, content_string = contents.split(',')
     decoded = base64.b64decode(content_string)
     try:
-        # Make filename extension check case-insensitive
-        if filename.lower().endswith('.csv'):
-            # Try decoding with utf-8, then latin-1 as a fallback
-            try:
-                df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
-            except UnicodeDecodeError:
-                df = pd.read_csv(io.StringIO(decoded.decode('latin-1')))
-        elif filename.lower().endswith('.xls') or filename.lower().endswith('.xlsx'):
+        if 'csv' in filename:
+            # Assume Csv
+            df = pd.read_csv(io.StringIO(decoded.decode('utf-8')))
+        elif 'xls' in filename:
+            # Assume Excel
             df = pd.read_excel(io.BytesIO(decoded))
         else:
             return html.Div([
-                f'Error: El archivo "{filename}" no es un CSV o Excel válido. Por favor, sube un archivo con extensión .csv, .xls o .xlsx.'
+                'Hubo un error al procesar este archivo. Por favor, sube un archivo CSV o Excel.'
             ]), None
     except Exception as e:
+        # Log detailed error to server console
         print(f"Error processing file {filename}: {e}")
-        return html.Div([
-            f'Hubo un error al procesar el archivo "{filename}": {str(e)}'
-        ]), None
+        # Create a more informative error message for the UI
+        error_message_div = html.Div([
+            f'Error al procesar el archivo: {filename}.',
+            html.Br(),
+            'Por favor, verifique que el archivo no esté corrupto y que el formato (CSV o Excel) sea correcto.',
+            html.Br(),
+            'Asegúrese también de que el archivo utiliza la codificación UTF-8 si es un CSV.'
+        ])
+        return error_message_div, None
 
     # Generate a preview table
     preview_table = html.Table([

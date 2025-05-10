@@ -140,9 +140,9 @@ def update_output_gps(list_of_contents, list_of_names, list_of_dates):
             ])
             return children, last_upload_time_str, combined_preview_table, df_combined.to_dict('records')
         else:
-            return children, "Ningún archivo válido cargado.", html.Div("Nenhum dado válido para pré-visualização."), None
+            return children, "Ningún archivo válido cargado.", html.Div("Ningún dato válido para previsualizar. Por favor, verifique el estado de cada archivo cargado y asegúrese de que contienen datos válidos."), None
 
-    return html.Div(), "Ningún archivo cargado.", html.Div("Nenhum ficheiro carregado para pré-visualização."), None
+    return html.Div(), "Ningún archivo cargado.", html.Div("Ningún archivo cargado para previsualizar."), None
 
 # Callback for Wellness data upload
 @app.callback(
@@ -180,9 +180,9 @@ def update_output_wellness(list_of_contents, list_of_names, list_of_dates):
             ])
             return children, last_upload_time_str, combined_preview_table, df_combined.to_dict('records')
         else:
-            return children, "Ningún archivo válido cargado.", html.Div("Nenhum dado válido para pré-visualização."), None
+            return children, "Ningún archivo válido cargado.", html.Div("Ningún dato válido para previsualizar. Por favor, verifique el estado de cada archivo cargado y asegúrese de que contienen datos válidos."), None
 
-    return html.Div(), "Ningún archivo cargado.", html.Div("Nenhum ficheiro carregado para pré-visualização."), None
+    return html.Div(), "Ningún archivo cargado.", html.Div("Ningún archivo cargado para previsualizar."), None
 
 # Callback for Training data upload
 @app.callback(
@@ -220,6 +220,6 @@ def update_output_training(list_of_contents, list_of_names, list_of_dates):
             ])
             return children, last_upload_time_str, combined_preview_table, df_combined.to_dict('records')
         else:
-            return children, "Ningún archivo válido cargado.", html.Div("Nenhum dado válido para pré-visualização."), None
+            return children, "Ningún archivo válido cargado.", html.Div("Ningún dato válido para previsualizar. Por favor, verifique el estado de cada archivo cargado y asegúrese de que contienen datos válidos."), None
 
-    return html.Div(), "Ningún archivo cargado.", html.Div("Nenhum ficheiro carregado para pré-visualização."), None
+    return html.Div(), "Ningún archivo cargado.", html.Div("Ningún archivo cargado para previsualizar."), None

@@ -1,36 +1,55 @@
-# Aplicación de Análisis de Rendimiento Deportivo
+# Aplicação de Análise de Performance Desportiva
 
-Esta es una aplicación web desarrollada con Plotly Dash para ayudar a preparadores físicos y equipos técnicos en el análisis de datos de rendimiento deportivo.
+Esta é uma aplicação web desenvolvida com Plotly Dash para ajudar preparadores físicos e equipas técnicas na análise de dados de performance desportiva.
 
 ## Funcionalidades
 
-- Autenticación de usuarios
-- Carga de archivos CSV desde diferentes fuentes (GPS, Bienestar, Entrenamiento)
-- Visualización de datos e informes
-- Navegación intuitiva mediante una barra lateral
+- Autenticação de utilizadores
+- Carregamento de dados CSV de diferentes fontes (GPS, Wellness, Treino)
+- Visualização de dados e relatórios
+- Navegação intuitiva através de uma barra lateral
 
-## Estructura del Proyecto
+## Estrutura do Projeto
 
-├── app.py # aplicación principal
+```
+├── app.py                      # app principal
 ├── assets/
-│ └── style.css # CSS personalizado
+│   └── style.css              # CSS personalizado
 ├── data/
-│ └── jugadores.csv # Ejemplo de datos de atletas
-├── components/ # componentes reutilizables
-│ ├── header.py
-│ └── sidebar.py
+│   └── jogadores.csv          # Exemplo de dados de atletas
+├── components/                # componentes reutilizáveis
+│   ├── header.py
+│   └── sidebar.py
 ├── pages/
-│ ├── home.py # Página principal (subida de datos)
-│ ├── login.py # Login
-│ ├── jugadores/
-│ │ └── detalle.py # Información individual del jugador
-│ ├── daily/
-│ │ └── pre_session.py # Datos de sesiones
-│ ├── players/
-│ │ └── profile_360.py # Perfil 360º del jugador
-│ └── medical/
-│ └── injuries.py # Lesiones
+│   ├── home.py                # Página principal (upload dados)
+│   ├── login.py               # Login
+│   ├── jogadores/
+│   │   └── detalle.py         # Detalhes individuais de jogador
+│   ├── daily/
+│   │   └── pre_session.py     # Dados de sessões
+│   ├── players/
+│   │   └── profile_360.py     # Perfil 360º do jogador
+│   └── medical/
+│       └── injuries.py        # Lesões
 ├── utils/
-│ ├── auth.py # Validación de usuarios
-│ └── csv_loader.py # Funciones de carga de archivos CSV
+│   ├── auth.py                # validação de utilizadores
+│   └── csv_loader.py          # funções de carregamento de CSVs
 ├── README.md
+```
+
+## Como Executar
+
+1. Instale as dependências:
+   ```bash
+   pip install dash pandas
+   ```
+2. Execute a aplicação:
+   ```bash
+   python app.py
+   ```
+3. Abra o navegador em [http://127.0.0.1:8050/](http://127.0.0.1:8050/)
+
+## Personalização
+
+- O design (cores preto e dourado) pode ser ajustado em `assets/style.css`.
+- Novas páginas e funcionalidades podem ser adicionadas seguindo a estrutura existente.

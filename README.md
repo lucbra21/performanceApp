@@ -1,15 +1,16 @@
-# Aplicação de Análise de Performance Desportiva
+# Aplicación de Análisis de Rendimiento Deportivo
 
-Esta é uma aplicação web desenvolvida com Plotly Dash para ajudar preparadores físicos e equipas técnicas na análise de dados de performance desportiva.
+Esta es una aplicación web desarrollada con Plotly Dash para ayudar a preparadores físicos y equipos técnicos en el análisis de datos de rendimiento deportivo.
 
 ## Funcionalidades
 
-- Autenticação de utilizadores
-- Carregamento de dados CSV de diferentes fontes (GPS, Wellness, Treino)
-- Visualização de dados e relatórios
-- Navegação intuitiva através de uma barra lateral
+- Autenticación de usuarios
+- Carga de archivos CSV desde diferentes fuentes (GPS, Bienestar, Entrenamiento)
+- Visualización de datos e informes
+- Navegación intuitiva mediante una barra lateral
 
-## Estrutura do Projeto
+## Estructura del Proyecto
+
 
 ```
 ├── app.py                      # app principal
@@ -36,20 +37,3 @@ Esta é uma aplicação web desenvolvida com Plotly Dash para ajudar preparadore
 │   └── csv_loader.py          # funções de carregamento de CSVs
 ├── README.md
 ```
-
-## Como Executar
-
-1. Instale as dependências:
-   ```bash
-   pip install dash pandas
-   ```
-2. Execute a aplicação:
-   ```bash
-   python app.py
-   ```
-3. Abra o navegador em [http://127.0.0.1:8050/](http://127.0.0.1:8050/)
-
-## Personalização
-
-- O design (cores preto e dourado) pode ser ajustado em `assets/style.css`.
-- Novas páginas e funcionalidades podem ser adicionadas seguindo a estrutura existente.

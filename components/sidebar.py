@@ -10,7 +10,7 @@ def Sidebar(username=None):
         html.H2('Menú', style={'textAlign': 'center', 'color': '#FFD700', 'fontWeight': 'bold'}),
         html.Hr(style={"borderColor": "#FFD700"}),
         dcc.Link('Página de Inicio', href='/home', className='sidebar-link'),
-        dcc.Link('Análisis de Entrenamiento', href='/analise-treino', className='sidebar-link'),
+        dcc.Link('Sesion Report', href='/resumen-sesion', className='sidebar-link'),
         dcc.Link('Análisis de Partido', href='/analise-jogo', className='sidebar-link'),
         dcc.Link('Análisis de Temporada', href='/analise-epoca', className='sidebar-link'),
         dcc.Link('Configuración', href='/configuracoes', className='sidebar-link'),

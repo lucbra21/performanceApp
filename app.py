@@ -2,8 +2,12 @@
 import dash
 from dash import html, dcc
 from dash.dependencies import Input, Output, State
+from pages import login, home, sesionReport
+import dash_bootstrap_components as dbc
 
-app = dash.Dash(__name__, suppress_callback_exceptions=True)
+
+
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], suppress_callback_exceptions=True)
 server = app.server
 
 app.layout = html.Div([
@@ -30,6 +34,8 @@ def display_page(pathname):
         # Here you might want to check if the user is authenticated
         # For now, let's assume direct access after "login"
         return home.layout()
+    elif pathname == '/resumen-sesion':
+        return sesionReport.layout
     # TODO: Add other pages here
     # elif pathname == '/analise-treino':
     #     return analise_treino.layout()
@@ -68,6 +74,11 @@ def update_username_on_sidebar_load(pathname):
         # The login callback directly updates it for now.
         return dash.no_update # Or a default like "Usuario"
     return "" # Clear if on login page
+
+
+
+
+
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -83,19 +83,24 @@ layout = html.Div([
                 dcc.Graph(id='grafico-hibd')
             ], width=6),
         ], className="mb-4"),
-    dbc.Row([
+        dbc.Row([
+                dbc.Col([
+                    dcc.Graph(id='grafico-barras-acc')
+                ], width=4),
+                dbc.Col([
+                    dcc.Graph(id='grafico-barras-decc')
+                ], width=4),
+                dbc.Col([
+                    dcc.Graph(id='grafico-barras-max-sprint')
+                ], width=4),
+            ], className="mb-4"),
+        html.Br(),
+        dbc.Row([
             dbc.Col([
-                dcc.Graph(id='grafico-barras-acc')
-            ], width=4),
-            dbc.Col([
-                dcc.Graph(id='grafico-barras-decc')
-            ], width=4),
-            dbc.Col([
-                dcc.Graph(id='grafico-barras-max-sprint')
-            ], width=4),
-        ], className="mb-4")
+                dcc.Graph(id='grafico-posiciones')
+            ], width=12)
+        ], className="mb-4"),
 ])
-
 
 @callback(
     Output('tabla-metricas-sesion', 'data'),
@@ -129,11 +134,11 @@ def actualizar_tabla_sesion(start_date, end_date):
     columnas_presentes = [col for col in columnas_metricas if col in df_filtrado.columns]
 
     df_agrupado = df_filtrado.groupby('Player', as_index=False)[columnas_presentes].sum()
-    columnas_extra = df_filtrado.groupby('Player', as_index=False)[['Nick Name', 'Team ', 'Position']].first()
+    columnas_extra = df_filtrado.groupby('Player', as_index=False)[['Nick Name', 'Team ', 'Position', 'Match Day']].first()
     df_final = pd.merge(df_agrupado, columnas_extra, on='Player', how='left')
 
     # Ordenar columnas si están disponibles
-    columnas_finales = ['Player', 'Nick Name', 'Team ', 'Position'] + columnas_presentes
+    columnas_finales = ['Player', 'Nick Name', 'Team ', 'Position', 'Match Day'] + columnas_presentes
     columnas_finales = [col for col in columnas_finales if col in df_final.columns]
     df_final = df_final[columnas_finales]
 
@@ -471,8 +476,70 @@ def actualizar_grafico_hibd(start_date, end_date):
         xaxis_title='MAX Speed(km/h)',
         yaxis_title='Jugador',
         showlegend=False,
-        height=height,  # <-- agrega esto
-        margin=dict(l=100)  # <-- más espacio a la izquierda para los nombres
+        height=height,  
+        margin=dict(l=100)  
     )
 
     return fig
+
+
+
+@callback(
+    Output('grafico-posiciones', 'figure'),
+    Input('rango-fechas', 'start_date'),
+    Input('rango-fechas', 'end_date')
+)
+def actualizar_grafico_posiciones(start_date, end_date):
+    if start_date is None or end_date is None:
+        return go.Figure()
+
+    df['Date'] = pd.to_datetime(df['Date'])
+
+    df_filtrado = df[
+        (df['Date'] >= start_date) &
+        (df['Date'] <= end_date) &
+        (df['Selection'] == 'Session') &
+        (df['Player'] != 'TEAM')
+    ]
+
+    # Limpiar posiciones inválidas
+    df_filtrado = df_filtrado[
+        (df_filtrado['Position'].notna()) &
+        (~df_filtrado['Position'].isin(['', 0, '0']))
+    ]
+
+    df_posiciones = df_filtrado.groupby('Position', as_index=False)[
+        ['MAX Speed(km/h)', 
+         'High Intensity Dec Abs (count)', 
+         'High Intensity Acc Abs (count)', 
+         'HIBD (m)']
+    ].mean()
+
+    fig = go.Figure()
+    variables = [
+        'MAX Speed(km/h)', 
+        'High Intensity Dec Abs (count)', 
+        'High Intensity Acc Abs (count)', 
+        'HIBD (m)'
+    ]
+
+    for var in variables:
+        fig.add_trace(go.Bar(
+            x=df_posiciones['Position'],
+            y=df_posiciones[var],
+            name=var
+        ))
+
+    
+    fig.update_layout(
+        barmode='group',
+        title='Promedio por posición de variables físicas',
+        xaxis_title='Posición',
+        yaxis_title='Valor medio',
+        legend_title='Variable',
+        height=600
+    )
+
+    return fig
+
+

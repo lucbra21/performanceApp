@@ -1,0 +1,311 @@
+/* Estilos para a página Cargar Datos */
+
+/* Container principal */
+.cargar-datos-container {
+    width: 100%;
+    height: 420px;
+    margin: 20px 0 20px 0; /* Removido o margin-left para ocupar toda a largura */
+    box-shadow: 0 4px 6px rgb(158, 157, 157);
+    border: 1px solid #575757; /* Borda leve */
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Barra de botões superior */
+.cargar-datos-header {
+    background-color: #000000;
+    padding: 12px 15px;
+    border-radius: 8px 8px 0 0;
+    margin-bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-shrink: 0;
+}
+
+/* Elemento visual GPS */
+.gps-label {
+    background-color: #c3b89a;
+    color: black;
+    padding: 8px 16px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Container dos botões à direita */
+.buttons-right {
+    display: flex;
+    gap: 5px;
+}
+
+/* Botões da barra superior */
+.btn-upload {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+    text-align: center;
+    user-select: none;
+}
+
+.btn-edit {
+    background-color: #17a2b8;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.btn-download {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+/* Hover effects para os botões */
+.btn-upload:hover {
+    background-color: #0056b3;
+    color: white;
+    text-decoration: none;
+}
+
+.btn-edit:hover {
+    background-color: #138496;
+}
+
+.btn-download:hover {
+    background-color: #1e7e34;
+}
+
+/* Scrollbar personalizada para o histórico */
+#files-history::-webkit-scrollbar {
+    width: 4px;
+}
+
+#files-history::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 2px;
+}
+
+#files-history::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 2px;
+}
+
+#files-history::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}
+
+/* Área de conteúdo principal */
+.cargar-datos-content {
+    background-color: white;
+    padding: 10px;
+    border-radius: 0 0 8px 8px;
+    border-top: none;
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Mensaje de estado del archivo */
+.file-status-msg {
+    color: #17a2b8;
+    font-size: 14px;
+    margin-top: 50rem;
+    font-weight: bold;
+}
+
+/* Título do histórico */
+.historico-title {
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 15px;
+    flex-shrink: 0;
+    font-weight: bold;
+}
+
+/* Container do histórico com scroll */
+#files-history {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 200px;
+}
+
+/* Item do histórico de arquivo */
+.file-history-item {
+    margin-bottom: 12px;
+    padding: 10px;
+    border-left: 3px solid #17a2b8;
+    font-size: 14px;
+    background-color: #f8f9fa;
+    border-radius: 0 4px 4px 0;
+    transition: background-color 0.2s ease;
+}
+
+.file-history-item:hover {
+    background-color: #e9ecef;
+}
+
+.file-name {
+    font-weight: bold;
+    font-size: 14px;
+    color: #333;
+    line-height: 1.3;
+    margin-bottom: 2px;
+}
+
+.file-date {
+    font-size: 12px;
+    color: #666;
+    margin-top: 3px;
+    line-height: 1.3;
+}
+
+/* Mensaje cuando no hay archivos */
+.no-files-msg {
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
+}
+
+/* Estilos para la sección de edición */
+.edit-section {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    border: 1px solid #dee2e6;
+}
+
+.edit-section label {
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 10px;
+    display: block;
+}
+
+/* Botón de confirmación */
+.btn-confirm {
+    background-color: #28a745 !important;
+    color: white !important;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-confirm:hover {
+    background-color: #1e7e34 !important;
+}
+
+.btn-cancel{
+    background-color: #a83232 !important;
+    color: white !important;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 15px;
+    margin-left: 1rem;
+    transition: background-color 0.3s ease;
+}
+
+.btn-cancel:hover {
+    background-color: #671f1f !important;
+}
+
+/* Mensajes de éxito y error */
+
+.info-msg{
+    color: #000000;
+    font-weight: 500;
+    margin-top: 10px;
+}
+.success-msg {
+    color: #28a745;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+.error-msg {
+    color: #dc3545;
+    font-weight: 500;
+    margin-top: 10px;
+}
+
+/* Estilos para o contêiner de mensagens de status */
+#status-messages {
+    padding: 10px;
+    margin-bottom: 10px;
+    min-height: 40px;
+}
+
+/* Estilos para a linha divisória */
+.divider-line {
+    border: none;
+    height: 3px;
+    background-color: #000000;
+    margin: 5px 0;
+}
+
+/* Estilos para o componente de histórico de arquivos */
+.history-component {
+    padding: 5px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+}
+
+/* Estilos para o título da página */
+.page-title {
+    font-weight: bold;
+    height: 50px;
+    margin-right: 20px;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .cargar-datos-container {
+        max-width: 95%;
+        margin: 10px auto;
+    }
+    
+    .cargar-datos-header {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    
+    .cargar-datos-header button {
+        flex: 1;
+        min-width: 80px;
+    }
+    
+    .cargar-datos-content {
+        padding: 10px;
+    }
+}
+
+
+

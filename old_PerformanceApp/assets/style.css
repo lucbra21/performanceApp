@@ -1,0 +1,172 @@
+/* assets/style.css */
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #121212; /* Dark background */
+    color: #FFFFFF; /* Light text */
+}
+
+/* Add custom styles for black and gold theme */
+.header {
+    background-color: #000000; /* Black */
+    color: #FFD700; /* Gold */
+    padding: 15px;
+    text-align: center;
+}
+
+.sidebar {
+    background-color: #1E1E1E; /* Darker shade for sidebar */
+    color: #FFD700; /* Gold */
+    padding: 15px;
+    height: 100vh;
+}
+
+.sidebar a {
+    color: #FFFFFF; /* White links */
+    display: block;
+    padding: 10px;
+    text-decoration: none;
+}
+
+.sidebar a:hover {
+    background-color: #FFD700; /* Gold hover */
+    color: #000000; /* Black text on hover */
+}
+
+.content {
+    margin-left: 250px; /* Adjust based on sidebar width */
+    padding: 20px;
+}
+
+/* Login Page Styles */
+.login-container {
+    width: 300px;
+    margin: 100px auto;
+    padding: 20px;
+    background-color: #1E1E1E;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.login-container h2 {
+    color: #FFD700;
+    text-align: center;
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: calc(100% - 22px);
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #FFD700;
+    background-color: #121212;
+    color: #FFFFFF;
+    border-radius: 4px;
+}
+
+.login-container button {
+    width: 100%;
+    padding: 10px;
+    background-color: #FFD700;
+    color: #000000;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.login-container button:hover {
+    background-color: #E6C300; /* Darker gold on hover */
+}
+
+/* Table Styles */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+thead {
+    background-color: #000000;
+    color: #FFD700;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+    border: 1px solid #FFD700;
+}
+
+tbody tr:nth-child(even) {
+    background-color: #2C2C2C; /* Slightly lighter dark for even rows */
+}
+
+/* Button styles */
+.button-primary {
+    background-color: #FFD700;
+    color: #000000;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+}
+
+.button-primary:hover {
+    background-color: #E6C300;
+}
+
+/* Estilo personalizado para la tabla */
+.tabla-container {
+    max-width: 90%;
+    margin: 0 auto;
+    margin-top: 30px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Celdas de la tabla */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet .dash-cell {
+    padding: 6px 8px;  /* reduce altura y agrega espacio horizontal */
+    font-size: 14px;
+    color: black;  /* color de la tipografía */
+    border: none;
+}
+
+/* Cabecera */
+.dash-header {
+    background-color: #f8f9fa !important;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Hover para filas */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet tr:hover {
+    background-color: #eaeaea;  /* cambia el color al pasar el mouse */
+}
+
+/* Quitar bordes feos */
+.dash-spreadsheet-inner {
+    border-radius: 12px;
+    border: none !important;
+}
+
+/* Eliminar borde entre filas si querés un look más limpio */
+.dash-cell {
+    border-bottom: 1px solid #ddd !important;
+}
+
+/* Opcional: darle altura mínima a cada fila */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet tr {
+    min-height: 30px;
+    height: 30px;
+}
+
+/* Últimas 4 filas (resumen) con fondo gris y negrita */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet tr:nth-last-child(-n+3) {
+    background-color: #363535;
+    font-weight: bold;
+}

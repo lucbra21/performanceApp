@@ -171,12 +171,7 @@ def calcular_estadisticas_comparativas(df_principal, fecha_filtro, columnas_inte
         #save df into csv file
         #df_filtrado.write_csv('df_filtrado.csv')
         
-
-        # stats_filtrado_equipo = df_filtrado_equipo.group_by('Team ').agg(
-        #     [pl.col(col) for col in columnas_interes]
-        # )
-    
-    # Crear diccionarios para almacenar las diferencias porcentuales
+        # Crear diccionarios para almacenar las diferencias porcentuales
     diferencias_jugador = {}
     diferencias_equipo = {}
     
@@ -216,44 +211,54 @@ def calcular_estadisticas_comparativas(df_principal, fecha_filtro, columnas_inte
                 
                 diferencias_jugador[columna][jugador] = diferencia
         
-        # # Calcular diferencias porcentuales para cada equipo y cada columna de interés
-        # for equipo in stats_filtrado_equipo.get_column('Team ').to_list():
-        #     # Obtener estadísticas generales para este equipo (promedio de todos los Match Day)
-        #     stats_generales_df = stats_equipo.filter(pl.col('Team ') == equipo)
-        #     stats_generales = {}
+        # Agrupar datos por equipo para el día de partido específico
+        stats_filtrado_equipo = df_filtrado.group_by('Team ').agg(
+            [pl.col(col).mean() for col in columnas_interes]
+        )
+        
+        # Calcular diferencias porcentuales para cada equipo y cada columna de interés
+        for equipo in stats_filtrado_equipo.get_column('Team ').to_list():
+            # Obtener estadísticas generales para este equipo (del mismo Match Day)
+            stats_generales_df = stats_equipo.filter((pl.col('Team ') == equipo) & (pl.col('Match Day') == matchday))
+            stats_generales = {}
             
-        #     for col in columnas_interes:
-        #         stats_generales[col] = stats_generales_df.get_column(col).mean()
+            for col in columnas_interes:
+                stats_generales[col] = stats_generales_df.get_column(col)[0]
             
-        #     # Obtener estadísticas filtradas para este equipo
-        #     stats_especificas_df = stats_filtrado_equipo.filter(pl.col('Team ') == equipo)
-        #     stats_especificas = {}
+            # Obtener estadísticas filtradas para este equipo
+            stats_especificas_df = stats_filtrado_equipo.filter(pl.col('Team ') == equipo)
+            stats_especificas = {}
             
-        #     for col in columnas_interes:
-        #         stats_especificas[col] = stats_especificas_df.get_column(col)[0]
+            for col in columnas_interes:
+                stats_especificas[col] = stats_especificas_df.get_column(col)[0]
             
-        #     # Calcular diferencias porcentuales
-        #     for columna in columnas_interes:
-        #         if columna not in diferencias_equipo:
-        #             diferencias_equipo[columna] = {}
+            # Calcular diferencias porcentuales
+            for columna in columnas_interes:
+                if columna not in diferencias_equipo:
+                    diferencias_equipo[columna] = {}
                 
-        #         # Evitar división por cero
-        #         if stats_generales[columna] != 0:
-        #             diferencia = ((stats_especificas[columna] - stats_generales[columna]) / stats_generales[columna]) * 100
-        #         else:
-        #             diferencia = float('nan')
+                # Evitar división por cero
+                if stats_generales[columna] != 0:
+                    diferencia = ((stats_especificas[columna] - stats_generales[columna]) / stats_generales[columna]) * 100
+                else:
+                    diferencia = float('nan')
                 
-        #         diferencias_equipo[columna][equipo] = diferencia
+                diferencias_equipo[columna][equipo] = diferencia
     
     # Seleccionar solo las columnas requeridas: Date, Player, Match Day y columnas de interés
     if not df_filtrado.is_empty():
         columnas_a_mantener = ['Date', 'Match Day', 'Player'] + columnas_interes
         df_filtrado = df_filtrado.select(columnas_a_mantener)
     
-    return df_filtrado, diferencias_jugador
+    return df_filtrado, diferencias_jugador, diferencias_equipo
 
+
+
+
+############################################################################################
 
 # Ejemplo de uso:
+
 import os
 #Carregar o arquivo CSV usando caminho relativo
 path_to_csv = os.path.join('..', 'data', 'gps', 'df_gps.csv')
@@ -263,29 +268,25 @@ df = pl.read_csv(path_to_csv)
 colunas_interes = ['Distance (m)', 'HIBD (m)']
 
 # Chamar a função
-df_filtrado, dif_jugador= calcular_estadisticas_comparativas(
+df_filtrado, dif_jugador, dif_equipo = calcular_estadisticas_comparativas(
     df_principal=df,
-    fecha_filtro='23/08/2023',  # Ajuste esta data para uma que exista no seu conjunto de dados
+    fecha_filtro='23/08/2023',  
     columnas_interes=colunas_interes,
-    estadistica='p95'  # Testando com percentil 95
+    estadistica='mean'  # Testando com percentil 95
 )
 
 #save df into csv file
 df_filtrado.write_csv('df_filtrado.csv')
 
 
-# Imprimir resultados
-# print("DataFrame filtrado:")
-# print(df_filtrado)
-
-print("\nDiferenças percentuais por jogador:")
+print("\nDiferencias porcentuales por jugador:")
 for columna, valores in dif_jugador.items():
     print(f"\n{columna}:")
     for jugador, diferencia in valores.items():
         print(f"  {jugador}: {diferencia:.2f}%")
 
-# print("\nDiferenças percentuais por equipe:")
-# for columna, valores in dif_equipo.items():
-#     print(f"\n{columna}:")
-#     for equipo, diferencia in valores.items():
-#         print(f"  {equipo}: {diferencia:.2f}%")
+print("\nDiferencias porcentuales por equipo:")
+for columna, valores in dif_equipo.items():
+    print(f"\n{columna}:")
+    for equipo, diferencia in valores.items():
+        print(f"  {equipo}: {diferencia:.2f}%")

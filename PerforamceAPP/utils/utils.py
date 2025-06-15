@@ -14,7 +14,7 @@ def calcular_estadisticas_comparativas(df_principal, fecha_filtro, columnas_inte
         
     Returns:
         tuple: (DataFrame filtrado, diccionario con diferencias porcentuales por jugador, 
-                diccionario con diferencias porcentuales por equipo)
+                diccionario con diferencias porcentuales por equipo) 
     """
     # Crear una copia del DataFrame principal para no modificarlo
     df = df_principal.clone()

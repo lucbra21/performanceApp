@@ -1,23 +1,45 @@
 import polars as pl
 import numpy as np
 from datetime import datetime
+import os
 
-def calcular_estadisticas_comparativas(df_principal, fecha_filtro, columnas_interes, estadistica='mean'):
+# Definir caminhos absolutos para as pastas de dados
+# Obtener la ruta base del proyecto basada en la ubicación de este archivo
+BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_GPS_PATH = os.path.join(BASE_PATH, 'data', 'gps')
+DATA_PROCESSED_PATH = os.path.join(BASE_PATH, 'data', 'processed')
+
+# Garantir que a pasta de dados processados exista
+def ensure_dir(directory):
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+
+def calcular_estadisticas():
     """
-    Calcula estadísticas para variables de un DataFrame y las compara con el mismo DataFrame filtrado por fecha.
+    Calcula estadísticas comparativas para cada jugador, posición y equipo por Match Day en las columnas de interés.
+    Retorna tres dataframes con las estadísticas: media, mediana, máximo, mínimo, percentil 75, 90 y 95.
+    - df_estadisticas: agrupado por jugador
+    - df_estadisticas_position: agrupado por posición
+    - df_estadisticas_team: agrupado por equipo
+    """
     
-    Args:
-        df_principal (polars.DataFrame): DataFrame principal con los datos
-        fecha_filtro (str): Fecha en formato dd/mm/aaaa para filtrar el DataFrame
-        columnas_interes (list): Lista de columnas para las cuales calcular estadísticas
-        estadistica (str): Estadística a calcular ('mean', 'median', 'sum', 'max', 'min', 'p75', 'p90', 'p95', 'p99')
-        
-    Returns:
-        tuple: (DataFrame filtrado, diccionario con diferencias porcentuales por jugador, 
-                diccionario con diferencias porcentuales por equipo)     
-    """
-    # Crear una copia del DataFrame principal para no modificarlo
-    df = df_principal.clone()
+    
+    
+    # Garantir que a pasta de dados processados exista
+    ensure_dir(DATA_PROCESSED_PATH)
+    
+    # Cargar archivo CSV utilizando una ruta relativa
+    path_to_csv = os.path.join(DATA_GPS_PATH, 'df_gps.csv')
+    df = pl.read_csv(path_to_csv)
+    
+    # Cargar columnas de interés 
+    path_to_txt = os.path.join(DATA_GPS_PATH, 'Columnas_interés.txt')
+    with open(path_to_txt, 'r') as f:
+        columnas_interes = [line.strip() for line in f.readlines()]
+        #print(columnas_interes)
+
+    # Lista de estadísticas a calcular
+    estadisticas = ["mean", "median", "max", "min", "p75", "p90", "p95"]
     
     # Borrar filas que no contienen 'Rehab' en la columna 'Match Day'
     df = df.filter(pl.col('Match Day') != 'Rehab')
@@ -25,268 +47,216 @@ def calcular_estadisticas_comparativas(df_principal, fecha_filtro, columnas_inte
     # Borrar filas que contienen 'TEAM' en la columna 'Player'
     df = df.filter(pl.col('Player') != 'TEAM')
     
-    # Borrar filas que contienen 'TEAM' en la columna 'Team '
+    # Borrar filas que contienen 'TEAM' en la columna 'Team'
     df = df.filter(pl.col('Team ') != 'TEAM')
     
     # Normalizar los valores de la columna 'Team '
     df = df.with_columns(
     pl.when(pl.col('Team ').str.contains('Sporting'))
-    .then(pl.lit('Sporting'))
+    .then(pl.lit('Sporting de Gijón'))
     .otherwise(pl.col('Team '))
     .alias('Team ')
     )
     
     # Filtrar filas que contienen 'Drills' en la columna 'Selection'
     df = df.filter(pl.col('Selection') == 'Drills')
-        
-    # Calcular estadísticas para las columnas de interés
-    if estadistica == 'mean':
-        stats_jugador = df.group_by(['Player', 'Match Day']).agg(
-            [pl.col(col).mean() for col in columnas_interes]
-        )
-        stats_equipo = df.group_by(['Team ', 'Match Day']).agg(
-            [pl.col(col).mean() for col in columnas_interes]
-        )
-    elif estadistica == 'median':
-        stats_jugador = df.group_by(['Player', 'Match Day']).agg(
-            [pl.col(col).median() for col in columnas_interes]
-        )
-        stats_equipo = df.group_by(['Team ', 'Match Day']).agg(
-            [pl.col(col).median() for col in columnas_interes]
-        )
-    elif estadistica == 'sum':
-        stats_jugador = df.group_by(['Player', 'Match Day']).agg(
-            [pl.col(col).sum() for col in columnas_interes]
-        )
-        stats_equipo = df.group_by(['Team ', 'Match Day']).agg(
-            [pl.col(col).sum() for col in columnas_interes]
-        )
-    elif estadistica == 'max':
-        stats_jugador = df.group_by(['Player', 'Match Day']).agg(
-            [pl.col(col).max() for col in columnas_interes]
-        )
-        stats_equipo = df.group_by(['Team ', 'Match Day']).agg(
-            [pl.col(col).max() for col in columnas_interes]
-        )
-    elif estadistica == 'min':
-        stats_jugador = df.group_by(['Player', 'Match Day']).agg(
-            [pl.col(col).min() for col in columnas_interes]
-        )
-        stats_equipo = df.group_by(['Team ', 'Match Day']).agg(
-            [pl.col(col).min() for col in columnas_interes]
-        )
-    elif estadistica == 'p75':
-        stats_jugador = df.group_by(['Player', 'Match Day']).agg(
-            [pl.col(col).quantile(0.75) for col in columnas_interes]
-        )
-        stats_equipo = df.group_by(['Team ', 'Match Day']).agg(
-            [pl.col(col).quantile(0.75) for col in columnas_interes]
-        )
-    elif estadistica == 'p90':
-        stats_jugador = df.group_by(['Player', 'Match Day']).agg(
-            [pl.col(col).quantile(0.90) for col in columnas_interes]
-        )
-        stats_equipo = df.group_by(['Team ', 'Match Day']).agg(
-            [pl.col(col).quantile(0.90) for col in columnas_interes]
-        )
-    elif estadistica == 'p95':
-        stats_jugador = df.group_by(['Player', 'Match Day']).agg(
-            [pl.col(col).quantile(0.95) for col in columnas_interes]
-        )
-        stats_equipo = df.group_by(['Team ', 'Match Day']).agg(
-            [pl.col(col).quantile(0.95) for col in columnas_interes]
-        )
-    elif estadistica == 'p99':
-        stats_jugador = df.group_by(['Player', 'Match Day']).agg(
-            [pl.col(col).quantile(0.99) for col in columnas_interes]
-        )
-        stats_equipo = df.group_by(['Team ', 'Match Day']).agg(
-            [pl.col(col).quantile(0.99) for col in columnas_interes]
-        )
-    else:
-        # Si la estadística no está en las opciones, usar mean por defecto
-        stats_jugador = df.group_by(['Player', 'Match Day']).agg(
-            [pl.col(col).mean() for col in columnas_interes]
-        )
-        stats_equipo = df.group_by(['Team ', 'Match Day']).agg(
-            [pl.col(col).mean() for col in columnas_interes]
-        )
     
-    #save df into csv file
-    # stats_equipo.write_csv('stats_equipo.csv')
-    # stats_jugador.write_csv('stats_jugador.csv')
+    # Obtener lista de match days, jugadores, posiciones y equipos únicos
+    match_days = df['Match Day'].unique().to_list()
+    jugadores = df['Player'].unique().to_list()
+    posiciones = df['Position'].unique().to_list()
+    equipos = df['Team '].unique().to_list()
     
-    # Convertir la fecha de filtro al formato correcto
-    try:
-        # Intentar filtrar directamente por la fecha como string
-        df_filtrado = df.filter(pl.col('Date') == fecha_filtro)
+    # Crear listas para almacenar los resultados
+    resultados_jugadores = []
+    resultados_position = []
+    resultados_team = []
+    
+    
+    ################### Jugadores ########################
+    
+    # Para cada jugador, match day y estadística, calcular los valores para las columnas de interés
+    for jugador in jugadores:
+        # Filtrar datos del jugador
+        df_jugador = df.filter(pl.col('Player') == jugador)
         
-        # Si no hay resultados, intentar otras variaciones de formato
-        if df_filtrado.is_empty():
-            # Imprimir valores únicos de Date para depuración
-            print(f"Valores únicos en la columna Date: {df.select('Date').unique().to_series().to_list()}")
-            print(f"Buscando fecha: {fecha_filtro}")
-            
-            # Intentar con trim para eliminar espacios
-            df_filtrado = df.filter(pl.col('Date').str.strip() == fecha_filtro.strip())
-            
-        # Verificar si se encontraron resultados
-        if not df_filtrado.is_empty():
-            print(f"Se encontraron {df_filtrado.shape[0]} filas para la fecha {fecha_filtro}")
+        # Obtener la posición del jugador (tomamos la primera que aparece, asumiendo que es constante)
+        if df_jugador.height > 0 and 'Position' in df_jugador.columns:
+            posicion_jugador = df_jugador['Position'][0]
         else:
-            print(f"No se encontraron filas para la fecha {fecha_filtro}")
+            posicion_jugador = "Desconocida"
+        
+        for match_day in match_days:
+            # Filtrar datos del jugador para el match day específico
+            df_jugador_match = df_jugador.filter(pl.col('Match Day') == match_day)
             
-    except Exception as e:
-        print(f'Error al filtrar por fecha: {e}')
-        df_filtrado = pl.DataFrame()
-
-           
-    
-    # Filtrar filas que no contienen 'Rehab' en la columna 'Match Day'
-    if not df_filtrado.is_empty():
-        # Borrar filas que no contienen 'Rehab' en la columna 'Match Day'
-        df_filtrado = df_filtrado.filter(pl.col('Match Day') != 'Rehab')
-        
-        # Borrar filas que contienen 'TEAM' en la columna 'Player'
-        df_filtrado = df_filtrado.filter(pl.col('Player') != 'TEAM')
-        
-        # Borrar filas que contienen 'TEAM' en la columna 'Team '
-        df_filtrado = df_filtrado.filter(pl.col('Team ') != 'TEAM')
-        
-        # Normalizar los valores de la columna 'Team '
-        df_filtrado = df_filtrado.with_columns(
-        pl.when(pl.col('Team ').str.contains('Sporting'))
-        .then(pl.lit('Sporting'))
-        .otherwise(pl.col('Team '))
-        .alias('Team ')
-        )
-        
-        # Filtrar filas que contienen 'Drills' en la columna 'Selection'
-        df_filtrado = df_filtrado.filter(pl.col('Selection') == 'Drills')
-        
-        # Almacenar valor de Match Day
-        matchday = df_filtrado.get_column('Match Day')[0]
-
-        
-        #save df into csv file
-        #df_filtrado.write_csv('df_filtrado.csv')
-        
-        # Crear diccionarios para almacenar las diferencias porcentuales
-    diferencias_jugador = {}
-    diferencias_equipo = {}
-    
-    # Calcular diferencias porcentuales para cada jugador y cada columna de interés
-    if not df_filtrado.is_empty():
-        for jugador in df_filtrado.get_column('Player').to_list():
-            # Obtener estadísticas generales para este jugador 
-            stats_generales_df = stats_jugador.filter((pl.col('Player') == jugador) & (pl.col('Match Day') == matchday))
-            stats_generales = {}
-        
-
-            for col in columnas_interes:
-                stats_generales[col] = stats_generales_df.get_column(col)[0]
+            # Si no hay datos para este jugador en este match day, continuar con el siguiente
+            if df_jugador_match.height == 0:
+                continue
             
-            # Obtener estadísticas filtradas para este jugador
-            stats_especificas_df = df_filtrado.filter(pl.col('Player') == jugador)
-            stats_especificas = {}
-            
-            # if jugador == 'Nacho Méndez':
-            #     #save df into csv file
-            #     stats_especificas_df.write_csv('stats_especificas_df.csv')
-            
-            for col in columnas_interes:
-                stats_especificas[col] = stats_especificas_df.get_column(col)[0]
-
-            
-            # Calcular diferencias porcentuales
-            for columna in columnas_interes:
-                if columna not in diferencias_jugador:
-                    diferencias_jugador[columna] = {}
+            # Para cada estadística, crear un registro con todas las columnas de interés
+            for estadistica in estadisticas:
+                # Inicializar un diccionario para este registro
+                registro = {
+                    "Player": jugador,
+                    "Position": posicion_jugador,
+                    "Match Day": match_day,
+                    "Estadistica": estadistica
+                }
                 
-                # Evitar división por cero
-                if stats_generales[columna] != 0:
-                    diferencia = ((stats_especificas[columna] - stats_generales[columna]) / stats_generales[columna]) * 100
-                else:
-                    diferencia = float('nan')
+                # Calcular la estadística para cada columna de interés y añadirla al registro
+                for columna in columnas_interes:
+                    # Verificar si la columna existe en el dataframe
+                    if columna not in df_jugador_match.columns:
+                        continue
+                    
+                    # Calcular la estadística correspondiente
+                    if estadistica == "mean":
+                        valor = df_jugador_match[columna].mean()
+                    elif estadistica == "median":
+                        valor = df_jugador_match[columna].median()
+                    elif estadistica == "max":
+                        valor = df_jugador_match[columna].max()
+                    elif estadistica == "min":
+                        valor = df_jugador_match[columna].min()
+                    elif estadistica == "p75":
+                        valor = df_jugador_match[columna].quantile(0.75)
+                    elif estadistica == "p90":
+                        valor = df_jugador_match[columna].quantile(0.90)
+                    elif estadistica == "p95":
+                        valor = df_jugador_match[columna].quantile(0.95)
+                    else:
+                        continue
+                    
+                    # Añadir el valor calculado al registro usando el nombre de la columna como clave
+                    registro[columna] = valor
                 
-                diferencias_jugador[columna][jugador] = diferencia
-        
-        # Agrupar datos por equipo para el día de partido específico
-        stats_filtrado_equipo = df_filtrado.group_by('Team ').agg(
-            [pl.col(col).mean() for col in columnas_interes]
-        )
-        
-        # Calcular diferencias porcentuales para cada equipo y cada columna de interés
-        for equipo in stats_filtrado_equipo.get_column('Team ').to_list():
-            # Obtener estadísticas generales para este equipo (del mismo Match Day)
-            stats_generales_df = stats_equipo.filter((pl.col('Team ') == equipo) & (pl.col('Match Day') == matchday))
-            stats_generales = {}
-            
-            for col in columnas_interes:
-                stats_generales[col] = stats_generales_df.get_column(col)[0]
-            
-            # Obtener estadísticas filtradas para este equipo
-            stats_especificas_df = stats_filtrado_equipo.filter(pl.col('Team ') == equipo)
-            stats_especificas = {}
-            
-            for col in columnas_interes:
-                stats_especificas[col] = stats_especificas_df.get_column(col)[0]
-            
-            # Calcular diferencias porcentuales
-            for columna in columnas_interes:
-                if columna not in diferencias_equipo:
-                    diferencias_equipo[columna] = {}
-                
-                # Evitar división por cero
-                if stats_generales[columna] != 0:
-                    diferencia = ((stats_especificas[columna] - stats_generales[columna]) / stats_generales[columna]) * 100
-                else:
-                    diferencia = float('nan')
-                
-                diferencias_equipo[columna][equipo] = diferencia
+                # Añadir el registro completo a la lista de resultados
+                resultados_jugadores.append(registro)
     
-    # Seleccionar solo las columnas requeridas: Date, Player, Match Day y columnas de interés
-    if not df_filtrado.is_empty():
-        columnas_a_mantener = ['Date', 'Match Day', 'Player'] + columnas_interes
-        df_filtrado = df_filtrado.select(columnas_a_mantener)
     
-    return df_filtrado, diferencias_jugador, diferencias_equipo
-
-
-
-
-############################################################################################
-
-# Ejemplo de uso:
-
-import os
-#Carregar o arquivo CSV usando caminho relativo
-path_to_csv = os.path.join('..', 'data', 'gps', 'df_gps.csv')
-df = pl.read_csv(path_to_csv)
-
-# Definir as colunas de interesse
-colunas_interes = ['Distance (m)', 'HIBD (m)']
-
-# Chamar a função
-df_filtrado, dif_jugador, dif_equipo = calcular_estadisticas_comparativas(
-    df_principal=df,
-    fecha_filtro='23/08/2023',  
-    columnas_interes=colunas_interes,
-    estadistica='mean'  # Testando com percentil 95
-)
-
-#save df into csv file
-df_filtrado.write_csv('df_filtrado.csv')
-
-
-print("\nDiferencias porcentuales por jugador:")
-for columna, valores in dif_jugador.items():
-    print(f"\n{columna}:")
-    for jugador, diferencia in valores.items():
-        print(f"  {jugador}: {diferencia:.2f}%")
-
-print("\nDiferencias porcentuales por equipo:")
-for columna, valores in dif_equipo.items():
-    print(f"\n{columna}:")
-    for equipo, diferencia in valores.items():
-        print(f"  {equipo}: {diferencia:.2f}%")
+    ################### Posición ########################
+    
+    # Para cada posición, match day y estadística, calcular los valores para las columnas de interés
+    for posicion in posiciones:
+        # Filtrar datos de la posición
+        df_posicion = df.filter(pl.col('Position') == posicion)
+        
+        for match_day in match_days:
+            # Filtrar datos de la posición para el match day específico
+            df_posicion_match = df_posicion.filter(pl.col('Match Day') == match_day)
+            
+            # Si no hay datos para esta posición en este match day, continuar con el siguiente
+            if df_posicion_match.height == 0:
+                continue
+            
+            # Para cada estadística, crear un registro con todas las columnas de interés
+            for estadistica in estadisticas:
+                # Inicializar un diccionario para este registro
+                registro = {
+                    "Position": posicion,
+                    "Match Day": match_day,
+                    "Estadistica": estadistica
+                }
+                
+                # Calcular la estadística para cada columna de interés y añadirla al registro
+                for columna in columnas_interes:
+                    # Verificar si la columna existe en el dataframe
+                    if columna not in df_posicion_match.columns:
+                        continue
+                    
+                    # Calcular la estadística correspondiente
+                    if estadistica == "mean":
+                        valor = df_posicion_match[columna].mean()
+                    elif estadistica == "median":
+                        valor = df_posicion_match[columna].median()
+                    elif estadistica == "max":
+                        valor = df_posicion_match[columna].max()
+                    elif estadistica == "min":
+                        valor = df_posicion_match[columna].min()
+                    elif estadistica == "p75":
+                        valor = df_posicion_match[columna].quantile(0.75)
+                    elif estadistica == "p90":
+                        valor = df_posicion_match[columna].quantile(0.90)
+                    elif estadistica == "p95":
+                        valor = df_posicion_match[columna].quantile(0.95)
+                    else:
+                        continue
+                    
+                    # Añadir el valor calculado al registro usando el nombre de la columna como clave
+                    registro[columna] = valor
+                
+                # Añadir el registro completo a la lista de resultados por posición
+                resultados_position.append(registro)
+                
+  
+    ################### Equipo ########################
+    
+    # Para cada equipo, match day y estadística, calcular los valores para las columnas de interés
+    for equipo in equipos:
+        # Filtrar datos del equipo
+        df_equipo = df.filter(pl.col('Team ') == equipo)
+        
+        for match_day in match_days:
+            # Filtrar datos del equipo para el match day específico
+            df_equipo_match = df_equipo.filter(pl.col('Match Day') == match_day)
+            
+            # Si no hay datos para este equipo en este match day, continuar con el siguiente
+            if df_equipo_match.height == 0:
+                continue
+            
+            # Para cada estadística, crear un registro con todas las columnas de interés
+            for estadistica in estadisticas:
+                # Inicializar un diccionario para este registro
+                registro = {
+                    "Team": equipo,
+                    "Match Day": match_day,
+                    "Estadistica": estadistica
+                }
+                
+                # Calcular la estadística para cada columna de interés y añadirla al registro
+                for columna in columnas_interes:
+                    # Verificar si la columna existe en el dataframe
+                    if columna not in df_equipo_match.columns:
+                        continue
+                    
+                    # Calcular la estadística correspondiente
+                    if estadistica == "mean":
+                        valor = df_equipo_match[columna].mean()
+                    elif estadistica == "median":
+                        valor = df_equipo_match[columna].median()
+                    elif estadistica == "max":
+                        valor = df_equipo_match[columna].max()
+                    elif estadistica == "min":
+                        valor = df_equipo_match[columna].min()
+                    elif estadistica == "p75":
+                        valor = df_equipo_match[columna].quantile(0.75)
+                    elif estadistica == "p90":
+                        valor = df_equipo_match[columna].quantile(0.90)
+                    elif estadistica == "p95":
+                        valor = df_equipo_match[columna].quantile(0.95)
+                    else:
+                        continue
+                    
+                    # Añadir el valor calculado al registro usando el nombre de la columna como clave
+                    registro[columna] = valor
+                
+                # Añadir el registro completo a la lista de resultados por equipo
+                resultados_team.append(registro)
+    
+    
+    # Crear los dataframes a partir de las listas de resultados
+    df_estadisticas = pl.DataFrame(resultados_jugadores)
+    df_estadisticas_position = pl.DataFrame(resultados_position)
+    df_estadisticas_team = pl.DataFrame(resultados_team)
+        
+    # Guardar los dataframes de estadísticas en archivos CSV
+    output_path = os.path.join(DATA_PROCESSED_PATH, 'df_jugadores_estadisticas.csv')
+    output_path_position = os.path.join(DATA_PROCESSED_PATH, 'df_position_estadisticas.csv')
+    output_path_team = os.path.join(DATA_PROCESSED_PATH, 'df_team._estadisticas.csv')
+    
+    df_estadisticas.write_csv(output_path)
+    df_estadisticas_position.write_csv(output_path_position)
+    df_estadisticas_team.write_csv(output_path_team)
+    
+    return df_estadisticas, df_estadisticas_position, df_estadisticas_team

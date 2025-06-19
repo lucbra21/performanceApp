@@ -14,6 +14,9 @@ import polars as pl
 import datetime
 import json
 
+# Importación de la función calcular_estadisticas desde utils
+from utils.utils import calcular_estadisticas
+
 
 # ============================================================================
 # FUNCIONES DE UTILIDAD PARA EL HISTORIAL DE ARCHIVOS
@@ -198,6 +201,7 @@ def register_callbacks(app):
         
         # Ruta del archivo CSV consolidado
         merge_path = os.path.join(gps_folder, 'df_gps.csv')
+        print("Archivo salvado")
         
         try:
             # Obtiene todos los archivos XLSX en la carpeta (incluido el recién subido)
@@ -212,6 +216,13 @@ def register_callbacks(app):
             
             # Registra la acción en el historial
             add_history_entry("upload", filename)
+            
+            # Ejecuta la función calcular_estadisticas para actualizar las estadísticas
+            try:
+                calcular_estadisticas()
+                print("Estadísticas calculadas correctamente después de añadir archivo.")
+            except Exception as e:
+                print(f"Error al calcular estadísticas: {str(e)}")
             
             # Actualiza el componente de historial
             updated_history = generate_history_component()
@@ -297,6 +308,7 @@ def register_callbacks(app):
        
         # Actualiza el CSV consolidado solo con los archivos seleccionados
         merge_path = os.path.join(gps_folder, 'df_gps.csv')
+        print("Archivo editado")
         if selected_files:
             try:    
                 # Recrea el df_gps.csv solo con los archivos seleccionados
@@ -313,6 +325,14 @@ def register_callbacks(app):
             if os.path.exists(merge_path):
                 os.remove(merge_path)
             msg = "Todos los archivos fueron eliminados."
+        
+        # Ejecuta la función calcular_estadisticas para actualizar las estadísticas
+        if selected_files:  # Solo si hay archivos seleccionados
+            try:
+                calcular_estadisticas()
+                print("Estadísticas calculadas correctamente después de editar archivos.")
+            except Exception as e:
+                print(f"Error al calcular estadísticas: {str(e)}")
         
         # Actualiza el componente de historial
         updated_history = generate_history_component()

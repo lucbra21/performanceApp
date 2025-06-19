@@ -1,0 +1,3 @@
+Distance (m)
+Explosive Dist (m)
+Speed Zones (m) [12.0, 18.0]km/h (m)

@@ -3,260 +3,317 @@ import numpy as np
 from datetime import datetime
 import os
 
-# Definir caminhos absolutos para as pastas de dados
+
 # Obtener la ruta base del proyecto basada en la ubicación de este archivo
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_GPS_PATH = os.path.join(BASE_PATH, 'data', 'gps')
 DATA_PROCESSED_PATH = os.path.join(BASE_PATH, 'data', 'processed')
 
-# Garantir que a pasta de dados processados exista
+
+# Asegúrese de que la carpeta de datos procesados existe
 def ensure_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
-
-def calcular_estadisticas():
+        
+def calcular_estadisticas(fecha=None, columnas_interes=None):
     """
-    Calcula estadísticas comparativas para cada jugador, posición y equipo por Match Day en las columnas de interés.
-    Retorna tres dataframes con las estadísticas: media, mediana, máximo, mínimo, percentil 75, 90 y 95.
-    - df_estadisticas: agrupado por jugador
-    - df_estadisticas_position: agrupado por posición
-    - df_estadisticas_team: agrupado por equipo
+    Calculates comparative statistics for each player, position and team by Match Day.
+    If fecha is provided, filters data for that specific date's Week Team.
+    
+    Args:
+        fecha (str, optional): Date in dd/mm/yyyy format to filter data
+        columnas_interes (list, optional): List of columns to calculate statistics for
+            
+    Returns:
+        tuple: (df_estadisticas, df_estadisticas_position, df_estadisticas_team) with calculated statistics
     """
-    
-    
-    
-    # Garantir que a pasta de dados processados exista
+    # Ensure processed data directory exists
     ensure_dir(DATA_PROCESSED_PATH)
     
-    # Cargar archivo CSV utilizando una ruta relativa
-    path_to_csv = os.path.join(DATA_GPS_PATH, 'df_gps.csv')
-    df = pl.read_csv(path_to_csv)
-    
-    # Cargar columnas de interés 
-    path_to_txt = os.path.join(DATA_GPS_PATH, 'Columnas_interés.txt')
-    with open(path_to_txt, 'r') as f:
-        columnas_interes = [line.strip() for line in f.readlines()]
-        #print(columnas_interes)
+    # Verify parquet file exists and load it
+    path_to_parquet = os.path.join(DATA_GPS_PATH, 'df_gps.parquet')
+    if not os.path.exists(path_to_parquet) or os.path.getsize(path_to_parquet) == 0:
+        print("df_gps.parquet does not exist or is empty")
+        return None, None, None
+        
+    try:
+        df = pl.read_parquet(path_to_parquet)
+        if df.height == 0:
+            print("DataFrame is empty")
+            return None, None, None
+            
+        # # Create backup
+        # backup_path = os.path.join(DATA_GPS_PATH, 'df_gps_backup.parquet')
+        # df.write_parquet(backup_path)
+        
+        # Filter by date if provided
+        if fecha is not None:
+            if 'Date' not in df.columns or 'Week Team' not in df.columns:
+                print("Required date columns missing")
+                return None, None, None
+                
+            df_fecha = df.filter(pl.col('Date') == fecha)
+            if df_fecha.height == 0:
+                print(f"No data found for date {fecha}")
+                return None, None, None
+                
+            week_team = df_fecha['Week Team'][0]
+            df = df.filter(pl.col('Week Team') == week_team)
+            print(f"Filtered data for Week Team: {week_team}")
+            
+        # Load columns of interest
+        if columnas_interes is None:
+            path_to_txt = os.path.join(DATA_GPS_PATH, 'Columnas_interés.txt')
+            with open(path_to_txt, 'r') as f:
+                columnas_interes = [line.strip() for line in f.readlines()]
 
-    # Lista de estadísticas a calcular
-    estadisticas = ["mean", "median", "max", "min", "p75", "p90", "p95"]
-    
-    # Borrar filas que no contienen 'Rehab' en la columna 'Match Day'
-    df = df.filter(pl.col('Match Day') != 'Rehab')
-    
-    # Borrar filas que contienen 'TEAM' en la columna 'Player'
-    df = df.filter(pl.col('Player') != 'TEAM')
-    
-    # Borrar filas que contienen 'TEAM' en la columna 'Team'
-    df = df.filter(pl.col('Team ') != 'TEAM')
-    
-    # Normalizar los valores de la columna 'Team '
-    df = df.with_columns(
-    pl.when(pl.col('Team ').str.contains('Sporting'))
-    .then(pl.lit('Sporting de Gijón'))
-    .otherwise(pl.col('Team '))
-    .alias('Team ')
-    )
-    
-    # Filtrar filas que contienen 'Drills' en la columna 'Selection'
-    df = df.filter(pl.col('Selection') == 'Drills')
-    
-    # Obtener lista de match days, jugadores, posiciones y equipos únicos
-    match_days = df['Match Day'].unique().to_list()
-    jugadores = df['Player'].unique().to_list()
-    posiciones = df['Position'].unique().to_list()
-    equipos = df['Team '].unique().to_list()
-    
-    # Crear listas para almacenar los resultados
-    resultados_jugadores = []
-    resultados_position = []
-    resultados_team = []
-    
-    
-    ################### Jugadores ########################
-    
-    # Para cada jugador, match day y estadística, calcular los valores para las columnas de interés
-    for jugador in jugadores:
-        # Filtrar datos del jugador
-        df_jugador = df.filter(pl.col('Player') == jugador)
+        # Apply filters
+        df = (df.filter(pl.col('Match Day') != 'Rehab')
+              .filter(pl.col('Player') != 'TEAM')
+              .filter(pl.col('Team ') != 'TEAM')
+              .filter(pl.col('Selection') == 'Drills')
+              .with_columns(
+                  pl.when(pl.col('Team ').str.contains('Sporting'))
+                  .then(pl.lit('Sporting de Gijón'))
+                  .otherwise(pl.col('Team '))
+                  .alias('Team ')
+              ))
+
+        # Get unique values
+        match_days = df['Match Day'].unique().to_list()
+        jugadores = df['Player'].unique().to_list()
+        posiciones = df['Position'].unique().to_list() 
+        equipos = df['Team '].unique().to_list()
+
+        # Statistics to calculate
+        estadisticas = ["mean", "median", "max", "min", "p75", "p90", "p95"]
         
-        # Obtener la posición del jugador (tomamos la primera que aparece, asumiendo que es constante)
-        if df_jugador.height > 0 and 'Position' in df_jugador.columns:
-            posicion_jugador = df_jugador['Position'][0]
+        # Initialize results lists
+        resultados_jugadores = []
+        resultados_position = []
+        resultados_team = []
+
+        # Calculate statistics for each group
+        for jugador in jugadores:
+            df_jugador = df.filter(pl.col('Player') == jugador)
+            posicion_jugador = df_jugador['Position'][0] if df_jugador.height > 0 else "Desconocida"
+            
+            for match_day in match_days:
+                df_match = df_jugador.filter(pl.col('Match Day') == match_day)
+                if df_match.height == 0:
+                    continue
+                    
+                for estadistica in estadisticas:
+                    registro = {
+                        "Player": jugador,
+                        "Position": posicion_jugador,
+                        "Match Day": match_day,
+                        "Estadistica": estadistica
+                    }
+                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
+                    resultados_jugadores.append(registro)
+
+        for posicion in posiciones:
+            df_posicion = df.filter(pl.col('Position') == posicion)
+            for match_day in match_days:
+                df_match = df_posicion.filter(pl.col('Match Day') == match_day)
+                if df_match.height == 0:
+                    continue
+                    
+                for estadistica in estadisticas:
+                    registro = {
+                        "Position": posicion,
+                        "Match Day": match_day,
+                        "Estadistica": estadistica
+                    }
+                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
+                    resultados_position.append(registro)
+
+        for equipo in equipos:
+            df_equipo = df.filter(pl.col('Team ') == equipo)
+            for match_day in match_days:
+                df_match = df_equipo.filter(pl.col('Match Day') == match_day)
+                if df_match.height == 0:
+                    continue
+                    
+                for estadistica in estadisticas:
+                    registro = {
+                        "Team": equipo,
+                        "Match Day": match_day,
+                        "Estadistica": estadistica
+                    }
+                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
+                    resultados_team.append(registro)
+
+        # Create DataFrames
+        df_estadisticas = pl.DataFrame(resultados_jugadores)
+        df_estadisticas_position = pl.DataFrame(resultados_position)
+        df_estadisticas_team = pl.DataFrame(resultados_team)
+
+        # Calculate percentage differences
+        df_estadisticas = calcular_diferencia_porcentual(df_estadisticas)
+        df_estadisticas_position = calcular_diferencia_porcentual(df_estadisticas_position)
+        df_estadisticas_team = calcular_diferencia_porcentual(df_estadisticas_team)
+
+        # Save results
+        if fecha is not None:
+            return df_estadisticas, df_estadisticas_position, df_estadisticas_team
+        
         else:
-            posicion_jugador = "Desconocida"
+            # Original naming for general statistics
+            output_path = os.path.join(DATA_PROCESSED_PATH, 'df_jugadores_estadisticas.parquet')
+            output_path_position = os.path.join(DATA_PROCESSED_PATH, 'df_position_estadisticas.parquet')
+            output_path_team = os.path.join(DATA_PROCESSED_PATH, 'df_team_estadisticas.parquet')
+
+        df_estadisticas.write_parquet(output_path)
+        df_estadisticas_position.write_parquet(output_path_position)
+        df_estadisticas_team.write_parquet(output_path_team)
         
-        for match_day in match_days:
-            # Filtrar datos del jugador para el match day específico
-            df_jugador_match = df_jugador.filter(pl.col('Match Day') == match_day)
+        if fecha is not None:
+            print(f"Estadísticas guardadas con nomenclatura personalizada para fecha {fecha}:")
+            print(f"- Jugadores: {os.path.basename(output_path)}")
+            print(f"- Posiciones: {os.path.basename(output_path_position)}")
+            print(f"- Equipos: {os.path.basename(output_path_team)}")
+        else:
+            print("Estadísticas generales guardadas con nomenclatura estándar")
+
+        return df_estadisticas, df_estadisticas_position, df_estadisticas_team
+
+    except Exception as e:
+        print(f"Error calculating statistics: {str(e)}")
+        return None, None, None
+
+def calcular_metricas(df, columnas, estadistica):
+    """Helper function to calculate statistics for given columns"""
+    resultado = {}
+    for columna in columnas:
+        if columna not in df.columns:
+            continue
             
-            # Si no hay datos para este jugador en este match day, continuar con el siguiente
-            if df_jugador_match.height == 0:
+        if estadistica == "mean":
+            valor = df[columna].mean()
+        elif estadistica == "median":
+            valor = df[columna].median()
+        elif estadistica == "max":
+            valor = df[columna].max()
+        elif estadistica == "min":
+            valor = df[columna].min()
+        elif estadistica == "p75":
+            valor = df[columna].quantile(0.75)
+        elif estadistica == "p90":
+            valor = df[columna].quantile(0.90)
+        elif estadistica == "p95":
+            valor = df[columna].quantile(0.95)
+        else:
+            continue
+            
+        resultado[columna] = valor
+    return resultado
+
+def calcular_diferencia_porcentual(df):
+    if df is None or df.height == 0:
+        print("El dataframe está vacío.")
+        return df
+    
+    # Obtener las columnas de métricas (todas las columnas excepto Player, Position, Match Day y Estadistica)
+    columnas_metricas = [col for col in df.columns if col not in ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']]
+    
+    # Crear una copia del dataframe original
+    df_resultado = df.clone()
+    
+    # Para cada combinación de jugador/posición/equipo y estadística
+    # Determinar si el dataframe tiene la columna 'Player', 'Position' o 'Team'
+    tiene_player = 'Player' in df.columns
+    tiene_position = 'Position' in df.columns
+    tiene_team = 'Team' in df.columns
+    
+    # Determinar las columnas de agrupación
+    columnas_agrupacion = []
+    if tiene_player:
+        columnas_agrupacion.append('Player')
+    if tiene_position:
+        columnas_agrupacion.append('Position')
+    if tiene_team:
+        columnas_agrupacion.append('Team')
+    
+    # Añadir 'Estadistica' a las columnas de agrupación
+    columnas_agrupacion.append('Estadistica')
+    
+    # Para cada combinación de columnas de agrupación y estadística
+    grupos = df.group_by(columnas_agrupacion)
+    
+    # Crear un diccionario para almacenar los valores de referencia (MD) para cada grupo y métrica
+    valores_referencia = {}
+    
+    # Para cada grupo, obtener los valores de referencia (MD)
+    for grupo_valores, grupo_df in grupos:
+        # Verificar si existe el Match Day 'MD' en este grupo
+        if 'MD' not in grupo_df['Match Day'].to_list():
+            continue
+        
+        # Obtener los valores de referencia (MD)
+        df_md = grupo_df.filter(pl.col('Match Day') == 'MD')
+        
+        # Crear una clave para este grupo
+        clave_grupo = tuple(grupo_valores)
+        
+        # Almacenar los valores de referencia para cada métrica
+        valores_referencia[clave_grupo] = {}
+        for columna in columnas_metricas:
+            if columna in df_md.columns:
+                valores_referencia[clave_grupo][columna] = df_md[columna][0]
+    
+    # Para cada columna de métrica, crear una nueva columna con la diferencia porcentual
+    for columna in columnas_metricas:
+        # Nombre de la nueva columna
+        nueva_columna = f"{columna} diff"
+        
+        # Crear una lista para almacenar los valores de diferencia porcentual
+        valores_diff = []
+        
+        # Para cada fila del dataframe
+        for fila in df_resultado.iter_rows(named=True):
+            # Extraer los valores necesarios
+            valores_grupo = {}
+            for col in columnas_agrupacion:
+                valores_grupo[col] = fila[col]
+            match_day = fila['Match Day']
+            
+            # Si la columna no existe en esta fila, añadir None
+            if columna not in fila:
+                valores_diff.append(None)
+                continue
+                
+            valor = fila[columna]
+            
+            # Si es el Match Day de referencia, la diferencia es 0%
+            if match_day == 'MD':
+                valores_diff.append(0.0)
                 continue
             
-            # Para cada estadística, crear un registro con todas las columnas de interés
-            for estadistica in estadisticas:
-                # Inicializar un diccionario para este registro
-                registro = {
-                    "Player": jugador,
-                    "Position": posicion_jugador,
-                    "Match Day": match_day,
-                    "Estadistica": estadistica
-                }
-                
-                # Calcular la estadística para cada columna de interés y añadirla al registro
-                for columna in columnas_interes:
-                    # Verificar si la columna existe en el dataframe
-                    if columna not in df_jugador_match.columns:
-                        continue
-                    
-                    # Calcular la estadística correspondiente
-                    if estadistica == "mean":
-                        valor = df_jugador_match[columna].mean()
-                    elif estadistica == "median":
-                        valor = df_jugador_match[columna].median()
-                    elif estadistica == "max":
-                        valor = df_jugador_match[columna].max()
-                    elif estadistica == "min":
-                        valor = df_jugador_match[columna].min()
-                    elif estadistica == "p75":
-                        valor = df_jugador_match[columna].quantile(0.75)
-                    elif estadistica == "p90":
-                        valor = df_jugador_match[columna].quantile(0.90)
-                    elif estadistica == "p95":
-                        valor = df_jugador_match[columna].quantile(0.95)
-                    else:
-                        continue
-                    
-                    # Añadir el valor calculado al registro usando el nombre de la columna como clave
-                    registro[columna] = valor
-                
-                # Añadir el registro completo a la lista de resultados
-                resultados_jugadores.append(registro)
-    
-    
-    ################### Posición ########################
-    
-    # Para cada posición, match day y estadística, calcular los valores para las columnas de interés
-    for posicion in posiciones:
-        # Filtrar datos de la posición
-        df_posicion = df.filter(pl.col('Position') == posicion)
-        
-        for match_day in match_days:
-            # Filtrar datos de la posición para el match day específico
-            df_posicion_match = df_posicion.filter(pl.col('Match Day') == match_day)
+            # Crear la clave para buscar en el diccionario de valores de referencia
+            clave_grupo = tuple(valores_grupo[col] for col in columnas_agrupacion)
             
-            # Si no hay datos para esta posición en este match day, continuar con el siguiente
-            if df_posicion_match.height == 0:
+            # Verificar si existe el valor de referencia para este grupo y métrica
+            if clave_grupo not in valores_referencia or columna not in valores_referencia[clave_grupo]:
+                valores_diff.append(None)
                 continue
             
-            # Para cada estadística, crear un registro con todas las columnas de interés
-            for estadistica in estadisticas:
-                # Inicializar un diccionario para este registro
-                registro = {
-                    "Position": posicion,
-                    "Match Day": match_day,
-                    "Estadistica": estadistica
-                }
-                
-                # Calcular la estadística para cada columna de interés y añadirla al registro
-                for columna in columnas_interes:
-                    # Verificar si la columna existe en el dataframe
-                    if columna not in df_posicion_match.columns:
-                        continue
-                    
-                    # Calcular la estadística correspondiente
-                    if estadistica == "mean":
-                        valor = df_posicion_match[columna].mean()
-                    elif estadistica == "median":
-                        valor = df_posicion_match[columna].median()
-                    elif estadistica == "max":
-                        valor = df_posicion_match[columna].max()
-                    elif estadistica == "min":
-                        valor = df_posicion_match[columna].min()
-                    elif estadistica == "p75":
-                        valor = df_posicion_match[columna].quantile(0.75)
-                    elif estadistica == "p90":
-                        valor = df_posicion_match[columna].quantile(0.90)
-                    elif estadistica == "p95":
-                        valor = df_posicion_match[columna].quantile(0.95)
-                    else:
-                        continue
-                    
-                    # Añadir el valor calculado al registro usando el nombre de la columna como clave
-                    registro[columna] = valor
-                
-                # Añadir el registro completo a la lista de resultados por posición
-                resultados_position.append(registro)
-                
-  
-    ################### Equipo ########################
-    
-    # Para cada equipo, match day y estadística, calcular los valores para las columnas de interés
-    for equipo in equipos:
-        # Filtrar datos del equipo
-        df_equipo = df.filter(pl.col('Team ') == equipo)
-        
-        for match_day in match_days:
-            # Filtrar datos del equipo para el match day específico
-            df_equipo_match = df_equipo.filter(pl.col('Match Day') == match_day)
+            # Obtener el valor de referencia
+            valor_referencia = valores_referencia[clave_grupo][columna]
             
-            # Si no hay datos para este equipo en este match day, continuar con el siguiente
-            if df_equipo_match.height == 0:
+            # Si el valor de referencia es cero, no se puede calcular el porcentaje
+            if valor_referencia == 0:
+                valores_diff.append(None)
                 continue
             
-            # Para cada estadística, crear un registro con todas las columnas de interés
-            for estadistica in estadisticas:
-                # Inicializar un diccionario para este registro
-                registro = {
-                    "Team": equipo,
-                    "Match Day": match_day,
-                    "Estadistica": estadistica
-                }
-                
-                # Calcular la estadística para cada columna de interés y añadirla al registro
-                for columna in columnas_interes:
-                    # Verificar si la columna existe en el dataframe
-                    if columna not in df_equipo_match.columns:
-                        continue
-                    
-                    # Calcular la estadística correspondiente
-                    if estadistica == "mean":
-                        valor = df_equipo_match[columna].mean()
-                    elif estadistica == "median":
-                        valor = df_equipo_match[columna].median()
-                    elif estadistica == "max":
-                        valor = df_equipo_match[columna].max()
-                    elif estadistica == "min":
-                        valor = df_equipo_match[columna].min()
-                    elif estadistica == "p75":
-                        valor = df_equipo_match[columna].quantile(0.75)
-                    elif estadistica == "p90":
-                        valor = df_equipo_match[columna].quantile(0.90)
-                    elif estadistica == "p95":
-                        valor = df_equipo_match[columna].quantile(0.95)
-                    else:
-                        continue
-                    
-                    # Añadir el valor calculado al registro usando el nombre de la columna como clave
-                    registro[columna] = valor
-                
-                # Añadir el registro completo a la lista de resultados por equipo
-                resultados_team.append(registro)
-    
-    
-    # Crear los dataframes a partir de las listas de resultados
-    df_estadisticas = pl.DataFrame(resultados_jugadores)
-    df_estadisticas_position = pl.DataFrame(resultados_position)
-    df_estadisticas_team = pl.DataFrame(resultados_team)
+            # Calcular la diferencia porcentual y redondear a dos decimales
+            diff_porcentual = (valor / valor_referencia) * 100
+            valores_diff.append(round(diff_porcentual, 2))
         
-    # Guardar los dataframes de estadísticas en archivos CSV
-    output_path = os.path.join(DATA_PROCESSED_PATH, 'df_jugadores_estadisticas.csv')
-    output_path_position = os.path.join(DATA_PROCESSED_PATH, 'df_position_estadisticas.csv')
-    output_path_team = os.path.join(DATA_PROCESSED_PATH, 'df_team._estadisticas.csv')
+        # Añadir la nueva columna al dataframe resultado
+        df_resultado = df_resultado.with_columns(pl.Series(nueva_columna, valores_diff))
     
-    df_estadisticas.write_csv(output_path)
-    df_estadisticas_position.write_csv(output_path_position)
-    df_estadisticas_team.write_csv(output_path_team)
-    
-    return df_estadisticas, df_estadisticas_position, df_estadisticas_team
+    return df_resultado
+
+calcular_estadisticas()

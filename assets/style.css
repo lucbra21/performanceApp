@@ -1,0 +1,46 @@
+body {
+    background-color: #FFFFFF;
+}
+h2 {
+    margin-left: 0.2rem;
+}
+
+
+/* Estilo personalizado para la tabla */
+.tabla-container {
+    max-width: 90%;
+    margin: 0 auto;
+    margin-top: 30px;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Celdas de la tabla */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet .dash-cell {
+    padding: 6px 8px;  /* reduce altura y agrega espacio horizontal */
+    font-size: 14px;
+    color: black;  /* color de la tipografía */
+    border: none;
+}
+
+/* Cabecera */
+.dash-header {
+    background-color: #f8f9fa !important;
+    font-weight: bold;
+    color: #333;
+}
+
+/* Hover para filas */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet tr:hover {
+    background-color: #eaeaea;  /* cambia el color al pasar el mouse */
+}
+
+/* Quitar bordes feos */
+.dash-spreadsheet-inner {
+    border-radius: 12px;
+    border: none !important;
+}
+
+
+

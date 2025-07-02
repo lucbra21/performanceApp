@@ -43,4 +43,20 @@ h2 {
 }
 
 
+/* Cambiar color de texto y fondo del NavLink activo */
+.nav-pills .nav-link.active {
+  background-color: transparent !important;
+  color: #c3b89a !important;
+  font-weight: bold;
+  border-left: 3px solid #c3b89a;
+}
 
+/* Cambiar color al pasar el mouse */
+.nav-pills .nav-link:hover {
+  color: #c3b89a !important;
+}
+
+/* Evitar que se subraye */
+.nav-link {
+  text-decoration: none !important;
+}

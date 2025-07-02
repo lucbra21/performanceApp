@@ -15,7 +15,7 @@ def ensure_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
         
-def calcular_estadisticas(fecha=None, columnas_interes=None):
+def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
     """
     Calculates comparative statistics for each player, position and team by Match Day.
     If fecha is provided, filters data for that specific date's Week Team.
@@ -52,14 +52,19 @@ def calcular_estadisticas(fecha=None, columnas_interes=None):
                 print("Required date columns missing")
                 return None, None, None
                 
+            # Get the specific date data to find the corresponding Match Day
             df_fecha = df.filter(pl.col('Date') == fecha)
             if df_fecha.height == 0:
                 print(f"No data found for date {fecha}")
                 return None, None, None
                 
+            # Get the Match Day and Week Team for the specified date
+            match_day_especifico = df_fecha['Match Day'][0]
             week_team = df_fecha['Week Team'][0]
+            
+            # Filter by Week Team to include MD for percentage calculations
             df = df.filter(pl.col('Week Team') == week_team)
-            print(f"Filtered data for Week Team: {week_team}")
+            print(f"Filtered data for Week Team: {week_team}, target Match Day: {match_day_especifico}")
             
         # Load columns of interest
         if columnas_interes is None:
@@ -86,7 +91,10 @@ def calcular_estadisticas(fecha=None, columnas_interes=None):
         equipos = df['Team '].unique().to_list()
 
         # Statistics to calculate
-        estadisticas = ["mean", "median", "max", "min", "p75", "p90", "p95"]
+        if estadistica is not None:
+            estadisticas = [estadistica]  # Only calculate the selected statistic
+        else:
+            estadisticas = ["mean", "median", "max", "min", "p75", "p90", "p95"]  # Calculate all statistics
         
         # Initialize results lists
         resultados_jugadores = []
@@ -155,9 +163,15 @@ def calcular_estadisticas(fecha=None, columnas_interes=None):
         df_estadisticas_position = calcular_diferencia_porcentual(df_estadisticas_position)
         df_estadisticas_team = calcular_diferencia_porcentual(df_estadisticas_team)
 
-        # Save results
+        # Save results or filter by specific Match Day if date was provided
         if fecha is not None:
-            return df_estadisticas, df_estadisticas_position, df_estadisticas_team
+            # Filter results to return only the specific Match Day data
+            df_estadisticas_filtrado = df_estadisticas.filter(pl.col('Match Day') == match_day_especifico)
+            df_estadisticas_position_filtrado = df_estadisticas_position.filter(pl.col('Match Day') == match_day_especifico)
+            df_estadisticas_team_filtrado = df_estadisticas_team.filter(pl.col('Match Day') == match_day_especifico)
+            
+            print(f"Returning statistics for specific Match Day: {match_day_especifico}")
+            return df_estadisticas_filtrado, df_estadisticas_position_filtrado, df_estadisticas_team_filtrado
         
         else:
             # Original naming for general statistics
@@ -165,19 +179,12 @@ def calcular_estadisticas(fecha=None, columnas_interes=None):
             output_path_position = os.path.join(DATA_PROCESSED_PATH, 'df_position_estadisticas.parquet')
             output_path_team = os.path.join(DATA_PROCESSED_PATH, 'df_team_estadisticas.parquet')
 
-        df_estadisticas.write_parquet(output_path)
-        df_estadisticas_position.write_parquet(output_path_position)
-        df_estadisticas_team.write_parquet(output_path_team)
-        
-        if fecha is not None:
-            print(f"Estadísticas guardadas con nomenclatura personalizada para fecha {fecha}:")
-            print(f"- Jugadores: {os.path.basename(output_path)}")
-            print(f"- Posiciones: {os.path.basename(output_path_position)}")
-            print(f"- Equipos: {os.path.basename(output_path_team)}")
-        else:
+            df_estadisticas.write_parquet(output_path)
+            df_estadisticas_position.write_parquet(output_path_position)
+            df_estadisticas_team.write_parquet(output_path_team)
+            
             print("Estadísticas generales guardadas con nomenclatura estándar")
-
-        return df_estadisticas, df_estadisticas_position, df_estadisticas_team
+            return df_estadisticas, df_estadisticas_position, df_estadisticas_team
 
     except Exception as e:
         print(f"Error calculating statistics: {str(e)}")
@@ -316,4 +323,6 @@ def calcular_diferencia_porcentual(df):
     
     return df_resultado
 
-calcular_estadisticas()
+# df, df1, df2 = calcular_estadisticas("30/11/2023")
+
+# print(df1)

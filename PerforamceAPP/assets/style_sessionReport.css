@@ -1,0 +1,450 @@
+/* ============================================================================ */
+/* ESTILOS PARA SESSION REPORT */
+/* ============================================================================ */
+
+/* Container principal de selección de fecha */
+.date-selection-container {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Título de sección */
+.section-title {
+    color: #333;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+/* Container de input */
+.input-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Row de inputs lado a lado */
+.inputs-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+/* Item individual de input */
+.input-item {
+    flex: 1;
+    min-width: 250px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+/* Label de input */
+.input-label {
+    font-weight: 500;
+    color: #555;
+    margin-bottom: 5px;
+}
+
+/* Date picker de fecha */
+.date-picker {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    min-height: 40px;
+    width: 100%;
+}
+
+/* Dropdown de estadística */
+.statistic-dropdown {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    min-height: 40px;
+    width: 100%;
+}
+
+/* Estilos para el calendario */
+.DateInput {
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    padding: 8px 12px;
+    font-size: 14px;
+    width: 100%;
+}
+
+.DateInput_input {
+    border: none;
+    outline: none;
+    font-size: 14px;
+    color: #333;
+}
+
+.DateInput_input::placeholder {
+    color: #999;
+}
+
+/* Calendario desplegable */
+.DayPicker {
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.DayPicker_weekHeader {
+    background-color: #f8f9fa;
+}
+
+.CalendarDay__selected {
+    background-color: #007bff !important;
+    border-color: #007bff !important;
+}
+
+.CalendarDay__selected:hover {
+    background-color: #0056b3 !important;
+    border-color: #0056b3 !important;
+}
+
+.CalendarDay__hovered_span {
+    background-color: #e3f2fd;
+    border-color: #007bff;
+}
+
+/* Container de información de sesión */
+.session-info-container {
+    margin-top: 20px;
+}
+
+/* Card de información de sesión */
+.session-info-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    border-left: 4px solid #007bff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Título de sesión */
+.session-title {
+    color: #007bff;
+    margin-bottom: 15px;
+    font-weight: 600;
+}
+
+/* Detalles de sesión */
+.session-detail {
+    margin-bottom: 8px;
+    color: #555;
+    font-size: 14px;
+}
+
+/* Mensajes de estado */
+.info-message {
+    color: #6c757d;
+    font-style: italic;
+    padding: 15px;
+    text-align: center;
+}
+
+.error-message {
+    color: #dc3545;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+}
+
+.warning-message {
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    text-align: center;
+}
+
+/* Container de tabla de jugadores */
+.players-table-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Información de tabla */
+.table-info {
+    color: #6c757d;
+    font-size: 14px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+/* Resumen de estadísticas */
+.statistics-summary {
+    background-color: #e8f4fd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 4px solid #007bff;
+}
+
+/* Información de estadísticas */
+.stats-info {
+    color: #0056b3;
+    font-size: 13px;
+    margin: 5px 0;
+    font-weight: 500;
+}
+
+/* Subtítulo de sección */
+.section-subtitle {
+    color: #495057;
+    margin-bottom: 10px;
+    font-weight: 600;
+    font-size: 16px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+}
+
+/* Container de tablas de estadísticas */
+.stats-table-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #28a745;
+}
+
+/* Tabla principal de jugadores */
+.players-main-table {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #007bff;
+    margin-bottom: 20px;
+}
+
+.warning-message {
+    color: #856404;
+    background-color: #fff3cd;
+    border: 1px solid #ffeaa7;
+    border-radius: 8px;
+    padding: 15px;
+    margin: 10px 0;
+}
+
+/* Estadística seleccionada */
+.statistic-selected {
+    font-weight: 600;
+    color: #007bff;
+    background-color: #e3f2fd;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+/* Responsive design para inputs */
+@media (max-width: 768px) {
+    .inputs-row {
+        flex-direction: column;
+    }
+    
+    .input-item {
+        min-width: 100%;
+    }
+}
+
+/* Container da tabela de jogadores */
+.players-table-container {
+    background-color: white;
+    border-radius: 12px;
+    padding: 25px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+}
+
+/* Informação da tabela */
+.table-info {
+    color: #6c757d;
+    font-size: 14px;
+    margin-bottom: 15px;
+    font-weight: 500;
+}
+
+/* Estilos para DataTable */
+.dash-table-container {
+    font-family: 'Arial', sans-serif;
+}
+
+/* Cabeçalho da tabela */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table thead th {
+    background-color: #007bff !important;
+    color: white !important;
+    font-weight: 600 !important;
+    text-align: center !important;
+    padding: 12px 8px !important;
+    border: 1px solid #0056b3 !important;
+}
+
+/* Células da tabela */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table tbody td {
+    padding: 10px 8px !important;
+    border: 1px solid #dee2e6 !important;
+    font-size: 13px !important;
+}
+
+/* Linhas alternadas */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table tbody tr:nth-child(even) {
+    background-color: #f8f9fa !important;
+}
+
+/* Hover nas linhas */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table tbody tr:hover {
+    background-color: #e3f2fd !important;
+}
+
+/* Filtros da tabela */
+.dash-table-container .dash-filter {
+    background-color: #f8f9fa !important;
+    border: 1px solid #dee2e6 !important;
+    border-radius: 4px !important;
+    padding: 6px !important;
+    font-size: 12px !important;
+}
+
+/* Paginação */
+.dash-table-container .previous-next-container {
+    margin-top: 15px;
+}
+
+.dash-table-container .previous-next-container button {
+    background-color: #007bff !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 8px 12px !important;
+    margin: 0 5px !important;
+    cursor: pointer !important;
+}
+
+.dash-table-container .previous-next-container button:hover {
+    background-color: #0056b3 !important;
+}
+
+.dash-table-container .previous-next-container button:disabled {
+    background-color: #6c757d !important;
+    cursor: not-allowed !important;
+}
+
+/* Botão de exportação */
+.dash-table-container .export {
+    background-color: #28a745 !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 4px !important;
+    padding: 8px 12px !important;
+    margin-bottom: 10px !important;
+    cursor: pointer !important;
+    font-size: 12px !important;
+}
+
+.dash-table-container .export:hover {
+    background-color: #218838 !important;
+}
+.dash-cell {
+    border-bottom: 1px solid #ddd !important;
+}
+
+/*darle altura mínima a cada fila */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet tr {
+    min-height: 30px;
+    height: 30px;
+}
+/* ============================================================================ */
+/* ESTILOS PARA TARJETAS DE MÉTRICAS */
+/* ============================================================================ */
+
+/* Tarjeta de métrica individual */
+.metric-card {
+    background-color: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    margin: 10px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    min-width: 180px;
+    flex: 1 1 calc(20% - 20px);
+    max-width: 250px;
+    text-align: center;
+}
+
+/* Título de la tarjeta */
+.card-title {
+    margin: 0 0 15px 0;
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: bold;
+    text-align: center;
+}
+
+/* Contenedor de valores de la tarjeta */
+.card-values-container {
+    text-align: center;
+}
+
+/* Etiqueta de la sesión */
+.session-label {
+    font-weight: bold;
+    color: #7f8c8d;
+    display: block;
+    text-align: center;
+    margin-bottom: 8px;
+}
+
+/* Valor de la estadística */
+.stat-value {
+    font-weight: bold;
+    font-size: 24px;
+    display: block;
+    text-align: center;
+}
+
+/* Colores para valores */
+.stat-value.positive {
+    color: #27ae60; /* Verde para valores por encima de 100% */
+}
+
+.stat-value.negative {
+    color: #e74c3c; /* Rojo para valores por debajo de 100% */
+}
+
+.stat-value.neutral {
+    color: #f39c12; /* Naranja para 100% */
+}
+
+/* Subtítulo de la sección de métricas */
+.metrics-section-subtitle {
+    margin-top: 30px;
+    margin-bottom: 15px;
+    color: #2c3e50;
+}
+
+/* Contenedor de las tarjetas */
+.metrics-cards-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 10px;
+}
+
+/* Margen superior para contenedor de tabla de jugadores */
+.players-table-container {
+    margin-top: 30px;
+}
+
+/* Margen superior para contenedor de tabla de estadísticas */
+.stats-table-container {
+    margin-top: 25px;
+}

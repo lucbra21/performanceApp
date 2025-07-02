@@ -6,11 +6,6 @@ h2 {
 }
 
 
-
-
-
-
-
 /* Estilo personalizado para la tabla */
 .tabla-container {
     max-width: 90%;
@@ -47,20 +42,5 @@ h2 {
     border: none !important;
 }
 
-/* Eliminar borde entre filas si querés un look más limpio */
-.dash-cell {
-    border-bottom: 1px solid #ddd !important;
-}
 
-/* Opcional: darle altura mínima a cada fila */
-.dash-table-container .dash-spreadsheet-container .dash-spreadsheet tr {
-    min-height: 30px;
-    height: 30px;
-}
 
-/* Últimas 4 filas (resumen) con fondo gris y negrita */
-.dash-table-container .dash-spreadsheet-container .dash-spreadsheet tr:nth-last-child(-n+3) {
-    background-color: #363535;
-    font-weight: bold;
-    color: white;
-}

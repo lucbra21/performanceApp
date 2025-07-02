@@ -27,10 +27,10 @@ def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
     Returns:
         tuple: (df_estadisticas, df_estadisticas_position, df_estadisticas_team) with calculated statistics
     """
-    # Ensure processed data directory exists
+    # Asegurar que el directorio de datos procesados existe
     ensure_dir(DATA_PROCESSED_PATH)
     
-    # Verify parquet file exists and load it
+    # Verificar que el archivo parquet existe y cargarlo
     path_to_parquet = os.path.join(DATA_GPS_PATH, 'df_gps.parquet')
     if not os.path.exists(path_to_parquet) or os.path.getsize(path_to_parquet) == 0:
         print("df_gps.parquet does not exist or is empty")
@@ -42,37 +42,37 @@ def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
             print("DataFrame is empty")
             return None, None, None
             
-        # # Create backup
+        # # Crear backup
         # backup_path = os.path.join(DATA_GPS_PATH, 'df_gps_backup.parquet')
         # df.write_parquet(backup_path)
         
-        # Filter by date if provided
+        # Filtrar por fecha si se proporciona
         if fecha is not None:
             if 'Date' not in df.columns or 'Week Team' not in df.columns:
                 print("Required date columns missing")
                 return None, None, None
                 
-            # Get the specific date data to find the corresponding Match Day
+            # Obtener los datos de fecha específica para encontrar el Match Day correspondiente
             df_fecha = df.filter(pl.col('Date') == fecha)
             if df_fecha.height == 0:
                 print(f"No data found for date {fecha}")
                 return None, None, None
                 
-            # Get the Match Day and Week Team for the specified date
+            # Obtener el Match Day y Week Team para la fecha especificada
             match_day_especifico = df_fecha['Match Day'][0]
             week_team = df_fecha['Week Team'][0]
             
-            # Filter by Week Team to include MD for percentage calculations
+            # Filtrar por Week Team para incluir MD en cálculos de porcentaje
             df = df.filter(pl.col('Week Team') == week_team)
             print(f"Filtered data for Week Team: {week_team}, target Match Day: {match_day_especifico}")
             
-        # Load columns of interest
+        # Cargar columnas de interés
         if columnas_interes is None:
             path_to_txt = os.path.join(DATA_GPS_PATH, 'Columnas_interés.txt')
             with open(path_to_txt, 'r') as f:
                 columnas_interes = [line.strip() for line in f.readlines()]
 
-        # Apply filters
+        # Aplicar filtros
         df = (df.filter(pl.col('Match Day') != 'Rehab')
               .filter(pl.col('Player') != 'TEAM')
               .filter(pl.col('Team ') != 'TEAM')
@@ -84,24 +84,24 @@ def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
                   .alias('Team ')
               ))
 
-        # Get unique values
+        # Obtener valores únicos
         match_days = df['Match Day'].unique().to_list()
         jugadores = df['Player'].unique().to_list()
         posiciones = df['Position'].unique().to_list() 
         equipos = df['Team '].unique().to_list()
 
-        # Statistics to calculate
+        # Estadísticas a calcular
         if estadistica is not None:
-            estadisticas = [estadistica]  # Only calculate the selected statistic
+            estadisticas = [estadistica]  # Solo calcular la estadística seleccionada
         else:
-            estadisticas = ["mean", "median", "max", "min", "p75", "p90", "p95"]  # Calculate all statistics
+            estadisticas = ["mean", "median", "max", "min", "p75", "p90", "p95"]  # Calcular todas las estadísticas
         
-        # Initialize results lists
+        # Inicializar listas de resultados
         resultados_jugadores = []
         resultados_position = []
         resultados_team = []
 
-        # Calculate statistics for each group
+        # Calcular estadísticas para cada grupo
         for jugador in jugadores:
             df_jugador = df.filter(pl.col('Player') == jugador)
             posicion_jugador = df_jugador['Position'][0] if df_jugador.height > 0 else "Desconocida"
@@ -153,19 +153,19 @@ def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
                     registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
                     resultados_team.append(registro)
 
-        # Create DataFrames
+        # Crear DataFrames
         df_estadisticas = pl.DataFrame(resultados_jugadores)
         df_estadisticas_position = pl.DataFrame(resultados_position)
         df_estadisticas_team = pl.DataFrame(resultados_team)
 
-        # Calculate percentage differences
+        # Calcular diferencias porcentuales
         df_estadisticas = calcular_diferencia_porcentual(df_estadisticas)
         df_estadisticas_position = calcular_diferencia_porcentual(df_estadisticas_position)
         df_estadisticas_team = calcular_diferencia_porcentual(df_estadisticas_team)
 
-        # Save results or filter by specific Match Day if date was provided
+        # Guardar resultados o filtrar por Match Day específico si se proporcionó fecha
         if fecha is not None:
-            # Filter results to return only the specific Match Day data
+            # Filtrar resultados para devolver solo los datos del Match Day específico
             df_estadisticas_filtrado = df_estadisticas.filter(pl.col('Match Day') == match_day_especifico)
             df_estadisticas_position_filtrado = df_estadisticas_position.filter(pl.col('Match Day') == match_day_especifico)
             df_estadisticas_team_filtrado = df_estadisticas_team.filter(pl.col('Match Day') == match_day_especifico)
@@ -174,7 +174,7 @@ def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
             return df_estadisticas_filtrado, df_estadisticas_position_filtrado, df_estadisticas_team_filtrado
         
         else:
-            # Original naming for general statistics
+            # Nomenclatura original para estadísticas generales
             output_path = os.path.join(DATA_PROCESSED_PATH, 'df_jugadores_estadisticas.parquet')
             output_path_position = os.path.join(DATA_PROCESSED_PATH, 'df_position_estadisticas.parquet')
             output_path_team = os.path.join(DATA_PROCESSED_PATH, 'df_team_estadisticas.parquet')
@@ -191,7 +191,7 @@ def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
         return None, None, None
 
 def calcular_metricas(df, columnas, estadistica):
-    """Helper function to calculate statistics for given columns"""
+    """Función auxiliar para calcular estadísticas para columnas dadas"""
     resultado = {}
     for columna in columnas:
         if columna not in df.columns:

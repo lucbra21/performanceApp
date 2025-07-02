@@ -2,9 +2,9 @@ from dash import html
 import dash_bootstrap_components as dbc
 from dash import callback_context
 
-# Sidebar de navegación reutilizable
+# Componente de barra lateral para navegación
 
-# Layout de la sidebar con logo, título y enlaces a las páginas
+# Layout de la barra lateral con logo, título y enlaces a las páginas
 def make_sidebar():
     sidebar_style = {
         "position": "fixed",

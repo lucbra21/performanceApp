@@ -1,18 +1,18 @@
-/* Estilos para a página Cargar Datos */
+/* Estilos para la página Cargar Datos */
 
 /* Container principal */
 .cargar-datos-container {
     width: 100%;
     height: 420px;
-    margin: 20px 0 20px 0; /* Removido o margin-left para ocupar toda a largura */
+    margin: 20px 0 20px 0; /* Removido el margin-left para ocupar todo el ancho */
     box-shadow: 0 4px 6px rgb(158, 157, 157);
-    border: 1px solid #575757; /* Borda leve */
+    border: 1px solid #575757; /* Borde ligero */
     border-radius: 8px;
     display: flex;
     flex-direction: column;
 }
 
-/* Barra de botões superior */
+/* Barra de botones superior */
 .cargar-datos-header {
     background-color: #000000;
     padding: 12px 15px;
@@ -34,13 +34,13 @@
     font-size: 14px;
 }
 
-/* Container dos botões à direita */
+/* Container de los botones a la derecha */
 .buttons-right {
     display: flex;
     gap: 5px;
 }
 
-/* Botões da barra superior */
+/* Botones de la barra superior */
 .btn-upload {
     background-color: #007bff;
     color: white;
@@ -79,7 +79,7 @@
     font-size: 13px;
 }
 
-/* Hover effects para os botões */
+/* Efectos hover para los botones */
 .btn-upload:hover {
     background-color: #0056b3;
     color: white;
@@ -94,7 +94,7 @@
     background-color: #1e7e34;
 }
 
-/* Scrollbar personalizada para o histórico */
+/* Scrollbar personalizada para el historial */
 #files-history::-webkit-scrollbar {
     width: 4px;
 }
@@ -113,7 +113,7 @@
     background: #a8a8a8;
 }
 
-/* Área de conteúdo principal */
+/* Área de contenido principal */
 .cargar-datos-content {
     background-color: white;
     padding: 10px;
@@ -133,7 +133,7 @@
     font-weight: bold;
 }
 
-/* Título do histórico */
+/* Título del historial */
 .historico-title {
     color: #333;
     font-size: 16px;
@@ -142,14 +142,14 @@
     font-weight: bold;
 }
 
-/* Container do histórico com scroll */
+/* Container del historial con scroll */
 #files-history {
     flex: 1;
     overflow-y: auto;
     max-height: 200px;
 }
 
-/* Item do histórico de arquivo */
+/* Item del historial de archivo */
 .file-history-item {
     margin-bottom: 12px;
     padding: 10px;

@@ -9,98 +9,202 @@ import dash
 # Importaciones del sistema y utilidades
 import os
 import datetime
+import json
 import polars as pl
 from utils.utils import DATA_GPS_PATH
 
 # ============================================================================
-# LAYOUT DE LA PÁGINA
+# ESTILOS PARA DATATABLES - CENTRALIZADOS PARA MEJOR ORGANIZACIÓN
 # ============================================================================
 
-layout = html.Div([
-    # Título de la página
-    html.H2('Session Report', className="page-title"),
-    html.Hr(),
-    
-    # Contenedor principal
-    html.Div([
-        # Container para selección de fecha y estadística
-        html.Div([
-            html.H4('Seleccionar Parámetros', className="section-title"),
-            html.Div([
-                # Input para fecha
-                html.Div([
-                    html.Label('Fecha:', className="input-label"),
-                    dcc.DatePickerSingle(
-                        id='date-selector',
-                        placeholder='Selecciona una fecha...',
-                        display_format='DD/MM/YYYY',
-                        className="date-picker"
-                    )
-                ], className="input-item"),
-                
-                # Input para estadística
-                html.Div([
-                    html.Label('Estadística:', className="input-label"),
-                    dcc.Dropdown(
-                        id='statistic-selector',
-                        options=[
-                            {'label': 'Media', 'value': 'mean'},
-                            {'label': 'Mediana', 'value': 'median'},
-                            {'label': 'Máximo', 'value': 'max'},
-                            {'label': 'Mínimo', 'value': 'min'},
-                            {'label': 'Percentil 75', 'value': 'p75'},
-                            {'label': 'Percentil 90', 'value': 'p90'},
-                            {'label': 'Percentil 95', 'value': 'p95'}
-                        ],
-                        value='median',
-                        placeholder='Selecciona una estadística...',
-                        className="statistic-dropdown"
-                    )
-                ], className="input-item")
-            ], className="inputs-row")
-        ], className="date-selection-container"),
-        
-        # Container para mostrar información de la sesión seleccionada
-        html.Div([
-            html.Div(id='session-info-output')
-        ], className="session-info-container"),
-        
-        # Container para mostrar la tabla de jugadores
-        html.Div([
-            html.H4('Datos de Jugadores', className="section-title"),
-            html.Div(id='players-table-output')
-        ], className="players-table-container")
-    ])
-])
+# Estilos para tabla de jugadores
+PLAYERS_TABLE_STYLES = {
+    'style_table': {
+        'overflowX': 'auto',
+        'maxHeight': '600px',
+        'overflowY': 'auto'
+    },
+    'style_cell': {
+        'textAlign': 'left',
+        'padding': '10px',
+        'fontFamily': 'Arial, sans-serif',
+        'fontSize': '14px',
+        'border': '1px solid #ddd'
+    },
+    'style_header': {
+        'backgroundColor': '#f8f9fa',
+        'fontWeight': 'bold',
+        'textAlign': 'center',
+        'border': '1px solid #ddd'
+    },
+    'style_data': {
+        'backgroundColor': 'white',
+        'border': '1px solid #ddd'
+    },
+    'style_data_conditional': [
+        {
+            'if': {'row_index': 'odd'},
+            'backgroundColor': '#f8f9fa'
+        }
+    ]
+}
+
+# Estilos para tabla combinada de estadísticas
+COMBINED_TABLE_STYLES = {
+    'style_table': {
+        'overflowX': 'auto',
+        'maxHeight': '600px',
+        'overflowY': 'auto'
+    },
+    'style_cell': {
+        'textAlign': 'left',
+        'padding': '8px',
+        'fontFamily': 'Arial, sans-serif',
+        'fontSize': '13px',
+        'border': '1px solid #ddd'
+    },
+    'style_header': {
+        'backgroundColor': '#e8f4fd',
+        'fontWeight': 'bold',
+        'textAlign': 'center',
+        'border': '1px solid #ddd'
+    },
+    'style_data': {
+        'backgroundColor': 'white',
+        'border': '1px solid #ddd'
+    },
+    'style_data_conditional': [
+        {
+            'if': {'row_index': 'odd'},
+            'backgroundColor': '#f8f9fa'
+        },
+        {
+            'if': {'filter_query': '{_tipo_interno} = Jugador'},
+            'backgroundColor': '#f0f8ff'
+        },
+        {
+            'if': {'filter_query': '{_tipo_interno} = Equipo'},
+            'backgroundColor': '#e8f4fd'
+        },
+        {
+            'if': {'filter_query': '{_tipo_interno} = Posición'},
+            'backgroundColor': '#fff3cd'
+        }
+    ]
+}
 
 # ============================================================================
-# CALLBACKS
+# FUNCIONES AUXILIARES
 # ============================================================================
 
-
-def get_available_dates():
-    """Obtiene las fechas únicas disponibles en el archivo parquet"""
+def save_last_selected_date(date_str):
+    """Guarda la última fecha seleccionada en un archivo JSON"""
     try:
-        path_to_parquet = os.path.join(DATA_GPS_PATH, 'df_gps.parquet')
-        if not os.path.exists(path_to_parquet):
-            return []
+        last_date_file = os.path.join('data', 'last_selected_date.json')
+        data = {
+            'last_date': date_str,
+            'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        }
         
-        df = pl.read_parquet(path_to_parquet)
-        if df.height == 0 or 'Date' not in df.columns:
-            return []
+        with open(last_date_file, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            
+    except Exception as e:
+        print(f"Error guardando última fecha: {e}")
+
+def load_last_selected_date():
+    """Carga la última fecha seleccionada desde el archivo JSON"""
+    try:
+        last_date_file = os.path.join('data', 'last_selected_date.json')
         
-        # Obtener fechas únicas y ordenarlas
-        fechas_unicas = df.select('Date').unique().sort('Date')
-        fechas_list = fechas_unicas['Date'].to_list()
-        
-        # Convertir a formato de opciones para el dropdown
-        opciones = [{'label': fecha, 'value': fecha} for fecha in fechas_list]
-        return opciones
+        if not os.path.exists(last_date_file):
+            return None
+            
+        with open(last_date_file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            
+        return data.get('last_date')
         
     except Exception as e:
-        print(f"Error al cargar fechas: {e}")
-        return []
+        print(f"Error cargando última fecha: {e}")
+        return None
 
+def get_initial_date():
+    """Obtiene la fecha inicial para el DatePickerSingle al cargar la página"""
+    try:
+        # Intentar cargar la última fecha seleccionada
+        last_date = load_last_selected_date()
+        
+        if last_date:
+            # Convertir la fecha guardada (dd/mm/aaaa) a formato aaaa-mm-dd para el DatePickerSingle
+            if '/' in last_date:
+                last_date_dt = datetime.datetime.strptime(last_date, '%d/%m/%Y')
+                return last_date_dt.strftime('%Y-%m-%d')
+            else:
+                return last_date
+        
+        # Si no hay fecha guardada, usar la fecha más reciente disponible
+        fechas_ordenadas = get_sorted_dates()
+        if fechas_ordenadas:
+            most_recent_date = fechas_ordenadas[-1]  # Última fecha en la lista ordenada
+            most_recent_dt = datetime.datetime.strptime(most_recent_date, '%d/%m/%Y')
+            return most_recent_dt.strftime('%Y-%m-%d')
+        
+        # Si no hay fechas disponibles, retornar None
+        return None
+        
+    except Exception as e:
+        print(f"Error obteniendo fecha inicial: {e}")
+        return None
+
+def get_sorted_dates():
+        """Función auxiliar para obtener fechas ordenadas cronológicamente del archivo parquet"""
+        try:
+            path_to_parquet = os.path.join(DATA_GPS_PATH, 'df_gps.parquet')
+            if not os.path.exists(path_to_parquet):
+                return []
+            df = pl.read_parquet(path_to_parquet)
+            if df.height == 0 or 'Date' not in df.columns:
+                return []
+                
+            # Obtener fechas únicas del DataFrame
+            fechas_raw = df.select('Date').unique()['Date'].to_list()
+            
+            # Convertir todas las fechas al formato dd/mm/aaaa y ordenar cronológicamente
+            fechas_datetime = []
+            for fecha in fechas_raw:
+                try:
+                    if isinstance(fecha, str):
+                        # Convertir diferentes formatos a dd/mm/aaaa
+                        if '/' in fecha:
+                            # Ya está en formato dd/mm/aaaa
+                            fecha_dt = datetime.datetime.strptime(fecha, '%d/%m/%Y')
+                            fecha_formatted = fecha
+                        elif '-' in fecha:
+                            # Convertir de aaaa-mm-dd a dd/mm/aaaa
+                            fecha_dt = datetime.datetime.strptime(fecha, '%Y-%m-%d')
+                            fecha_formatted = fecha_dt.strftime('%d/%m/%Y')
+                        else:
+                            continue
+                        fechas_datetime.append((fecha_dt, fecha_formatted))
+                    else:
+                        # Si es datetime object, convertir a string dd/mm/aaaa
+                        fecha_formatted = fecha.strftime('%d/%m/%Y')
+                        fechas_datetime.append((fecha, fecha_formatted))
+                except Exception as e:
+                    print(f"Error procesando fecha {fecha}: {e}")
+                    continue
+            
+            # Ordenar cronológicamente y extraer solo las fechas en formato dd/mm/aaaa
+            fechas_datetime.sort(key=lambda x: x[0])
+            fechas_ordenadas = [fecha_str for fecha_dt, fecha_str in fechas_datetime]
+            
+            return fechas_ordenadas
+            
+        except Exception as e:
+            print(f"Error obteniendo fechas del parquet: {e}")
+            return []
+        
 
 def get_columns_of_interest():
     """Carga las columnas de interés desde el archivo de texto"""
@@ -185,61 +289,222 @@ def filter_and_get_players_data(selected_date):
         return None
 
 
+# ============================================================================
+# LAYOUT DE LA PÁGINA
+# ============================================================================
+
+layout = html.Div([
+    # Título de la página
+    html.H2('Session Report', className="page-title"),
+    html.Hr(),
+    
+    # Contenedor principal
+    html.Div([
+        # Container para selección de fecha y estadística
+        html.Div([
+            html.H4('Seleccionar Parámetros', className="section-title"),
+            html.Div([
+                # Input para fecha con botones de navegación
+                html.Div([
+                    html.Label('Fecha:', className="input-label"),
+                    html.Div([
+                        html.Button(
+                            '-',
+                            id='date-minus-btn',
+                            className='date-nav-btn date-minus',
+                            title='Día anterior'
+                        ),
+                        dcc.DatePickerSingle(
+                            id='date-selector',
+                            date=get_initial_date(),
+                            placeholder='Selecciona una fecha...',
+                            display_format='DD/MM/YYYY',
+                            className="date-picker"
+                        ),
+                        html.Button(
+                            '+',
+                            id='date-plus-btn',
+                            className='date-nav-btn date-plus',
+                            title='Día siguiente'
+                        )
+                    ], className="date-input-container")
+                ], className="input-item"),
+                
+                # Input para estadística
+                html.Div([
+                    html.Label('Estadística:', className="input-label"),
+                    dcc.Dropdown(
+                        id='statistic-selector',
+                        options=[
+                            {'label': 'Media', 'value': 'mean'},
+                            {'label': 'Mediana', 'value': 'median'},
+                            {'label': 'Máximo', 'value': 'max'},
+                            {'label': 'Mínimo', 'value': 'min'},
+                            {'label': 'Percentil 75', 'value': 'p75'},
+                            {'label': 'Percentil 90', 'value': 'p90'},
+                            {'label': 'Percentil 95', 'value': 'p95'}
+                        ],
+                        value='median',
+                        placeholder='Selecciona una estadística...',
+                        className="statistic-dropdown"
+                    )
+                ], className="input-item")
+            ], className="inputs-row")
+        ], className="date-selection-container"),
+        
+        # Container unificado para información de sesión y tabla de jugadores
+        html.Div([
+            html.Div(id='session-info-output'),
+            html.Div(id='players-table-output')
+        ], className="session-and-players-container")
+    ])
+])
+                
+            
+
+# ============================================================================
+# CALLBACKS
+# ============================================================================
+
 def register_callbacks(app):
     """Registra todos los callbacks de la página"""
     
+    # Callback unificado para navegación de fechas y configuración del calendario
     @app.callback(
-        [Output('date-selector', 'min_date_allowed'),
+        [Output('date-selector', 'date'),
+         Output('date-selector', 'min_date_allowed'),
          Output('date-selector', 'max_date_allowed'),
          Output('date-selector', 'disabled_days')],
-        Input('date-selector', 'id')
+        [Input('date-minus-btn', 'n_clicks'),
+         Input('date-plus-btn', 'n_clicks'),
+         Input('date-selector', 'id')],
+        State('date-selector', 'date')
     )
-    def configure_date_picker(_):
-        """Configura las fechas disponibles en el calendario"""
+    def manage_date_navigation_and_config(minus_clicks, plus_clicks, selector_id, current_date):
+        """Función unificada para manejar navegación de fechas y configuración del calendario"""
+        ctx = dash.callback_context
+        
+        # Obtener fechas ordenadas cronológicamente en formato dd/mm/aaaa
+        fechas_ordenadas = get_sorted_dates()
+        
+        if not fechas_ordenadas:
+            return dash.no_update, None, None, []
+        
+        # Configurar límites del calendario (convertir a datetime.date para el DatePickerSingle)
         try:
-            path_to_parquet = os.path.join(DATA_GPS_PATH, 'df_gps.parquet')
-            if not os.path.exists(path_to_parquet):
-                return None, None, []
+            min_date = datetime.datetime.strptime(fechas_ordenadas[0], '%d/%m/%Y').date()
+            max_date = datetime.datetime.strptime(fechas_ordenadas[-1], '%d/%m/%Y').date()
+        except:
+            min_date = max_date = None
+        
+        # Si no hay trigger o es solo inicialización del selector, cargar última fecha guardada
+        if not ctx.triggered or ctx.triggered[0]['prop_id'] == 'date-selector.id':
+            # Intentar cargar la última fecha seleccionada
+            last_date = load_last_selected_date()
+            if last_date:
+                # Convertir la fecha guardada (dd/mm/aaaa) a formato aaaa-mm-dd para el DatePickerSingle
+                try:
+                    if '/' in last_date:
+                        last_date_dt = datetime.datetime.strptime(last_date, '%d/%m/%Y')
+                        last_date_formatted = last_date_dt.strftime('%Y-%m-%d')
+                    else:
+                        last_date_formatted = last_date
+                    
+                    # Verificar que la fecha esté en las fechas disponibles
+                    if last_date in fechas_ordenadas:
+                        return last_date_formatted, min_date, max_date, []
+                except:
+                    pass
             
-            df = pl.read_parquet(path_to_parquet)
-            if df.height == 0 or 'Date' not in df.columns:
-                return None, None, []
-            
-            # Obtener fechas únicas y convertir a datetime
-            fechas_unicas = df.select('Date').unique().sort('Date')['Date'].to_list()
-            
-            if not fechas_unicas:
-                return None, None, []
-            
-            # Convertir strings a datetime objects si es necesario
-            fechas_datetime = []
-            for fecha in fechas_unicas:
-                if isinstance(fecha, str):
-                    try:
-                        # Intentar diferentes formatos de fecha
-                        if '/' in fecha:
-                            fecha_dt = datetime.datetime.strptime(fecha, '%d/%m/%Y').date()
-                        elif '-' in fecha:
-                            fecha_dt = datetime.datetime.strptime(fecha, '%Y-%m-%d').date()
-                        else:
-                            continue
-                        fechas_datetime.append(fecha_dt)
-                    except:
-                        continue
+            # Si no hay fecha guardada o no es válida, usar la fecha más reciente
+            try:
+                most_recent_date = fechas_ordenadas[-1]  # Última fecha en la lista ordenada
+                most_recent_dt = datetime.datetime.strptime(most_recent_date, '%d/%m/%Y')
+                most_recent_formatted = most_recent_dt.strftime('%Y-%m-%d')
+                return most_recent_formatted, min_date, max_date, []
+            except:
+                return dash.no_update, min_date, max_date, []
+        
+        # Manejar navegación con botones
+        if not current_date:
+            # Si no hay fecha actual, retornar la primera fecha disponible
+            first_date_dt = datetime.datetime.strptime(fechas_ordenadas[0], '%d/%m/%Y')
+            first_date_formatted = first_date_dt.strftime('%Y-%m-%d')
+            return first_date_formatted, min_date, max_date, []
+        
+        # Convertir current_date (formato aaaa-mm-dd del DatePickerSingle) a dd/mm/aaaa
+        try:
+            if isinstance(current_date, str):
+                if '-' in current_date:
+                    current_dt = datetime.datetime.strptime(current_date, '%Y-%m-%d')
+                    current_date_formatted = current_dt.strftime('%d/%m/%Y')
                 else:
-                    fechas_datetime.append(fecha)
-            
-            if not fechas_datetime:
-                return None, None, []
-            
-            min_date = min(fechas_datetime)
-            max_date = max(fechas_datetime)
-            
-            return min_date, max_date, []
-            
-        except Exception as e:
-            print(f"Error al configurar calendario: {e}")
-            return None, None, []
+                    current_date_formatted = current_date
+            else:
+                current_date_formatted = current_date.strftime('%d/%m/%Y')
+        except:
+            current_date_formatted = fechas_ordenadas[0]
+        
+        # Encontrar índice de la fecha actual en la lista ordenada
+        try:
+            current_index = fechas_ordenadas.index(current_date_formatted)
+        except ValueError:
+            # Si la fecha actual no está en la lista, buscar la más cercana
+            try:
+                current_dt = datetime.datetime.strptime(current_date_formatted, '%d/%m/%Y')
+                fechas_dt = [datetime.datetime.strptime(f, '%d/%m/%Y') for f in fechas_ordenadas]
+                closest_index = min(range(len(fechas_dt)), key=lambda i: abs((fechas_dt[i] - current_dt).days))
+                current_index = closest_index
+            except:
+                current_index = 0
+        
+        # Determinar qué botón fue presionado y navegar
+        button_id = ctx.triggered[0]['prop_id'].split('.')[0]
+        
+        if button_id == 'date-minus-btn' and current_index > 0:
+            # Navegar a la fecha anterior
+            new_date = fechas_ordenadas[current_index - 1]
+        elif button_id == 'date-plus-btn' and current_index < len(fechas_ordenadas) - 1:
+            # Navegar a la fecha siguiente
+            new_date = fechas_ordenadas[current_index + 1]
+        else:
+            # No se puede navegar más o no hay cambio
+            new_date = fechas_ordenadas[current_index]
+        
+        # Guardar la nueva fecha seleccionada
+        save_last_selected_date(new_date)
+        
+        # Convertir la nueva fecha de dd/mm/aaaa a aaaa-mm-dd para el DatePickerSingle
+        try:
+            new_date_dt = datetime.datetime.strptime(new_date, '%d/%m/%Y')
+            new_date_formatted = new_date_dt.strftime('%Y-%m-%d')
+        except:
+            new_date_formatted = new_date
+        
+        return new_date_formatted, min_date, max_date, []
+    
+    # Callback para guardar la fecha cuando se selecciona directamente en el DatePickerSingle
+    @app.callback(
+        Output('date-selector', 'style'),  # Output dummy para permitir el callback
+        Input('date-selector', 'date'),
+        prevent_initial_call=True
+    )
+    def save_selected_date(selected_date):
+        """Guarda la fecha cuando se selecciona directamente en el DatePickerSingle"""
+        if selected_date:
+            # Convertir la fecha de aaaa-mm-dd a dd/mm/aaaa antes de guardar
+            try:
+                if isinstance(selected_date, str) and '-' in selected_date:
+                    selected_dt = datetime.datetime.strptime(selected_date, '%Y-%m-%d')
+                    date_to_save = selected_dt.strftime('%d/%m/%Y')
+                else:
+                    date_to_save = selected_date
+                
+                save_last_selected_date(date_to_save)
+            except Exception as e:
+                print(f"Error guardando fecha seleccionada: {e}")
+        
+        return {}  # Retornar estilo vacío (no cambia nada visualmente)
     
     @app.callback(
         Output('session-info-output', 'children'),
@@ -396,6 +661,8 @@ def register_callbacks(app):
                 df_pandas[col] = df_pandas[col].round(2)
             
             # Crear la tabla de jugadores
+            # Nota: Los estilos están definidos en style_sessionReport.css pero deben aplicarse via style_* 
+            # ya que DataTable no soporta className para estilos personalizados
             players_table = dash_table.DataTable(
                 id='players-data-table',
                 data=df_pandas.to_dict('records'),
@@ -403,39 +670,12 @@ def register_callbacks(app):
                     {"name": col, "id": col, "type": "numeric" if col in numeric_columns else "text"}
                     for col in df_pandas.columns
                 ],
-                style_table={
-                    'overflowX': 'auto',
-                    'maxHeight': '600px',
-                    'overflowY': 'auto'
-                },
-                style_cell={
-                    'textAlign': 'left',
-                    'padding': '10px',
-                    'fontFamily': 'Arial, sans-serif',
-                    'fontSize': '14px',
-                    'border': '1px solid #ddd'
-                },
-                style_header={
-                    'backgroundColor': '#f8f9fa',
-                    'fontWeight': 'bold',
-                    'textAlign': 'center',
-                    'border': '1px solid #ddd'
-                },
-                style_data={
-                    'backgroundColor': 'white',
-                    'border': '1px solid #ddd'
-                },
-                style_data_conditional=[
-                    {
-                        'if': {'row_index': 'odd'},
-                        'backgroundColor': '#f8f9fa'
-                    }
-                ],
+                **PLAYERS_TABLE_STYLES,
                 sort_action="native",
-                 filter_action="native",
-                 page_action="none",
-                 export_format="xlsx",
-                 export_headers="display"
+                filter_action="native",
+                page_action="none",
+                export_format="xlsx",
+                export_headers="display"
             )
             
             # Crear dataframe concatenado con jugadores, equipos y posiciones
@@ -544,46 +784,7 @@ def register_callbacks(app):
                         {"name": col, "id": col, "type": "numeric" if col in numeric_columns_combined else "text"}
                         for col in columns_order
                     ],
-                    style_table={
-                        'overflowX': 'auto',
-                        'maxHeight': '600px',
-                        'overflowY': 'auto'
-                    },
-                    style_cell={
-                        'textAlign': 'left',
-                        'padding': '8px',
-                        'fontFamily': 'Arial, sans-serif',
-                        'fontSize': '13px',
-                        'border': '1px solid #ddd'
-                    },
-                    style_header={
-                        'backgroundColor': '#e8f4fd',
-                        'fontWeight': 'bold',
-                        'textAlign': 'center',
-                        'border': '1px solid #ddd'
-                    },
-                    style_data={
-                        'backgroundColor': 'white',
-                        'border': '1px solid #ddd'
-                    },
-                    style_data_conditional=[
-                        {
-                            'if': {'row_index': 'odd'},
-                            'backgroundColor': '#f8f9fa'
-                        },
-                        {
-                            'if': {'filter_query': '{_tipo_interno} = Jugador'},
-                            'backgroundColor': '#f0f8ff'
-                        },
-                        {
-                            'if': {'filter_query': '{_tipo_interno} = Equipo'},
-                            'backgroundColor': '#e8f4fd'
-                        },
-                        {
-                            'if': {'filter_query': '{_tipo_interno} = Posición'},
-                            'backgroundColor': '#fff3cd'
-                        }
-                    ],
+                    **COMBINED_TABLE_STYLES,
                     sort_action="native",
                     filter_action="native",
                     page_action="none",
@@ -595,15 +796,6 @@ def register_callbacks(app):
             
             # Crear información de resumen
             stats_info = []
-            if df_jugadores is not None and df_jugadores.height > 0:
-                stats_info.append(html.P(f"✓ Estadísticas de jugadores ({selected_statistic}): {df_jugadores.height} registros", 
-                                        className="stats-info"))
-            if df_position is not None and df_position.height > 0:
-                stats_info.append(html.P(f"✓ Estadísticas de posiciones ({selected_statistic}): {df_position.height} registros", 
-                                        className="stats-info"))
-            if df_team is not None and df_team.height > 0:
-                stats_info.append(html.P(f"✓ Estadísticas de equipos ({selected_statistic}): {df_team.height} registros", 
-                                        className="stats-info"))
             
             # Crear layout de retorno con tabla única
             if combined_table is not None:
@@ -616,8 +808,6 @@ def register_callbacks(app):
                     'p90': 'Percentil 90',
                     'p95': 'Percentil 95'
                 }
-                statistic_name = statistic_labels.get(selected_statistic, selected_statistic)
-                combined_title = f'Estadísticas Completas - {statistic_name}'
                 combined_info_text = ' | '.join(combined_info)
                 
                 # Crear cartões para colunas de interesse mostrando valores _Diff
@@ -780,7 +970,6 @@ def register_callbacks(app):
                     
                     # Tabla única con todos los datos
                     html.Div([
-                        html.H5(combined_title, className="section-subtitle"),
                         html.P(f"Mostrando {combined_info_text}", className="table-info"),
                         combined_table
                     ], className="stats-table-container"),

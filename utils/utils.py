@@ -19,13 +19,6 @@ def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
     """
     Calculates comparative statistics for each player, position and team by Match Day.
     If fecha is provided, filters data for that specific date's Week Team.
-    
-    Args:
-        fecha (str, optional): Date in dd/mm/yyyy format to filter data
-        columnas_interes (list, optional): List of columns to calculate statistics for
-            
-    Returns:
-        tuple: (df_estadisticas, df_estadisticas_position, df_estadisticas_team) with calculated statistics
     """
     # Asegurar que el directorio de datos procesados existe
     ensure_dir(DATA_PROCESSED_PATH)
@@ -38,10 +31,12 @@ def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
         
     try:
         df = pl.read_parquet(path_to_parquet)
+        df = df.filter(pl.col('Match Day') != 'Rehab')
+        
         if df.height == 0:
             print("DataFrame is empty")
             return None, None, None
-            
+        
         # # Crear backup
         # backup_path = os.path.join(DATA_GPS_PATH, 'df_gps_backup.parquet')
         # df.write_parquet(backup_path)
@@ -64,7 +59,7 @@ def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
             
             # Filtrar por Week Team para incluir MD en cálculos de porcentaje
             df = df.filter(pl.col('Week Team') == week_team)
-            print(f"Filtered data for Week Team: {week_team}, target Match Day: {match_day_especifico}")
+            #print(f"Filtered data for Week Team: {week_team}, target Match Day: {match_day_especifico}")
             
         # Cargar columnas de interés
         if columnas_interes is None:
@@ -170,7 +165,7 @@ def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
             df_estadisticas_position_filtrado = df_estadisticas_position.filter(pl.col('Match Day') == match_day_especifico)
             df_estadisticas_team_filtrado = df_estadisticas_team.filter(pl.col('Match Day') == match_day_especifico)
             
-            print(f"Returning statistics for specific Match Day: {match_day_especifico}")
+            #print(f"Returning statistics for specific Match Day: {match_day_especifico}")
             return df_estadisticas_filtrado, df_estadisticas_position_filtrado, df_estadisticas_team_filtrado
         
         else:

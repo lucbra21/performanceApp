@@ -9,9 +9,9 @@ import dash
 # Importaciones del sistema y utilidades
 import os
 import datetime
-import json
 import polars as pl
-from utils.utils import DATA_GPS_PATH
+import pandas as pd
+from utils.utils import DATA_GPS_PATH, calcular_estadisticas
 
 # ============================================================================
 # ESTILOS PARA DATATABLES - CENTRALIZADOS PARA MEJOR ORGANIZACIÓN
@@ -79,6 +79,10 @@ COMBINED_TABLE_STYLES = {
             'backgroundColor': '#f8f9fa'
         },
         {
+            'if': {'filter_query': '{_tipo_interno} = JugadorIndividual'},
+            'backgroundColor': '#e8f5e8'
+        },
+        {
             'if': {'filter_query': '{_tipo_interno} = Jugador'},
             'backgroundColor': '#f0f8ff'
         },
@@ -93,69 +97,11 @@ COMBINED_TABLE_STYLES = {
     ]
 }
 
+
+
 # ============================================================================
 # FUNCIONES AUXILIARES
 # ============================================================================
-
-def save_last_selected_date(date_str):
-    """Guarda la última fecha seleccionada en un archivo JSON"""
-    try:
-        last_date_file = os.path.join('data', 'last_selected_date.json')
-        data = {
-            'last_date': date_str,
-            'timestamp': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        }
-        
-        with open(last_date_file, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
-            
-    except Exception as e:
-        print(f"Error guardando última fecha: {e}")
-
-def load_last_selected_date():
-    """Carga la última fecha seleccionada desde el archivo JSON"""
-    try:
-        last_date_file = os.path.join('data', 'last_selected_date.json')
-        
-        if not os.path.exists(last_date_file):
-            return None
-            
-        with open(last_date_file, 'r', encoding='utf-8') as f:
-            data = json.load(f)
-            
-        return data.get('last_date')
-        
-    except Exception as e:
-        print(f"Error cargando última fecha: {e}")
-        return None
-
-def get_initial_date():
-    """Obtiene la fecha inicial para el DatePickerSingle al cargar la página"""
-    try:
-        # Intentar cargar la última fecha seleccionada
-        last_date = load_last_selected_date()
-        
-        if last_date:
-            # Convertir la fecha guardada (dd/mm/aaaa) a formato aaaa-mm-dd para el DatePickerSingle
-            if '/' in last_date:
-                last_date_dt = datetime.datetime.strptime(last_date, '%d/%m/%Y')
-                return last_date_dt.strftime('%Y-%m-%d')
-            else:
-                return last_date
-        
-        # Si no hay fecha guardada, usar la fecha más reciente disponible
-        fechas_ordenadas = get_sorted_dates()
-        if fechas_ordenadas:
-            most_recent_date = fechas_ordenadas[-1]  # Última fecha en la lista ordenada
-            most_recent_dt = datetime.datetime.strptime(most_recent_date, '%d/%m/%Y')
-            return most_recent_dt.strftime('%Y-%m-%d')
-        
-        # Si no hay fechas disponibles, retornar None
-        return None
-        
-    except Exception as e:
-        print(f"Error obteniendo fecha inicial: {e}")
-        return None
 
 def get_sorted_dates():
         """Función auxiliar para obtener fechas ordenadas cronológicamente del archivo parquet"""
@@ -163,6 +109,7 @@ def get_sorted_dates():
             path_to_parquet = os.path.join(DATA_GPS_PATH, 'df_gps.parquet')
             if not os.path.exists(path_to_parquet):
                 return []
+                
             df = pl.read_parquet(path_to_parquet)
             if df.height == 0 or 'Date' not in df.columns:
                 return []
@@ -204,7 +151,23 @@ def get_sorted_dates():
         except Exception as e:
             print(f"Error obteniendo fechas del parquet: {e}")
             return []
+
+def get_latest_date_for_picker():
+    """Obtiene la fecha más reciente en formato YYYY-MM-DD para el DatePickerSingle"""
+    try:
+        fechas_ordenadas = get_sorted_dates()
+        if not fechas_ordenadas:
+            return None
         
+        # Obtener la última fecha (más reciente) y convertir a formato YYYY-MM-DD
+        latest_date_str = fechas_ordenadas[-1]  # Última fecha en formato dd/mm/aaaa
+        latest_date_dt = datetime.datetime.strptime(latest_date_str, '%d/%m/%Y')
+        return latest_date_dt.strftime('%Y-%m-%d')  # Formato para DatePickerSingle
+        
+    except Exception as e:
+        print(f"Error obteniendo fecha más reciente: {e}")
+        return None
+    
 
 def get_columns_of_interest():
     """Carga las columnas de interés desde el archivo de texto"""
@@ -222,41 +185,68 @@ def get_columns_of_interest():
         print(f"Error al cargar columnas de interés: {e}")
         return []
 
+def format_and_filter_date(selected_date):
+    """
+    Formatea la fecha seleccionada y filtra el dataframe para esa fecha.
+    """
+    
+    path_to_parquet = os.path.join(DATA_GPS_PATH, 'df_gps.parquet')
+    if not os.path.exists(path_to_parquet):
+        print(f"Archivo parquet no existe: {path_to_parquet}")
+        return None
+        
+    df = pl.read_parquet(path_to_parquet)
+    df_filtered = (df.filter(pl.col('Match Day') != 'Rehab')
+                      .filter(pl.col('Player') != 'TEAM')
+                      .filter(pl.col('Team ') != 'TEAM')
+                      .filter(pl.col('Selection') == 'Drills')
+                      .with_columns(
+                          pl.when(pl.col('Team ').str.contains('Sporting'))
+                          .then(pl.lit('Sporting de Gijón'))
+                          .otherwise(pl.col('Team '))
+                          .alias('Team ')
+                      ))
+    
+    # Convertir la fecha seleccionada al formato correcto
+    if isinstance(selected_date, str):
+        try:
+            selected_dt = datetime.datetime.strptime(selected_date, '%Y-%m-%d')
+            formatted_date = selected_dt.strftime('%d/%m/%Y')
+        except:
+            formatted_date = selected_date
+    else:
+        formatted_date = selected_date
+        
+    #print(f"Buscando datos para fecha: {formatted_date}")
+    
+    # Filtrar datos para la fecha formateada
+    df_fecha = df_filtered.filter(pl.col('Date') == formatted_date)
+    #print(f"Encontradas {df_fecha.height} filas para la fecha {formatted_date}")
+    
+    if df_fecha is None or df_fecha.height == 0:
+        print("No se encontraron datos para ningún formato de fecha")
+        # Mostrar algunas fechas disponibles para debug
+        available_dates = df.select('Date').unique().limit(5)['Date'].to_list()
+        print(f"Fechas disponibles (muestra): {available_dates}")
+        return None
+        
+    return df_fecha, formatted_date
+
 
 def filter_and_get_players_data(selected_date):
     """Filtra los datos GPS por fecha y aplica los filtros especificados"""
     try:
         path_to_parquet = os.path.join(DATA_GPS_PATH, 'df_gps.parquet')
         if not os.path.exists(path_to_parquet):
+            print(f"Archivo parquet no existe: {path_to_parquet}")
             return None
         
         df = pl.read_parquet(path_to_parquet)
+        #print(f"DataFrame cargado con {df.height} filas y {len(df.columns)} columnas")
         
-        # Convertir la fecha seleccionada al formato correcto
-        if isinstance(selected_date, str):
-            try:
-                selected_dt = datetime.datetime.strptime(selected_date, '%Y-%m-%d')
-                date_formats = [
-                    selected_dt.strftime('%d/%m/%Y'),
-                    selected_dt.strftime('%Y-%m-%d'),
-                    selected_date
-                ]
-            except:
-                date_formats = [selected_date]
-        else:
-            date_formats = [selected_date]
+        df_fecha, formatted_date = format_and_filter_date(selected_date)
         
-        # Buscar datos para cualquiera de los formatos
-        df_fecha = None
-        for date_format in date_formats:
-            df_temp = df.filter(pl.col('Date') == date_format)
-            if df_temp.height > 0:
-                df_fecha = df_temp
-                break
-        
-        if df_fecha is None or df_fecha.height == 0:
-            return None
-        
+        #print(f"Datos encontrados para la fecha: {df_fecha.height} filas")
         # Aplicar filtros como en utils.py
         df_filtered = (df_fecha.filter(pl.col('Match Day') != 'Rehab')
                       .filter(pl.col('Player') != 'TEAM')
@@ -268,24 +258,32 @@ def filter_and_get_players_data(selected_date):
                           .otherwise(pl.col('Team '))
                           .alias('Team ')
                       ))
+        #print(f"Después de filtros: {df_filtered.height} filas")
         
         # Obtener columnas de interés
         columns_of_interest = get_columns_of_interest()
+        #print(f"Columnas de interés: {columns_of_interest}")
         
         # Seleccionar columnas básicas + columnas de interés que existan en el DataFrame
         basic_columns = ['Player']
         available_columns = [col for col in columns_of_interest if col in df_filtered.columns]
+        #print(f"Columnas disponibles en DataFrame: {available_columns}")
         
         selected_columns = basic_columns + available_columns
+        #print(f"Columnas seleccionadas: {selected_columns}")
         
         if df_filtered.height > 0:
             result_df = df_filtered.select(selected_columns)
+            #print(f"DataFrame resultado: {result_df.height} filas, {len(result_df.columns)} columnas")
             return result_df
         else:
+            print("DataFrame filtrado está vacío")
             return None
             
     except Exception as e:
         print(f"Error al filtrar datos: {e}")
+        import traceback
+        traceback.print_exc()
         return None
 
 
@@ -316,7 +314,7 @@ layout = html.Div([
                         ),
                         dcc.DatePickerSingle(
                             id='date-selector',
-                            date=get_initial_date(),
+                            date=get_latest_date_for_picker(),
                             placeholder='Selecciona una fecha...',
                             display_format='DD/MM/YYYY',
                             className="date-picker"
@@ -355,12 +353,11 @@ layout = html.Div([
         # Container unificado para información de sesión y tabla de jugadores
         html.Div([
             html.Div(id='session-info-output'),
-            html.Div(id='players-table-output')
+            html.Div(id='players-table-output'),
+            html.Div(id='team-diff-cards-output')
         ], className="session-and-players-container")
     ])
 ])
-                
-            
 
 # ============================================================================
 # CALLBACKS
@@ -397,40 +394,24 @@ def register_callbacks(app):
         except:
             min_date = max_date = None
         
-        # Si no hay trigger o es solo inicialización del selector, cargar última fecha guardada
-        if not ctx.triggered or ctx.triggered[0]['prop_id'] == 'date-selector.id':
-            # Intentar cargar la última fecha seleccionada
-            last_date = load_last_selected_date()
-            if last_date:
-                # Convertir la fecha guardada (dd/mm/aaaa) a formato aaaa-mm-dd para el DatePickerSingle
-                try:
-                    if '/' in last_date:
-                        last_date_dt = datetime.datetime.strptime(last_date, '%d/%m/%Y')
-                        last_date_formatted = last_date_dt.strftime('%Y-%m-%d')
-                    else:
-                        last_date_formatted = last_date
-                    
-                    # Verificar que la fecha esté en las fechas disponibles
-                    if last_date in fechas_ordenadas:
-                        return last_date_formatted, min_date, max_date, []
-                except:
-                    pass
-            
-            # Si no hay fecha guardada o no es válida, usar la fecha más reciente
+        # Si no hay trigger (inicialización de la página), retornar la fecha más reciente
+        if not ctx.triggered:
+            # Convertir la fecha más reciente (última en la lista) a formato YYYY-MM-DD
             try:
-                most_recent_date = fechas_ordenadas[-1]  # Última fecha en la lista ordenada
-                most_recent_dt = datetime.datetime.strptime(most_recent_date, '%d/%m/%Y')
-                most_recent_formatted = most_recent_dt.strftime('%Y-%m-%d')
-                return most_recent_formatted, min_date, max_date, []
+                latest_date_dt = datetime.datetime.strptime(fechas_ordenadas[-1], '%d/%m/%Y')
+                latest_date_formatted = latest_date_dt.strftime('%Y-%m-%d')
             except:
-                return dash.no_update, min_date, max_date, []
+                latest_date_formatted = fechas_ordenadas[-1]
+            return latest_date_formatted, min_date, max_date, []
+        
+        # Si es solo inicialización del selector, solo configurar calendario
+        if ctx.triggered[0]['prop_id'] == 'date-selector.id':
+            return dash.no_update, min_date, max_date, []
         
         # Manejar navegación con botones
         if not current_date:
             # Si no hay fecha actual, retornar la primera fecha disponible
-            first_date_dt = datetime.datetime.strptime(fechas_ordenadas[0], '%d/%m/%Y')
-            first_date_formatted = first_date_dt.strftime('%Y-%m-%d')
-            return first_date_formatted, min_date, max_date, []
+            return fechas_ordenadas[0], min_date, max_date, []
         
         # Convertir current_date (formato aaaa-mm-dd del DatePickerSingle) a dd/mm/aaaa
         try:
@@ -471,9 +452,6 @@ def register_callbacks(app):
             # No se puede navegar más o no hay cambio
             new_date = fechas_ordenadas[current_index]
         
-        # Guardar la nueva fecha seleccionada
-        save_last_selected_date(new_date)
-        
         # Convertir la nueva fecha de dd/mm/aaaa a aaaa-mm-dd para el DatePickerSingle
         try:
             new_date_dt = datetime.datetime.strptime(new_date, '%d/%m/%Y')
@@ -483,28 +461,6 @@ def register_callbacks(app):
         
         return new_date_formatted, min_date, max_date, []
     
-    # Callback para guardar la fecha cuando se selecciona directamente en el DatePickerSingle
-    @app.callback(
-        Output('date-selector', 'style'),  # Output dummy para permitir el callback
-        Input('date-selector', 'date'),
-        prevent_initial_call=True
-    )
-    def save_selected_date(selected_date):
-        """Guarda la fecha cuando se selecciona directamente en el DatePickerSingle"""
-        if selected_date:
-            # Convertir la fecha de aaaa-mm-dd a dd/mm/aaaa antes de guardar
-            try:
-                if isinstance(selected_date, str) and '-' in selected_date:
-                    selected_dt = datetime.datetime.strptime(selected_date, '%Y-%m-%d')
-                    date_to_save = selected_dt.strftime('%d/%m/%Y')
-                else:
-                    date_to_save = selected_date
-                
-                save_last_selected_date(date_to_save)
-            except Exception as e:
-                print(f"Error guardando fecha seleccionada: {e}")
-        
-        return {}  # Retornar estilo vacío (no cambia nada visualmente)
     
     @app.callback(
         Output('session-info-output', 'children'),
@@ -525,46 +481,13 @@ def register_callbacks(app):
             
             df = pl.read_parquet(path_to_parquet)
             
-            # Convertir la fecha seleccionada al formato correcto
-            if isinstance(selected_date, str):
-                try:
-                    selected_dt = datetime.datetime.strptime(selected_date, '%Y-%m-%d')
-                    # Intentar diferentes formatos para comparar
-                    date_formats = [
-                        selected_dt.strftime('%d/%m/%Y'),
-                        selected_dt.strftime('%Y-%m-%d'),
-                        selected_date
-                    ]
-                except:
-                    date_formats = [selected_date]
-            else:
-                date_formats = [selected_date]
-            
-            # Buscar datos para cualquiera de los formatos
-            df_fecha = None
-            for date_format in date_formats:
-                df_temp = df.filter(pl.col('Date') == date_format)
-                if df_temp.height > 0:
-                    df_fecha = df_temp
-                    break
+            df_fecha, formatted_date = format_and_filter_date(selected_date)
+
             
             if df_fecha is None or df_fecha.height == 0:
                 return html.Div(f"No se encontraron datos para la fecha {selected_date}.", 
                               className="warning-message")
             
-            # Formatear la fecha al formato dd-mm-aaaa
-            formatted_date = selected_date
-            if isinstance(selected_date, str):
-                try:
-                    if '-' in selected_date:
-                        date_obj = datetime.datetime.strptime(selected_date, '%Y-%m-%d')
-                        formatted_date = date_obj.strftime('%d-%m-%Y')
-                    elif '/' in selected_date:
-                        # Si ya está en formato dd/mm/yyyy, convertir a dd-mm-yyyy
-                        date_obj = datetime.datetime.strptime(selected_date, '%d/%m/%Y')
-                        formatted_date = date_obj.strftime('%d-%m-%Y')
-                except:
-                    formatted_date = selected_date
             
             # Obtener información básica de la sesión
             num_jugadores = df_fecha.select('Player').n_unique()
@@ -613,7 +536,8 @@ def register_callbacks(app):
          Input('statistic-selector', 'value')]
     )
     def update_players_table(selected_date, selected_statistic):
-        """Actualiza la tabla de jugadores y calcula estadísticas de equipa y posición"""
+        """Actualiza la tabla de jugadores con datos de jugadores, equipos y posiciones"""
+        
         if not selected_date:
             return html.Div("Selecciona una fecha para ver los datos de los jugadores.", 
                           className="info-message")
@@ -623,81 +547,40 @@ def register_callbacks(app):
                           className="info-message")
         
         try:
-            # Import calcular_estadisticas function
-            from utils.utils import calcular_estadisticas
+            # Convertir fecha al formato correcto para calcular_estadisticas
+            df_fecha, formatted_date = format_and_filter_date(selected_date)
             
-            # Convert date to dd/mm/yyyy format for calcular_estadisticas
-            if isinstance(selected_date, str):
-                try:
-                    if '-' in selected_date:
-                        date_obj = datetime.datetime.strptime(selected_date, '%Y-%m-%d')
-                        fecha_formatted = date_obj.strftime('%d/%m/%Y')
-                    else:
-                        fecha_formatted = selected_date
-                except:
-                    fecha_formatted = selected_date
-            else:
-                fecha_formatted = selected_date
-            
-            # Get columns of interest
+            # Obtener columnas de interés
             columnas_interes = get_columns_of_interest()
             
-            # Calculate statistics using calcular_estadisticas with selected statistic
-            df_jugadores, df_position, df_team = calcular_estadisticas(fecha=fecha_formatted, columnas_interes=columnas_interes, estadistica=selected_statistic)
+            # Obtener datos individuales de jugadores para la fecha seleccionada
+            df_individual_players = filter_and_get_players_data(formatted_date)
+            #print(df_individual_players)
             
-            # Obtener datos filtrados para la tabla de jugadores
-            df_filtered = filter_and_get_players_data(selected_date)
+            # Calcular estadísticas para la fecha y estadística seleccionadas
+            df_players, df_position, df_team = calcular_estadisticas( fecha=formatted_date, columnas_interes=columnas_interes, estadistica=selected_statistic)
             
-            if df_filtered is None or df_filtered.height == 0:
-                return html.Div(f"No se encontraron datos de jugadores para la fecha {selected_date}.", 
-                              className="warning-message")
-            
-            # Convertir a pandas para dash_table (más fácil de manejar)
-            df_pandas = df_filtered.to_pandas()
-            
-            # Redondear valores numéricos para mejor visualización
-            numeric_columns = df_pandas.select_dtypes(include=['float64', 'int64']).columns
-            for col in numeric_columns:
-                df_pandas[col] = df_pandas[col].round(2)
-            
-            # Crear la tabla de jugadores
-            # Nota: Los estilos están definidos en style_sessionReport.css pero deben aplicarse via style_* 
-            # ya que DataTable no soporta className para estilos personalizados
-            players_table = dash_table.DataTable(
-                id='players-data-table',
-                data=df_pandas.to_dict('records'),
-                columns=[
-                    {"name": col, "id": col, "type": "numeric" if col in numeric_columns else "text"}
-                    for col in df_pandas.columns
-                ],
-                **PLAYERS_TABLE_STYLES,
-                sort_action="native",
-                filter_action="native",
-                page_action="none",
-                export_format="xlsx",
-                export_headers="display"
-            )
-            
-            # Crear dataframe concatenado con jugadores, equipos y posiciones
+            # Crear dataframe combinado con todos los datos
             combined_data_all = []
             combined_info = []
             
-            # Agregar datos de jugadores
-            if df_jugadores is not None and df_jugadores.height > 0:
-                df_players_pandas = df_filtered.to_pandas()
+            # Agregar datos individuales de jugadores 
+            if df_individual_players is not None and df_individual_players.height > 0:
+                df_individual_pandas = df_individual_players.to_pandas()
                 
                 # Renombrar columna Player a Player/Team/Position
-                if 'Player' in df_players_pandas.columns:
-                    df_players_pandas = df_players_pandas.rename(columns={'Player': 'Player/Team/Position'})
-                
+                if 'Player' in df_individual_pandas.columns:
+                    df_individual_pandas = df_individual_pandas.rename(columns={'Player': 'Player/Team/Position'})
+
                 # Agregar identificador interno para estilos
-                df_players_pandas['_tipo_interno'] = 'Jugador'
+                df_individual_pandas['_tipo_interno'] = 'JugadorIndividual'
+                
                 # Redondear valores numéricos
-                numeric_cols_players = df_players_pandas.select_dtypes(include=['float64', 'int64']).columns
-                for col in numeric_cols_players:
-                    df_players_pandas[col] = df_players_pandas[col].round(2)
-                combined_data_all.extend(df_players_pandas.to_dict('records'))
-                combined_info.append(f"Jugadores: {df_filtered.height} registros")
+                numeric_cols_individual = df_individual_pandas.select_dtypes(include=['float64', 'int64']).columns
+                for col in numeric_cols_individual:
+                    df_individual_pandas[col] = df_individual_pandas[col].round(2)
+                combined_data_all.extend(df_individual_pandas.to_dict('records'))
+                combined_info.append(f"Jugadores Individuales: {df_individual_players.height} registros")
             
             # Agregar datos de equipos
             if df_team is not None and df_team.height > 0:
@@ -713,6 +596,7 @@ def register_callbacks(app):
                 
                 # Agregar identificador interno para estilos
                 df_team_pandas['_tipo_interno'] = 'Equipo'
+                
                 # Redondear valores numéricos
                 numeric_cols_team = df_team_pandas.select_dtypes(include=['float64', 'int64']).columns
                 for col in numeric_cols_team:
@@ -734,6 +618,7 @@ def register_callbacks(app):
                 
                 # Agregar identificador interno para estilos
                 df_position_pandas['_tipo_interno'] = 'Posición'
+                
                 # Redondear valores numéricos
                 numeric_cols_position = df_position_pandas.select_dtypes(include=['float64', 'int64']).columns
                 for col in numeric_cols_position:
@@ -741,7 +626,7 @@ def register_callbacks(app):
                 combined_data_all.extend(df_position_pandas.to_dict('records'))
                 combined_info.append(f"Posiciones: {df_position.height} registros")
             
-            # Crear tabla única con todos los datos
+            # Crear tabla única con todos los dados
             if combined_data_all:
                 # Obtener todas las columnas únicas
                 all_columns = set()
@@ -755,7 +640,7 @@ def register_callbacks(app):
                 for record in combined_data_all:
                     for col in columns_order:
                         if col not in record:
-                            record[col] = ''
+                            record[col] = 'NULL'
                 
                 # Determinar columnas numéricas
                 numeric_columns_combined = []
@@ -773,6 +658,7 @@ def register_callbacks(app):
                 filtered_data_all = []
                 for record in combined_data_all:
                     filtered_record = {col: record.get(col, '') for col in columns_order}
+                    
                     # Mantener _tipo_interno para estilos pero no mostrarlo
                     filtered_record['_tipo_interno'] = record.get('_tipo_interno', '')
                     filtered_data_all.append(filtered_record)
@@ -791,203 +677,224 @@ def register_callbacks(app):
                     export_format="xlsx",
                     export_headers="display"
                 )
-            else:
-                combined_table = None
-            
-            # Crear información de resumen
-            stats_info = []
-            
-            # Crear layout de retorno con tabla única
-            if combined_table is not None:
-                statistic_labels = {
-                    'mean': 'Media',
-                    'median': 'Mediana', 
-                    'max': 'Máximo',
-                    'min': 'Mínimo',
-                    'p75': 'Percentil 75',
-                    'p90': 'Percentil 90',
-                    'p95': 'Percentil 95'
-                }
+                
+                # Crear información de resumen
                 combined_info_text = ' | '.join(combined_info)
                 
-                # Crear cartões para colunas de interesse mostrando valores _Diff
-                cards_container = []
-                if columnas_interes:
-                    # Buscar valores das colunas _Diff nos dataframes originais
-                    diff_values = {}
-                    
-                    # Buscar nos dados de jogadores
-                    if df_jugadores is not None and df_jugadores.height > 0:
-                        df_players_pandas = df_jugadores.to_pandas()
-                        for col in columnas_interes:
-                            diff_col = f"{col} diff"
-                            if diff_col in df_players_pandas.columns:
-                                values = df_players_pandas[diff_col].dropna().tolist()
-                                if values:
-                                    if col not in diff_values:
-                                        diff_values[col] = []
-                                    diff_values[col].extend(values)
-                    
-                    # Buscar nos dados de equipos
-                    if df_team is not None and df_team.height > 0:
-                        df_team_pandas = df_team.to_pandas()
-                        for col in columnas_interes:
-                            diff_col = f"{col} diff"
-                            if diff_col in df_team_pandas.columns:
-                                values = df_team_pandas[diff_col].dropna().tolist()
-                                if values:
-                                    if col not in diff_values:
-                                        diff_values[col] = []
-                                    diff_values[col].extend(values)
-                    
-                    # Buscar nos dados de posições
-                    if df_position is not None and df_position.height > 0:
-                        df_position_pandas = df_position.to_pandas()
-                        for col in columnas_interes:
-                            diff_col = f"{col} diff"
-                            if diff_col in df_position_pandas.columns:
-                                values = df_position_pandas[diff_col].dropna().tolist()
-                                if values:
-                                    if col not in diff_values:
-                                        diff_values[col] = []
-                                    diff_values[col].extend(values)
-                    
-                    # Buscar valores da estatística selecionada para cada coluna
-                    selected_stat_values = {}
-                    
-                    # Filtrar dados pela estatística selecionada
-                    if df_jugadores is not None and df_jugadores.height > 0:
-                        df_players_filtered = df_jugadores.filter(pl.col('Estadistica') == selected_statistic)
-                        if df_players_filtered.height > 0:
-                            df_players_pandas = df_players_filtered.to_pandas()
-                            for col in columnas_interes:
-                                diff_col = f"{col} diff"
-                                if diff_col in df_players_pandas.columns:
-                                    values = df_players_pandas[diff_col].dropna().tolist()
-                                    if values:
-                                        if col not in selected_stat_values:
-                                            selected_stat_values[col] = []
-                                        selected_stat_values[col].extend(values)
-                    
-                    if df_team is not None and df_team.height > 0:
-                        df_team_filtered = df_team.filter(pl.col('Estadistica') == selected_statistic)
-                        if df_team_filtered.height > 0:
-                            df_team_pandas = df_team_filtered.to_pandas()
-                            for col in columnas_interes:
-                                diff_col = f"{col} diff"
-                                if diff_col in df_team_pandas.columns:
-                                    values = df_team_pandas[diff_col].dropna().tolist()
-                                    if values:
-                                        if col not in selected_stat_values:
-                                            selected_stat_values[col] = []
-                                        selected_stat_values[col].extend(values)
-                    
-                    if df_position is not None and df_position.height > 0:
-                        df_position_filtered = df_position.filter(pl.col('Estadistica') == selected_statistic)
-                        if df_position_filtered.height > 0:
-                            df_position_pandas = df_position_filtered.to_pandas()
-                            for col in columnas_interes:
-                                diff_col = f"{col} diff"
-                                if diff_col in df_position_pandas.columns:
-                                    values = df_position_pandas[diff_col].dropna().tolist()
-                                    if values:
-                                        if col not in selected_stat_values:
-                                            selected_stat_values[col] = []
-                                        selected_stat_values[col].extend(values)
-                    
-                    # Crear cartões para cada coluna que tem valores da estatística selecionada
-                    cards = []
-                    for col in sorted(columnas_interes):
-                        if col in selected_stat_values and selected_stat_values[col]:
-                            values = selected_stat_values[col]
-                            # Calcular apenas a estatística selecionada
-                            if selected_statistic == 'mean':
-                                stat_value = sum(values) / len(values)
-                                stat_label = 'Media'
-                            elif selected_statistic == 'median':
-                                sorted_values = sorted(values)
-                                n = len(sorted_values)
-                                if n % 2 == 0:
-                                    stat_value = (sorted_values[n//2-1] + sorted_values[n//2]) / 2
-                                else:
-                                    stat_value = sorted_values[n//2]
-                                stat_label = 'Mediana'
-                            elif selected_statistic == 'max':
-                                stat_value = max(values)
-                                stat_label = 'Máximo'
-                            elif selected_statistic == 'min':
-                                stat_value = min(values)
-                                stat_label = 'Mínimo'
-                            elif selected_statistic == 'p75':
-                                sorted_values = sorted(values)
-                                index = int(0.75 * (len(sorted_values) - 1))
-                                stat_value = sorted_values[index]
-                                stat_label = 'Percentil 75'
-                            elif selected_statistic == 'p90':
-                                sorted_values = sorted(values)
-                                index = int(0.90 * (len(sorted_values) - 1))
-                                stat_value = sorted_values[index]
-                                stat_label = 'Percentil 90'
-                            elif selected_statistic == 'p95':
-                                sorted_values = sorted(values)
-                                index = int(0.95 * (len(sorted_values) - 1))
-                                stat_value = sorted_values[index]
-                                stat_label = 'Percentil 95'
-                            else:
-                                continue
-                            
-
-                            
-                            # Determinar classe de cor baseada no valor
-                            if stat_value > 100:
-                                color_class = 'positive'  # Verde para valores acima de 100%
-                            elif stat_value < 100:
-                                color_class = 'negative'  # Vermelho para valores abaixo de 100%
-                            else:
-                                color_class = 'neutral'  # Laranja para 100%
-                            
-                            card = html.Div([
-                                html.H6(col, className="card-title"),
-                                html.Div([
-                                    html.Div([
-                                        html.Span(f"Sesión:", className="session-label"),
-                                        html.Span(f"{stat_value:.1f}%", className=f"stat-value {color_class}")
-                                    ], className="card-values-container"),
-                                    
-                                ])
-                            ], className="metric-card")
-                            cards.append(card)
-                    
-                    if cards:
-                        cards_container = html.Div([
-                            html.H5("Resumen de Métricas", className="metrics-section-subtitle"),
-                            html.Div(cards, className="metrics-cards-container")
-                        ])
-                
                 return html.Div([
-                    # Resumen de estadísticas calculadas
-                    html.Div(stats_info, className="statistics-summary") if stats_info else html.Div(),
-                    
-                    # Tabla única con todos los datos
-                    html.Div([
-                        html.P(f"Mostrando {combined_info_text}", className="table-info"),
-                        combined_table
-                    ], className="stats-table-container"),
-                    
-                    # Container de cartões com métricas
-                    cards_container
-                ])
+                    html.H5('Datos Combinados - Jugadores, Equipos y Posiciones', className="section-subtitle"),
+                    html.P(f"Mostrando {combined_info_text}", className="table-info"),
+                    combined_table
+                ], className="combined-stats-table-container")
             else:
-                # Fallback si no hay datos
-                return html.Div([
-                    html.Div(stats_info, className="statistics-summary") if stats_info else html.Div(),
-                    html.Div([
-                        html.H5('Datos de Jugadores', className="section-subtitle"),
-                        html.P(f"Mostrando {df_filtered.height} registros de jugadores", className="table-info"),
-                        players_table
-                    ], className="players-main-table")
-                ])
+                return html.Div("No se encontraron datos para la fecha y estadística seleccionadas.", 
+                              className="warning-message")
             
         except Exception as e:
             return html.Div(f"Error al cargar tabla de jugadores: {str(e)}", 
                           className="error-message")
+    
+    @app.callback(
+        Output('team-diff-cards-output', 'children'),
+        [Input('date-selector', 'date'),
+         Input('statistic-selector', 'value')]
+    )
+    def update_team_diff_cards(selected_date, selected_statistic):
+        """Crea cartões mostrando as colunas com 'Diff' do df_team"""
+        
+        if not selected_date or not selected_statistic:
+            return html.Div()
+        
+        try:
+            # Convertir fecha al formato correcto para calcular_estadisticas
+            df_fecha, formatted_date = format_and_filter_date(selected_date)
+            # Obtener columnas de interés
+            columnas_interes = get_columns_of_interest()
+            
+             # Carregar dados originais do arquivo parquet
+            try:
+                
+                        match_day_value = df_fecha['Match Day'].unique().to_list()[0]
+                        #print(match_day_value)
+                        
+                        # Agora carregar e filtrar df_team_estadisticas
+                        df_team_estadisticas_path = os.path.join(DATA_GPS_PATH, '../processed/df_team_estadisticas.parquet')
+                        if os.path.exists(df_team_estadisticas_path):
+                            df_team_estadisticas = pl.read_parquet(df_team_estadisticas_path)
+                            # Filtrar dados originais pelo Match Day correto e Estatística
+                            df_team_estadisticas_filtered = df_team_estadisticas.filter(
+                                (pl.col('Match Day') == match_day_value) & 
+                                (pl.col('Estadistica') == selected_statistic)
+                            )          
+                        else:
+                            df_team_estadisticas_filtered = None
+
+            except Exception as e:
+                print(f"Error cargando archivo original: {e}")
+                df_team_estadisticas_filtered = None
+            
+            # print(df_team_estadisticas_filtered)
+            # print("df_team_estadisticas_filtered.height = ", df_team_estadisticas_filtered.height )
+            
+            # Calcular estadísticas para la fecha y estadística seleccionadas
+            df_players, df_position, df_team = calcular_estadisticas(
+                fecha=formatted_date, 
+                columnas_interes=columnas_interes, 
+                estadistica=selected_statistic
+            )
+            
+            if df_team is None or df_team.height == 0:
+                return html.Div()
+            
+            # Convertir a pandas para facilitar el manejo
+            df_team_pandas = df_team.to_pandas()
+            
+            # Encontrar columnas que terminan con ' diff'
+            diff_columns = [col for col in df_team_pandas.columns if col.endswith(' diff')]
+            
+            if not diff_columns:
+                return html.Div()
+            
+            # Crear cartões para cada coluna diff
+            cards = []
+            
+            # Título da seção
+            cards.append(
+                html.H5('Diferencias Porcentuales del Equipo', 
+                        className="section-subtitle", 
+                        style={'margin-top': '30px', 'margin-bottom': '20px'})
+            )
+            
+            # Container para os cartões
+            cards_container = []
+            
+            for col in diff_columns:
+                # Obter o nome da métrica original (sem ' diff')
+                metric_name = col.replace(' diff', '')
+                
+                # Obter o valor da diferença (assumindo que há apenas uma linha de equipe)
+                if len(df_team_pandas) > 0:
+                    diff_value = df_team_pandas[col].iloc[0]
+                    # print(col)
+                    # Obter valor referencia da métrica correspondente
+                    original_value = None
+                    
+                    if df_team_estadisticas_filtered is not None and df_team_estadisticas_filtered.height > 0:
+                        try:
+                            df_original_pandas = df_team_estadisticas_filtered.to_pandas()
+                            if col in df_original_pandas.columns and len(df_original_pandas) > 0:
+                                original_value = df_original_pandas[col].iloc[0]
+                                if pd.isna(original_value):
+                                    original_value = None
+                        except Exception as e:
+                            print(f"Error obteniendo valor original para {metric_name}: {e}")
+                            original_value = None
+                    # print("original_value = ", original_value)
+                    
+                    # Formatar valor da diferença
+                    if pd.isna(diff_value):
+                        formatted_diff_value = 'N/A'
+                    else:
+                        formatted_diff_value = f'{diff_value:.2f}%'
+                    
+                    # Formatar valor referencia
+                    if pd.isna(original_value):
+                            formatted_original_value = 'N/A'
+                    else:
+                        formatted_original_value = f'{original_value:.2f}%'
+                    
+                    # Calcular diferencia absoluta si hay valor original
+                    formatted_difference = 'N/A'
+                    difference_value = None  # Inicializar la variable
+
+                    if not pd.isna(original_value) and not pd.isna(diff_value):
+                        # Calcular el valor de referencia basado en la diferencia porcentual
+                        difference_value = diff_value - original_value 
+                        formatted_difference = f'{difference_value:.2f}%'
+                     
+                     # Determinar cor baseada no valor
+                    if pd.isna(difference_value) or difference_value == 0 or difference_value is None:
+                        card_color = '#f8f9fa'  # Cinza neutro
+                        text_color = '#6c757d'
+                    elif difference_value < 10:
+                        card_color = '#d4edda'  # Verde claro
+                        text_color = '#155724'
+                    else:
+                        card_color = '#f8d7da'  # Vermelho claro
+                        text_color = '#721c24'
+                        
+                    # Crear cartão con layout vertical optimizado
+                    card_content = [
+                         # Título de la métrica
+                         html.H5(metric_name, 
+                                 style={'margin': '0 0 8px 0', 'font-weight': 'bold', 
+                                        'color': text_color, 'text-align': 'center', 'font-size': '16px'}),
+                         
+                         # Sección de diferencia porcentual
+                         html.Div([
+                             html.P("Con respecto al partido", 
+                                    style={'margin': '0 0 4px 0', 'font-size': '11px', 
+                                           'color': text_color, 'font-style': 'italic', 'text-align': 'center'}),
+                             html.Div([
+                                 html.Span(formatted_diff_value, 
+                                           style={'font-size': '20px', 'font-weight': 'bold', 'color': text_color})
+                             ], style={'display': 'flex', 'align-items': 'center', 'justify-content': 'center'})
+                         ], style={'margin-bottom': '12px'}),
+                         
+                         # Sección de valor original
+                         html.Div([
+                             html.P("Con respecto a la referencia", 
+                                    style={'margin': '0 0 4px 0', 'font-size': '11px', 
+                                           'color': text_color, 'font-style': 'italic', 'text-align': 'center'}),
+                             html.P(formatted_original_value if original_value is not None else 'N/A', 
+                                    style={'margin': '0 0 12px 0', 'font-size': '16px', 
+                                           'color': text_color, 'font-weight': 'bold', 'text-align': 'center'})
+                         ]),
+                         
+                         # Sección de diferencia absoluta
+                         html.Div([
+                             html.P("Diferencia", 
+                                    style={'margin': '0 0 4px 0', 'font-size': '11px', 
+                                           'color': text_color, 'font-style': 'italic', 'text-align': 'center'}),
+                             html.P(formatted_difference, 
+                                    style={'margin': '0', 'font-size': '14px', 
+                                           'color': text_color, 'font-weight': 'bold', 'text-align': 'center'})
+                         ])
+                     ]
+                     
+                    card = html.Div(card_content, style={
+                         'background-color': card_color,
+                         'border': f'1px solid {text_color}',
+                         'border-radius': '8px',
+                         'padding': '12px',
+                         'margin': '0',
+                         'width': '100%',
+                         'height': '100%',
+                         'box-shadow': '0 2px 4px rgba(0,0,0,0.1)',
+                         'display': 'flex',
+                         'flex-direction': 'column',
+                         'justify-content': 'space-between'
+                     })
+                    
+                    cards_container.append(card)
+            
+            # Container com layout em grid 4x3
+            if cards_container:
+                 cards.append(
+                     html.Div(cards_container, style={
+                         'display': 'grid',
+                         'grid-template-columns': 'repeat(4, 1fr)',
+                         'grid-template-rows': 'repeat(3, 1fr)',
+                         'gap': '15px',
+                         'margin-top': '10px',
+                         'max-width': '100%'
+                     })
+                 )
+            
+            return html.Div(cards)
+            
+        except Exception as e:
+            return html.Div(f"Error al cargar cartões de diferencias: {str(e)}", 
+                          className="error-message")
+            
+    

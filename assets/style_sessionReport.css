@@ -2,20 +2,49 @@
 /* ESTILOS PARA SESSION REPORT */
 /* ============================================================================ */
 
+/* ============================================================================ */
+/* 1. CONTAINERS E LAYOUT PRINCIPAL */
+/* ============================================================================ */
+
 /* Container principal de selección de fecha */
 .date-selection-container {
-    background-color: #f8f9fa;
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border-radius: 16px;
+    padding: 30px;
+    margin-bottom: 25px;
+    box-shadow: 0 8px 32px rgba(0, 123, 255, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 123, 255, 0.1);
+    position: relative;
+    transition: all 0.3s ease;
 }
 
-/* Título de sección */
-.section-title {
-    color: #333;
-    margin-bottom: 15px;
-    font-weight: 600;
+.date-selection-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #000000, #adb300, #c3b89a);
+    border-radius: 16px 16px 0 0;
+}
+
+.date-selection-container:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 40px rgba(0, 123, 255, 0.15), 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+/* Container de información de sesión */
+.session-info-container {
+    margin-top: 20px;
+}
+
+/* Container unificado para información de sesión y tabla de jugadores */
+.session-and-players-container {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
 /* Container de input */
@@ -30,6 +59,7 @@
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
+    align-items: flex-end;
 }
 
 /* Item individual de input */
@@ -39,38 +69,164 @@
     display: flex;
     flex-direction: column;
     gap: 8px;
+    align-items: stretch;
+}
+
+/* ============================================================================ */
+/* 2. TÍTULOS E LABELS */
+/* ============================================================================ */
+
+/* Título de sección */
+.section-title {
+    color: #2c3e50;
+    margin-bottom: 20px;
+    font-weight: 700;
+    font-size: 24px;
+    text-align: center;
+    position: relative;
+    padding-bottom: 10px;
+}
+
+
+/* Subtítulo de sección */
+.section-subtitle {
+    color: #495057;
+    margin-top: 80px;
+    font-weight: 600;
+    font-size: 16px;
+    border-bottom: 2px solid #007bff;
+    padding-bottom: 5px;
+}
+
+/* Título de sesión */
+.session-title {
+    color: #007bff;
+    margin-bottom: 15px;
+    font-weight: 600;
 }
 
 /* Label de input */
 .input-label {
-    font-weight: 500;
-    color: #555;
-    margin-bottom: 5px;
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    position: relative;
+}
+
+.input-label::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 0;
+    width: 30px;
+    height: 2px;
+    background: linear-gradient(90deg, #000000, #adb300, #c3b89a);
+    border-radius: 1px;
+}
+
+/* ============================================================================ */
+/* 3. INPUTS E FORMULÁRIOS */
+/* ============================================================================ */
+
+/* Container para input de data com botões */
+.date-input-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Botões de navegação de data */
+.date-nav-btn {
+    width: 40px;
+    height: 48px;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    background: white;
+    color: #666;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.date-nav-btn:hover {
+    border-color: #c3b89a;
+    background: #f8f7f5;
+    color: #333;
+    box-shadow: 0 4px 8px rgba(195, 184, 154, 0.3);
+    transform: translateY(-1px);
+}
+
+.date-nav-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(195, 184, 154, 0.2);
 }
 
 /* Date picker de fecha */
 .date-picker {
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    min-height: 40px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    min-height: 48px;
     width: 100%;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    font-size: 14px;
+    flex: 1;
+}
+
+.date-picker:hover {
+    border-color: #c3b89a;
+    box-shadow: 0 4px 12px rgba(195, 184, 154, 0.15);
+}
+
+.date-picker:focus-within {
+    border-color: #c3b89a;
+    box-shadow: 0 0 0 3px rgba(195, 184, 154, 0.1);
+    transform: translateY(-1px);
 }
 
 /* Dropdown de estadística */
 .statistic-dropdown {
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    min-height: 40px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+    min-height: 48px;
     width: 100%;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.statistic-dropdown:hover {
+    border-color: #c3b89a;
+    box-shadow: 0 4px 12px rgba(195, 184, 154, 0.15);
+}
+
+.statistic-dropdown:focus-within {
+    border-color: #c3b89a;
+    box-shadow: 0 0 0 3px rgba(195, 184, 154, 0.1);
+    transform: translateY(-1px);
 }
 
 /* Estilos para el calendario */
 .DateInput {
-    border-radius: 8px;
-    border: 1px solid #ddd;
-    padding: 8px 12px;
+    border: none;
+    background: transparent;
+    padding: 12px 16px;
     font-size: 14px;
     width: 100%;
+    min-height: 48px;
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
 }
 
 .DateInput_input {
@@ -78,16 +234,73 @@
     outline: none;
     font-size: 14px;
     color: #333;
+    background: transparent;
+    width: 100%;
+    height: 100%;
 }
 
 .DateInput_input::placeholder {
     color: #999;
 }
 
+/* Remover estilos hover e focus do DateInput para evitar duplicação */
+
+/* Estilos específicos para componentes Dash */
+.date-picker .SingleDatePickerInput {
+    height: 48px;
+    min-height: 48px;
+    border: none;
+    background: transparent;
+}
+
+.date-picker .DateInput {
+    height: 48px;
+    min-height: 48px;
+}
+
+.statistic-dropdown .Select,
+.statistic-dropdown .Select-control {
+    height: 48px;
+    min-height: 48px;
+    border-radius: 12px;
+    border: 2px solid #e9ecef;
+}
+
+.statistic-dropdown .Select-control:hover {
+    border-color: #c3b89a;
+}
+
+.statistic-dropdown .Select.is-focused .Select-control {
+    border-color: #c3b89a;
+    box-shadow: 0 0 0 3px rgba(195, 184, 154, 0.1);
+}
+
 /* Calendario desplegable */
 .DayPicker {
     border-radius: 8px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    position: relative;
+    background: white;
+}
+
+/* Container del date picker para asegurar visibilidad */
+.DateRangePickerInput,
+.SingleDatePickerInput {
+    position: relative;
+    z-index: 100;
+}
+
+/* Popup del calendario */
+.DateRangePicker,
+.SingleDatePicker {
+    z-index: 1001 !important;
+}
+
+.DateRangePicker__picker,
+.SingleDatePicker__picker {
+    z-index: 1002 !important;
+    position: absolute !important;
 }
 
 .DayPicker_weekHeader {
@@ -109,26 +322,61 @@
     border-color: #007bff;
 }
 
-/* Container de información de sesión */
-.session-info-container {
-    margin-top: 20px;
-}
+/* ============================================================================ */
+/* 4. CARDS E CONTAINERS DE CONTEÚDO */
+/* ============================================================================ */
 
 /* Card de información de sesión */
 .session-info-card {
-    background-color: #ffffff;
+    background-color: #f8f9fa;
     border-radius: 12px;
     padding: 20px;
     border-left: 4px solid #007bff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-/* Título de sesión */
-.session-title {
-    color: #007bff;
-    margin-bottom: 15px;
-    font-weight: 600;
+/* Container de tabla de jugadores */
+.players-table-container {
+    background-color: #f8f9fa;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e9ecef;
+    margin-top: 20px;
 }
+
+/* Container de tablas de estadísticas */
+.stats-table-container {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #28a745;
+    margin-top: 25px;
+}
+
+/* Tabla principal de jugadores */
+.players-main-table {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-left: 4px solid #007bff;
+    margin-bottom: 20px;
+}
+
+/* Resumen de estadísticas */
+.statistics-summary {
+    background-color: #e8f4fd;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 15px;
+    border-left: 4px solid #007bff;
+}
+
+/* ============================================================================ */
+/* 5. TEXTOS E INFORMAÇÕES */
+/* ============================================================================ */
 
 /* Detalles de sesión */
 .session-detail {
@@ -136,6 +384,36 @@
     color: #555;
     font-size: 14px;
 }
+
+/* Información de tabla */
+.table-info {
+    color: #6c757d;
+    font-size: 14px;
+    margin-bottom: 10px;
+    font-weight: 500;
+}
+
+/* Información de estadísticas */
+.stats-info {
+    color: #0056b3;
+    font-size: 13px;
+    margin: 5px 0;
+    font-weight: 500;
+}
+
+/* Estadística seleccionada */
+.statistic-selected {
+    font-weight: 600;
+    color: #007bff;
+    background-color: #e3f2fd;
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-top: 10px;
+}
+
+/* ============================================================================ */
+/* 6. MENSAGENS DE ESTADO */
+/* ============================================================================ */
 
 /* Mensajes de estado */
 .info-message {
@@ -163,116 +441,11 @@
     text-align: center;
 }
 
-/* Container de tabla de jugadores */
-.players-table-container {
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
+/* ============================================================================ */
+/* 7. DATATABLES - ESTILOS GERAIS */
+/* ============================================================================ */
 
-/* Información de tabla */
-.table-info {
-    color: #6c757d;
-    font-size: 14px;
-    margin-bottom: 10px;
-    font-weight: 500;
-}
-
-/* Resumen de estadísticas */
-.statistics-summary {
-    background-color: #e8f4fd;
-    border-radius: 8px;
-    padding: 15px;
-    margin-bottom: 15px;
-    border-left: 4px solid #007bff;
-}
-
-/* Información de estadísticas */
-.stats-info {
-    color: #0056b3;
-    font-size: 13px;
-    margin: 5px 0;
-    font-weight: 500;
-}
-
-/* Subtítulo de sección */
-.section-subtitle {
-    color: #495057;
-    margin-bottom: 10px;
-    font-weight: 600;
-    font-size: 16px;
-    border-bottom: 2px solid #007bff;
-    padding-bottom: 5px;
-}
-
-/* Container de tablas de estadísticas */
-.stats-table-container {
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid #28a745;
-}
-
-/* Tabla principal de jugadores */
-.players-main-table {
-    background-color: #ffffff;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    border-left: 4px solid #007bff;
-    margin-bottom: 20px;
-}
-
-.warning-message {
-    color: #856404;
-    background-color: #fff3cd;
-    border: 1px solid #ffeaa7;
-    border-radius: 8px;
-    padding: 15px;
-    margin: 10px 0;
-}
-
-/* Estadística seleccionada */
-.statistic-selected {
-    font-weight: 600;
-    color: #007bff;
-    background-color: #e3f2fd;
-    padding: 8px 12px;
-    border-radius: 6px;
-    margin-top: 10px;
-}
-
-/* Responsive design para inputs */
-@media (max-width: 768px) {
-    .inputs-row {
-        flex-direction: column;
-    }
-    
-    .input-item {
-        min-width: 100%;
-    }
-}
-
-/* Container da tabela de jogadores */
-.players-table-container {
-    background-color: white;
-    border-radius: 12px;
-    padding: 25px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    border: 1px solid #e9ecef;
-}
-
-/* Informação da tabela */
-.table-info {
-    color: #6c757d;
-    font-size: 14px;
-    margin-bottom: 15px;
-    font-weight: 500;
-}
-
-/* Estilos para DataTable */
+/* Estilos base para DataTable */
 .dash-table-container {
     font-family: 'Arial', sans-serif;
 }
@@ -303,6 +476,21 @@
 .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner table tbody tr:hover {
     background-color: #e3f2fd !important;
 }
+
+/* Altura mínima das filas */
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet tr {
+    min-height: 30px;
+    height: 30px;
+}
+
+/* Células com borda inferior */
+.dash-cell {
+    border-bottom: 1px solid #ddd !important;
+}
+
+/* ============================================================================ */
+/* 8. DATATABLES - CONTROLES E INTERAÇÃO */
+/* ============================================================================ */
 
 /* Filtros da tabela */
 .dash-table-container .dash-filter {
@@ -352,17 +540,118 @@
 .dash-table-container .export:hover {
     background-color: #218838 !important;
 }
-.dash-cell {
-    border-bottom: 1px solid #ddd !important;
+
+/* ============================================================================ */
+/* 9. DATATABLES - ESTILOS ESPECÍFICOS */
+/* ============================================================================ */
+
+/* Tabla principal de jugadores */
+#players-data-table {
+    font-family: Arial, sans-serif;
 }
 
-/*darle altura mínima a cada fila */
-.dash-table-container .dash-spreadsheet-container .dash-spreadsheet tr {
-    min-height: 30px;
-    height: 30px;
+/* Estilos para tabla de jugadores */
+.players-data-table-style .dash-spreadsheet-container {
+    overflow-x: auto;
+    max-height: 600px;
+    overflow-y: auto;
 }
+
+.players-data-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table tbody td,
+.players-data-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table thead th {
+    text-align: left;
+    padding: 10px;
+    font-family: Arial, sans-serif;
+    font-size: 14px;
+    border: 1px solid #ddd;
+}
+
+.players-data-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table thead th {
+    background-color: #f8f9fa !important;
+    font-weight: bold !important;
+    text-align: center !important;
+    border: 1px solid #ddd !important;
+}
+
+.players-data-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table tbody td {
+    background-color: white !important;
+    border: 1px solid #ddd !important;
+}
+
+.players-data-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table tbody tr:nth-child(odd) td {
+    background-color: #f8f9fa !important;
+}
+
+/* Tabla combinada de estadísticas */
+#combined-all-stats-table {
+    font-family: Arial, sans-serif;
+}
+
+.combined-stats-table-style .dash-spreadsheet-container {
+    overflow-x: auto;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.combined-stats-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table tbody td,
+.combined-stats-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table thead th {
+    text-align: left;
+    padding: 8px;
+    font-family: Arial, sans-serif;
+    font-size: 13px;
+    border: 1px solid #ddd;
+}
+
+.combined-stats-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table thead th {
+    background-color: #e8f4fd !important;
+    font-weight: bold !important;
+    text-align: center !important;
+    border: 1px solid #ddd !important;
+}
+
+.combined-stats-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table tbody td {
+    background-color: white !important;
+    border: 1px solid #ddd !important;
+}
+
+.combined-stats-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table tbody tr:nth-child(odd) td {
+    background-color: #f8f9fa !important;
+}
+
 /* ============================================================================ */
-/* ESTILOS PARA TARJETAS DE MÉTRICAS */
+/* 10. DATATABLES - ESTILOS CONDICIONAIS */
+/* ============================================================================ */
+
+/* Filas de jugadores */
+.combined-stats-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table tbody tr[data-tipo="Jugador"] td {
+    background-color: #f0f8ff !important;
+}
+
+/* Filas de equipos */
+.combined-stats-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table tbody tr[data-tipo="Equipo"] td {
+    background-color: #e8f4fd !important;
+}
+
+/* Filas de posiciones */
+.combined-stats-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table tbody tr[data-tipo="Posición"] td {
+    background-color: #fff3cd !important;
+}
+
+/* Estilos alternativos usando clases que se pueden aplicar dinámicamente */
+.table-row-jugador {
+    background-color: #f0f8ff !important;
+}
+
+.table-row-equipo {
+    background-color: #e8f4fd !important;
+}
+
+.table-row-posicion {
+    background-color: #fff3cd !important;
+}
+
+/* ============================================================================ */
+/* 11. TARJETAS DE MÉTRICAS */
 /* ============================================================================ */
 
 /* Tarjeta de métrica individual */
@@ -439,12 +728,61 @@
     gap: 10px;
 }
 
-/* Margen superior para contenedor de tabla de jugadores */
-.players-table-container {
-    margin-top: 30px;
+/* ============================================================================ */
+/* 12. RESPONSIVE DESIGN */
+/* ============================================================================ */
+
+/* Responsive design para inputs */
+@media (max-width: 768px) {
+    .date-selection-container {
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 12px;
+    }
+    
+    .date-selection-container:hover {
+        transform: none;
+    }
+    
+    .section-title {
+        font-size: 20px;
+        margin-bottom: 15px;
+    }
+    
+    .inputs-row {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .input-item {
+        min-width: 100%;
+    }
+    
+    .input-label {
+        font-size: 13px;
+    }
+    
+    .date-picker,
+    .statistic-dropdown {
+        min-height: 44px;
+        font-size: 16px; /* Evita zoom en iOS */
+    }
+    
+    .metric-card {
+        flex: 1 1 calc(50% - 20px);
+        max-width: none;
+    }
 }
 
-/* Margen superior para contenedor de tabla de estadísticas */
-.stats-table-container {
-    margin-top: 25px;
+@media (max-width: 480px) {
+    .metric-card {
+        flex: 1 1 100%;
+        margin: 5px 0;
+    }
+    
+    .players-table-container,
+    .stats-table-container,
+    .players-main-table {
+        padding: 15px;
+    }
 }

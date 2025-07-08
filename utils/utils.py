@@ -10,7 +10,7 @@ DATA_GPS_PATH = os.path.join(BASE_PATH, 'data', 'gps')
 DATA_PROCESSED_PATH = os.path.join(BASE_PATH, 'data', 'processed')
 
 
-# Asegúrese de que la carpeta de datos procesados existe
+# Asegurar que la carpeta de datos procesados existe
 def ensure_dir(directory):
     if not os.path.exists(directory):
         os.makedirs(directory)
@@ -310,7 +310,7 @@ def calcular_diferencia_porcentual(df):
                 continue
             
             # Calcular la diferencia porcentual y redondear a dos decimales
-            diff_porcentual = (valor / valor_referencia) * 100
+            diff_porcentual = (abs(valor) / abs(valor_referencia)) * 100
             valores_diff.append(round(diff_porcentual, 2))
         
         # Añadir la nueva columna al dataframe resultado

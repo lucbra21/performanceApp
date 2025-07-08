@@ -2,7 +2,7 @@
 # IMPORTACIONES
 # ============================================================================
 
-# Importações de Dash
+# Importaciones de Dash
 from dash import html, dcc, Output, Input, State, callback_context, dash_table
 import dash
 
@@ -12,6 +12,10 @@ import datetime
 import polars as pl
 import pandas as pd
 from utils.utils import DATA_GPS_PATH, calcular_estadisticas
+
+# Importaciones del Plotly para gráficos
+import plotly.graph_objects as go
+import plotly.express as px
 
 # ============================================================================
 # ESTILOS PARA DATATABLES - CENTRALIZADOS PARA MEJOR ORGANIZACIÓN
@@ -350,11 +354,87 @@ layout = html.Div([
             ], className="inputs-row")
         ], className="date-selection-container"),
         
-        # Container unificado para información de sesión y tabla de jugadores
+        # Container unificado para información de sesión, tarjetas y tabla de jugadores
         html.Div([
             html.Div(id='session-info-output'),
+            # Controles para tarjetas
+            html.Div([
+                # Dropdown para seleccionar vista de tarjetas
+                html.Div([
+                    html.Label('Vista de tarjetas:', className="input-label"),
+                    dcc.Dropdown(
+                        id='cards-view-selector',
+                        placeholder='Selecciona vista...',
+                        value='Equipo',
+                        className="statistic-dropdown",
+                        style={'width': '300px'}
+                    )
+                ], className="input-item", style={'display': 'inline-block', 'margin-right': '100px'}),
+                
+                # Selector de columnas diff
+                html.Div([
+                    html.Label('Columnas a mostrar:', className="input-label"),
+                    dcc.Dropdown(
+                        id='diff-columns-selector',
+                        placeholder='Selecciona columnas...',
+                        multi=True,
+                        className="statistic-dropdown",
+                        style={'width': '400px'}
+                    )
+                ], className="input-item", style={'display': 'inline-block'})
+            ], style={'margin-bottom': '10px', 'margin-top': '20px'}),
+            html.Div(id='team-diff-cards-output'),
             html.Div(id='players-table-output'),
-            html.Div(id='team-diff-cards-output')
+            
+            # Seção de gráficos
+            html.Div([
+                html.H4('Gráficos de Análisis', className="section-title", style={'margin-top': '30px'}),
+                
+                # Primera fila de gráficos - Distance e HSR
+                html.Div([
+                    html.Div([
+                        html.Div([
+                            dcc.Graph(id='grafico-distance')
+                        ], className="graph-box")
+                    ], style={'width': '48%', 'display': 'inline-block', 'margin-right': '2%'}),
+                    
+                    html.Div([
+                        html.Div([
+                            dcc.Graph(id='grafico-hsr')
+                        ], className="graph-box")
+                    ], style={'width': '48%', 'display': 'inline-block'})
+                ], style={'margin-bottom': '20px'}),
+                
+                # Segunda fila de gráficos - ACC, DCC e Velocidad
+                html.Div([
+                    html.Div([
+                        html.Div([
+                            dcc.Graph(id='grafico-acc')
+                        ], className="graph-box")
+                    ], style={'width': '32%', 'display': 'inline-block', 'margin-right': '2%'}),
+                    
+                    html.Div([
+                        html.Div([
+                            dcc.Graph(id='grafico-dcc')
+                        ], className="graph-box")
+                    ], style={'width': '32%', 'display': 'inline-block', 'margin-right': '2%'}),
+                    
+                    html.Div([
+                        html.Div([
+                            dcc.Graph(id='grafico-velocidad')
+                        ], className="graph-box")
+                    ], style={'width': '32%', 'display': 'inline-block'})
+                ], style={'margin-bottom': '20px'}),
+                
+                # Tercera fila de gráficos - Posiciones
+                html.Div([
+                    html.Div([
+                        html.Div([
+                            dcc.Graph(id='grafico-posiciones')
+                        ], className="graph-box")
+                    ], style={'width': '100%'})
+                ], style={'margin-bottom': '20px'})
+            ], id='graficos-section')
         ], className="session-and-players-container")
     ])
 ])
@@ -366,6 +446,10 @@ layout = html.Div([
 def register_callbacks(app):
     """Registra todos los callbacks de la página"""
     
+    # ============================================================================
+    # CALLBACKS - Input fecha y metricas
+    # ============================================================================
+
     # Callback unificado para navegación de fechas y configuración del calendario
     @app.callback(
         [Output('date-selector', 'date'),
@@ -462,6 +546,10 @@ def register_callbacks(app):
         return new_date_formatted, min_date, max_date, []
     
     
+    # ============================================================================
+    # CALLBACKS - Información de Sesión
+    # ============================================================================
+    
     @app.callback(
         Output('session-info-output', 'children'),
         [Input('date-selector', 'date'),
@@ -529,6 +617,11 @@ def register_callbacks(app):
         except Exception as e:
             return html.Div(f"Error al cargar información de la sesión: {str(e)}", 
                           className="error-message")
+            
+    # ============================================================================
+    # CALLBACKS - Tabla
+    # ============================================================================
+
     
     @app.callback(
         Output('players-table-output', 'children'),
@@ -694,13 +787,115 @@ def register_callbacks(app):
             return html.Div(f"Error al cargar tabla de jugadores: {str(e)}", 
                           className="error-message")
     
+    # ============================================================================
+    # CALLBACKS - Tarjetas
+    # ============================================================================
+    
+
+    # Callback para popular el dropdown de vista de tarjetas
+    @app.callback(
+        Output('cards-view-selector', 'options'),
+        [Input('date-selector', 'date')]
+    )
+    def update_cards_view_options(selected_date):
+        """Actualiza las opciones del dropdown de vista de tarjetas basado en la fecha seleccionada"""
+        if not selected_date:
+            return [{'label': 'Equipo', 'value': 'Equipo'}]
+        
+        try:
+            df_fecha, formatted_date = format_and_filter_date(selected_date)
+            
+            if df_fecha is None or df_fecha.height == 0:
+                return [{'label': 'Equipo', 'value': 'Equipo'}]
+            
+            # Obtener valores únicos de jugadores y posiciones
+            players = sorted(df_fecha.select('Player').unique().to_series().to_list())
+            positions = sorted(df_fecha.select('Position').unique().to_series().to_list())
+            
+            # Crear opciones del dropdown
+            options = [{'label': 'Equipo', 'value': 'Equipo'}]
+            
+            # Añadir posiciones
+            for position in positions:
+                options.append({'label': f'{position}', 'value': f'Position_{position}'})
+            
+            # Añadir jugadores
+            for player in players:
+                options.append({'label': f'{player}', 'value': f'Player_{player}'})
+            
+            return options
+            
+        except Exception as e:
+            print(f"Error al cargar opciones del dropdown: {e}")
+            return [{'label': 'Equipo', 'value': 'Equipo'}]
+    
+    # Callback para popular el dropdown de columnas diff
+    @app.callback(
+        Output('diff-columns-selector', 'options'),
+        [Input('date-selector', 'date'),
+         Input('statistic-selector', 'value'),
+         Input('cards-view-selector', 'value')]
+    )
+    def update_diff_columns_options(selected_date, selected_statistic, selected_view):
+        """Actualiza las opciones del dropdown de columnas diff basado en la vista seleccionada"""
+        if not selected_date or not selected_statistic or not selected_view:
+            return []
+        
+        try:
+            # Convertir fecha al formato correcto
+            df_fecha, formatted_date = format_and_filter_date(selected_date)
+            
+            # Obtener columnas de interés
+            columnas_interes = get_columns_of_interest()
+            
+            # Calcular estadísticas para obtener las columnas diff
+            df_players, df_position, df_team = calcular_estadisticas(
+                fecha=formatted_date, 
+                columnas_interes=columnas_interes, 
+                estadistica=selected_statistic
+            )
+            
+            # Determinar qué dataframe usar basado en selected_view
+            if selected_view == 'Equipo':
+                df_to_use = df_team
+            elif selected_view.startswith('Position_'):
+                df_to_use = df_position
+            elif selected_view.startswith('Player_'):
+                df_to_use = df_players
+            else:
+                df_to_use = df_team
+            
+            if df_to_use is None or df_to_use.height == 0:
+                return []
+            
+            # Obtener columnas que terminan con ' diff'
+            df_pandas = df_to_use.to_pandas()
+            diff_columns = [col for col in df_pandas.columns if col.endswith(' diff')]
+            
+            # Crear opciones del dropdown
+            options = []
+            for col in sorted(diff_columns):
+                metric_name = col.replace(' diff', '')
+                options.append({'label': metric_name, 'value': col})
+            
+            return options
+            
+        except Exception as e:
+            print(f"Error al cargar opciones de columnas diff: {e}")
+            return []
+    
+    
+    # Callback para actualizar las tarjetas de diferencias
     @app.callback(
         Output('team-diff-cards-output', 'children'),
         [Input('date-selector', 'date'),
-         Input('statistic-selector', 'value')]
+         Input('statistic-selector', 'value'),
+         Input('cards-view-selector', 'value'),
+         Input('diff-columns-selector', 'value')]
     )
-    def update_team_diff_cards(selected_date, selected_statistic):
-        """Crea cartões mostrando as colunas com 'Diff' do df_team"""
+    def update_team_diff_cards(selected_date, selected_statistic, selected_view, selected_columns):
+
+        """Crea tarjetas mostrando las columnas con 'Diff' del df_team"""
         
         if not selected_date or not selected_statistic:
             return html.Div()
@@ -711,17 +906,17 @@ def register_callbacks(app):
             # Obtener columnas de interés
             columnas_interes = get_columns_of_interest()
             
-             # Carregar dados originais do arquivo parquet
+             # Cargar datos originales del archivo parquet
             try:
                 
                         match_day_value = df_fecha['Match Day'].unique().to_list()[0]
                         #print(match_day_value)
                         
-                        # Agora carregar e filtrar df_team_estadisticas
+                        # Ahora cargar y filtrar df_team_estadisticas
                         df_team_estadisticas_path = os.path.join(DATA_GPS_PATH, '../processed/df_team_estadisticas.parquet')
                         if os.path.exists(df_team_estadisticas_path):
                             df_team_estadisticas = pl.read_parquet(df_team_estadisticas_path)
-                            # Filtrar dados originais pelo Match Day correto e Estatística
+                            # Filtrar datos originales por el Match Day correcto y Estadística
                             df_team_estadisticas_filtered = df_team_estadisticas.filter(
                                 (pl.col('Match Day') == match_day_value) & 
                                 (pl.col('Estadistica') == selected_statistic)
@@ -743,40 +938,74 @@ def register_callbacks(app):
                 estadistica=selected_statistic
             )
             
-            if df_team is None or df_team.height == 0:
+            # Determinar qué dataframe usar basado en selected_view
+            if selected_view == 'Equipo':
+                df_to_use = df_team
+                title_prefix = 'Diferencias Porcentuales del Equipo'
+            elif selected_view.startswith('Position_'):
+                # Extraer la posición del valor selected_view
+                position = selected_view.replace('Position_', '')
+                if df_position is None or df_position.height == 0:
+                    return html.Div()
+                # Filtrar por posición
+                df_to_use = df_position.filter(pl.col('Position') == position)
+                title_prefix = f'Diferencias Porcentuales - Posición: {position}'
+            elif selected_view.startswith('Player_'):
+                # Extraer el nombre del jugador del valor selected_view
+                player = selected_view.replace('Player_', '')
+                if df_players is None or df_players.height == 0:
+                    return html.Div()
+                # Filtrar por jugador
+                df_to_use = df_players.filter(pl.col('Player') == player)
+                title_prefix = f'Diferencias Porcentuales - Jugador: {player}'
+            else:
+                # Fallback a equipo
+                df_to_use = df_team
+                title_prefix = 'Diferencias Porcentuales del Equipo'
+            
+            if df_to_use is None or df_to_use.height == 0:
                 return html.Div()
             
             # Convertir a pandas para facilitar el manejo
-            df_team_pandas = df_team.to_pandas()
+            df_pandas = df_to_use.to_pandas()
             
             # Encontrar columnas que terminan con ' diff'
-            diff_columns = [col for col in df_team_pandas.columns if col.endswith(' diff')]
+            all_diff_columns = [col for col in df_pandas.columns if col.endswith(' diff')]
+            
+            # Filtrar por las columnas seleccionadas por el usuario
+            if selected_columns:
+                # Si hay columnas seleccionadas, usar solo esas
+                diff_columns = [col for col in selected_columns if col in all_diff_columns]
+            else:
+                # Si no hay columnas seleccionadas, mostrar todas
+                diff_columns = all_diff_columns
             
             if not diff_columns:
-                return html.Div()
+                return html.Div("Selecciona al menos una columna para mostrar.", 
+                              className="info-message")
             
-            # Crear cartões para cada coluna diff
+            # Crear tarjetas para cada columna diff
             cards = []
             
-            # Título da seção
+            # Título de la sección
             cards.append(
-                html.H5('Diferencias Porcentuales del Equipo', 
+                html.H5(title_prefix, 
                         className="section-subtitle", 
-                        style={'margin-top': '30px', 'margin-bottom': '20px'})
+                        style={'margin-top': '10px', 'margin-bottom': '20px'})
             )
             
-            # Container para os cartões
+            # Contenedor para las tarjetas
             cards_container = []
             
             for col in diff_columns:
-                # Obter o nome da métrica original (sem ' diff')
+                # Obtener el nombre de la métrica original (sin ' diff')
                 metric_name = col.replace(' diff', '')
                 
-                # Obter o valor da diferença (assumindo que há apenas uma linha de equipe)
-                if len(df_team_pandas) > 0:
-                    diff_value = df_team_pandas[col].iloc[0]
+                # Obtener el valor de la diferencia
+                if len(df_pandas) > 0:
+                    diff_value = df_pandas[col].iloc[0]
                     # print(col)
-                    # Obter valor referencia da métrica correspondente
+                    # Obtener valor referencia de la métrica correspondiente
                     original_value = None
                     
                     if df_team_estadisticas_filtered is not None and df_team_estadisticas_filtered.height > 0:
@@ -791,13 +1020,13 @@ def register_callbacks(app):
                             original_value = None
                     # print("original_value = ", original_value)
                     
-                    # Formatar valor da diferença
+                    # Formatear valor de la diferencia
                     if pd.isna(diff_value):
                         formatted_diff_value = 'N/A'
                     else:
                         formatted_diff_value = f'{diff_value:.2f}%'
                     
-                    # Formatar valor referencia
+                    # Formatear valor referencia
                     if pd.isna(original_value):
                             formatted_original_value = 'N/A'
                     else:
@@ -809,21 +1038,24 @@ def register_callbacks(app):
 
                     if not pd.isna(original_value) and not pd.isna(diff_value):
                         # Calcular el valor de referencia basado en la diferencia porcentual
-                        difference_value = diff_value - original_value 
+                        difference_value = abs(diff_value - original_value)
                         formatted_difference = f'{difference_value:.2f}%'
                      
-                     # Determinar cor baseada no valor
+                     # Determinar color basado en el valor
                     if pd.isna(difference_value) or difference_value == 0 or difference_value is None:
-                        card_color = '#f8f9fa'  # Cinza neutro
+                        card_color = '#ffffff'  # Gris neutro
                         text_color = '#6c757d'
-                    elif difference_value < 10:
+                    elif difference_value < 5:
                         card_color = '#d4edda'  # Verde claro
-                        text_color = '#155724'
+                        text_color = '#155724'                     
+                    elif difference_value < 15:
+                        card_color = '#e8e3d3'  # beige crema claro
+                        text_color = '#4a4741'  # gris oscuro suave
                     else:
-                        card_color = '#f8d7da'  # Vermelho claro
+                        card_color = '#f8d7da'  # rojo claro 
                         text_color = '#721c24'
                         
-                    # Crear cartão con layout vertical optimizado
+                    # Crear tarjeta con layout vertical optimizado
                     card_content = [
                          # Título de la métrica
                          html.H5(metric_name, 
@@ -878,7 +1110,7 @@ def register_callbacks(app):
                     
                     cards_container.append(card)
             
-            # Container com layout em grid 4x3
+            # Contenedor con layout en grid 4x3
             if cards_container:
                  cards.append(
                      html.Div(cards_container, style={
@@ -897,4 +1129,594 @@ def register_callbacks(app):
             return html.Div(f"Error al cargar cartões de diferencias: {str(e)}", 
                           className="error-message")
             
-    
+            
+    # ============================================================================
+    # CALLBACKS - Graficos
+    # ============================================================================
+    @app.callback(
+        [Output('grafico-distance', 'figure'),
+         Output('grafico-hsr', 'figure'),
+         Output('grafico-acc', 'figure'),
+         Output('grafico-dcc', 'figure'),
+         Output('grafico-velocidad', 'figure'),
+         Output('grafico-posiciones', 'figure')],
+        [Input('date-selector', 'date'),
+         Input('statistic-selector', 'value')]
+    )
+    def update_graficos(selected_date, selected_statistic):
+        """Callback para actualizar todos los gráficos basados en la fecha y estadística seleccionadas"""
+        
+        # Figura vacía para casos de error
+        empty_fig = {
+            'data': [],
+            'layout': {
+                'title': 'Sin datos disponibles',
+                'plot_bgcolor': '#f8f9fa',
+                'paper_bgcolor': '#f8f9fa',
+                'font': {'color': '#000000'},
+                'margin': dict(t=40, b=40, l=40, r=40)
+            }
+        }
+        
+        try:
+            if not selected_date:
+                return [empty_fig] * 6
+            
+            # Obtener datos filtrados usando la función auxiliar existente
+            path_to_parquet = os.path.join(DATA_GPS_PATH, 'df_gps.parquet')
+            if not os.path.exists(path_to_parquet):
+                print(f"Archivo parquet no existe: {path_to_parquet}")
+                return None
+        
+            df = pl.read_parquet(path_to_parquet)
+            
+            df_fecha, formatted_date = format_and_filter_date(selected_date)
+            
+            if df_fecha is None or df_fecha.height == 0:
+                return [empty_fig] * 6
+            
+            # Convertir a pandas para facilitar manipulación
+            df_pandas = df_fecha.to_pandas()
+
+            # Verificar si tenemos las columnas necesarias
+            required_columns = [
+                'Player',
+                'Speed Zones (m) [0.0, 45.0]% (m)',
+                'Speed Zones (m) [45.0, 65.0]% (m)',
+                'Speed Zones (m) [65.0, 75.0]% (m)',
+                'Speed Zones (m) [75.0, 85.0]% (m)',
+                'Speed Zones (m) [85.0, 95.0]% (m)',
+                'Speed Zones (m) [95.0, 100.0]% (m)',
+                'Abs HSR(m)',
+                'Acceleration Zones  [0, 50]% Cnt',
+                'Acceleration Zones  [50, 60]% Cnt',
+                'Acceleration Zones  [-50, 0]% Cnt',
+                'Acceleration Zones  [-60, -50]% Cnt',
+                'MAX Speed(km/h)'
+            ]
+            
+            missing_columns = [col for col in required_columns if col not in df_pandas.columns]
+            if missing_columns:
+                print(f"Columnas faltantes: {missing_columns}")
+                return [empty_fig] * 6
+            
+            # ============================================================================
+            # GRÁFICO 1: DISTANCE
+            # ============================================================================
+            
+            # Filtrar solo jugadores (no TEAM)
+            df_players = df_pandas[df_pandas['Player'] != 'TEAM'].copy()
+            
+            if len(df_players) == 0:
+                fig_distance = empty_fig
+            else:
+                # Convertir a formato largo
+                df_melted = df_players.melt(
+                    id_vars=['Player'],
+                    value_vars=[
+                        "Speed Zones (m) [0.0, 45.0]% (m)",
+                        "Speed Zones (m) [45.0, 65.0]% (m)",
+                        "Speed Zones (m) [65.0, 75.0]% (m)",
+                        "Speed Zones (m) [75.0, 85.0]% (m)",
+                        "Speed Zones (m) [85.0, 95.0]% (m)",
+                        "Speed Zones (m) [95.0, 100.0]% (m)"
+                    ],
+                    var_name='Zona',
+                    value_name='Distancia'
+                )
+                
+                # Renombrar zonas para la leyenda
+                df_melted['Zona'] = df_melted['Zona'].replace({
+                    "Speed Zones (m) [0.0, 45.0]% (m)": "Z1",
+                    "Speed Zones (m) [45.0, 65.0]% (m)": "Z2",
+                    "Speed Zones (m) [65.0, 75.0]% (m)": "Z3",
+                    "Speed Zones (m) [75.0, 85.0]% (m)": "Z4",
+                    "Speed Zones (m) [85.0, 95.0]% (m)": "Z5",
+                    "Speed Zones (m) [95.0, 100.0]% (m)": "Z6"
+                })
+                
+                fig_distance = px.bar(
+                    df_melted,
+                    y="Player",
+                    x="Distancia",
+                    color="Zona",
+                    orientation="h",
+                    title="<b>Distancia por Zonas de Velocidad</b>",
+                    color_discrete_map={
+                        "Z1": "#e4dcc6",
+                        "Z2": "#d9cdb2",
+                        "Z3": "#cfc09e",
+                        "Z4": "#c3b89a",
+                        "Z5": "#FF0000",
+                        "Z6": "#CF0000"
+                    },
+                    labels={
+                        "Distancia": "Distancia (m)",
+                        "Player": "Jugador",
+                        "Zona": "Zona de Velocidad"
+                    }
+                )
+                
+                fig_distance.update_layout(
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                    font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
+                    title=dict(x=0.5, font=dict(size=16, color="#2c3e50")),
+                    margin=dict(t=80, b=80, l=120, r=50),
+                    barmode="stack",
+                    height=550,
+                    legend=dict(
+                        orientation="h",
+                        yanchor="top",
+                        y=-0.15,
+                        xanchor="center",
+                        x=0.5
+                    )
+                )
+                
+                fig_distance.update_xaxes(
+                    title_font=dict(size=14, color="#2c3e50"),
+                    tickfont=dict(size=11, color="#2c3e50"),
+                    gridcolor="#ecf0f1",
+                    showgrid=True
+                )
+                
+                fig_distance.update_yaxes(
+                    title_font=dict(size=14, color="#2c3e50"),
+                    tickfont=dict(size=11, color="#2c3e50"),
+                    gridcolor="#ecf0f1",
+                    showgrid=True
+                )
+            
+            # ============================================================================
+            # GRÁFICO 2: HSR
+            # ============================================================================
+            
+            if len(df_players) == 0:
+                fig_hsr = empty_fig
+            else:
+                # Eliminar NaNs en la métrica
+                df_hsr = df_players.dropna(subset=["Abs HSR(m)"])
+                
+                if len(df_hsr) == 0:
+                    fig_hsr = empty_fig
+                else:
+                    # Agrupar por jugador y sumar la métrica
+                    df_agrupado = df_hsr.groupby("Player", as_index=False)["Abs HSR(m)"].sum()
+                    
+                    # Calcular promedio
+                    promedio_hsr = df_agrupado["Abs HSR(m)"].mean()
+                    
+                    fig_hsr = px.bar(
+                        df_agrupado,
+                        y="Player",
+                        x="Abs HSR(m)",
+                        orientation="h",
+                        title="<b>Distancia en Alta Velocidad (HSR)</b>",
+                        color_discrete_sequence=["#525252"],
+                        labels={
+                            "Abs HSR(m)": "HSR (m)",
+                            "Player": "Jugador"
+                        }
+                    )
+                    
+                    # Añadir línea del promedio
+                    fig_hsr.add_shape(
+                        type="line",
+                        x0=promedio_hsr,
+                        x1=promedio_hsr,
+                        y0=0,
+                        y1=1,
+                        line=dict(color="#e74c3c", width=3, dash="dash"),
+                        xref="x",
+                        yref="paper"
+                    )
+                    
+                    fig_hsr.add_annotation(
+                        x=promedio_hsr,
+                        y=1.05,
+                        xref="x",
+                        yref="paper",
+                        text=f"<b>Promedio: {promedio_hsr:.1f} m</b>",
+                        showarrow=False,
+                        font=dict(color="#e74c3c", size=12),
+                        bgcolor="white",
+                        bordercolor="#e74c3c",
+                        borderwidth=1
+                    )
+                    
+                    fig_hsr.update_layout(
+                        plot_bgcolor="white",
+                        paper_bgcolor="white",
+                        font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
+                        title=dict(x=0.5, font=dict(size=16, color="#2c3e50")),
+                        margin=dict(t=70, b=50, l=120, r=50),
+                        height=500
+                    )
+                    
+                    fig_hsr.update_xaxes(
+                        title_font=dict(size=14, color="#2c3e50"),
+                        tickfont=dict(size=11, color="#2c3e50"),
+                        gridcolor="#ecf0f1",
+                        showgrid=True
+                    )
+                    
+                    fig_hsr.update_yaxes(
+                        title_font=dict(size=14, color="#2c3e50"),
+                        tickfont=dict(size=11, color="#2c3e50"),
+                        gridcolor="#ecf0f1",
+                        showgrid=True
+                    )
+            
+            # ============================================================================
+            # GRÁFICO 3: ACC
+            # ============================================================================
+            
+            if len(df_players) == 0:
+                fig_acc = empty_fig
+            else:
+                # Convertir a formato largo
+                df_melted_acc = df_players.melt(
+                    id_vars=['Player'],
+                    value_vars=[
+                        "Acceleration Zones  [0, 50]% Cnt",
+                        "Acceleration Zones  [50, 60]% Cnt"
+                    ],
+                    var_name='Zona',
+                    value_name='Cuenta'
+                )
+                
+                # Renombrar zonas
+                df_melted_acc['Zona'] = df_melted_acc['Zona'].replace({
+                    "Acceleration Zones  [0, 50]% Cnt": "[Z1]",
+                    "Acceleration Zones  [50, 60]% Cnt": "[Z2]"
+                })
+                
+                fig_acc = px.bar(
+                    df_melted_acc,
+                    y="Player",
+                    x="Cuenta",
+                    color="Zona",
+                    orientation="h",
+                    title="<b>Aceleraciones por Zona de Intensidad</b>",
+                    color_discrete_map={
+                        "[Z1]": "#38a838",
+                        "[Z2]": "#01fa16"
+                    },
+                    labels={
+                        "Cuenta": "Número de Aceleraciones",
+                        "Player": "Jugador",
+                        "Zona": "Zona de Aceleración"
+                    }
+                )
+                
+                fig_acc.update_layout(
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                    font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
+                    title=dict(x=0.5, font=dict(size=16, color="#2c3e50")),
+                    margin=dict(t=80, b=80, l=120, r=50),
+                    height=550,
+                    legend=dict(
+                        orientation="h",
+                        yanchor="top",
+                        y=-0.15,
+                        xanchor="center",
+                        x=0.5
+                    )
+                )
+                
+                fig_acc.update_xaxes(
+                    title_font=dict(size=14, color="#2c3e50"),
+                    tickfont=dict(size=11, color="#2c3e50"),
+                    gridcolor="#ecf0f1",
+                    showgrid=True
+                )
+                
+                fig_acc.update_yaxes(
+                    title_font=dict(size=14, color="#2c3e50"),
+                    tickfont=dict(size=11, color="#2c3e50"),
+                    gridcolor="#ecf0f1",
+                    showgrid=True
+                )
+            
+            # ============================================================================
+            # GRÁFICO 4: DCC
+            # ============================================================================
+            
+            if len(df_players) == 0:
+                fig_dcc = empty_fig
+            else:
+                # Convertir a formato largo
+                df_melted_dcc = df_players.melt(
+                    id_vars=['Player'],
+                    value_vars=[
+                        "Acceleration Zones  [-50, 0]% Cnt",
+                        "Acceleration Zones  [-60, -50]% Cnt"
+                    ],
+                    var_name='Zona',
+                    value_name='Cuenta'
+                )
+                
+                # Renombrar zonas
+                df_melted_dcc['Zona'] = df_melted_dcc['Zona'].replace({
+                    "Acceleration Zones  [-50, 0]% Cnt": "[Z1]",
+                    "Acceleration Zones  [-60, -50]% Cnt": "[Z2]"
+                })
+                
+                fig_dcc = px.bar(
+                    df_melted_dcc,
+                    y="Player",
+                    x="Cuenta",
+                    color="Zona",
+                    orientation="h",
+                    title="<b>Desaceleraciones por Zona de Intensidad</b>",
+                    color_discrete_map={
+                        "[Z1]": "#a83838",
+                        "[Z2]": "#fa0101"
+                    },
+                    labels={
+                        "Cuenta": "Número de Desaceleraciones",
+                        "Player": "Jugador",
+                        "Zona": "Zona de Desaceleración"
+                    }
+                )
+                
+                fig_dcc.update_layout(
+                    plot_bgcolor="white",
+                    paper_bgcolor="white",
+                    font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
+                    title=dict(x=0.5, font=dict(size=16, color="#2c3e50")),
+                    margin=dict(t=80, b=80, l=120, r=50),
+                    height=550,
+                    legend=dict(
+                        orientation="h",
+                        yanchor="top",
+                        y=-0.15,
+                        xanchor="center",
+                        x=0.5
+                    )
+                )
+                
+                fig_dcc.update_xaxes(
+                    title_font=dict(size=14, color="#2c3e50"),
+                    tickfont=dict(size=11, color="#2c3e50"),
+                    gridcolor="#ecf0f1",
+                    showgrid=True
+                )
+                
+                fig_dcc.update_yaxes(
+                    title_font=dict(size=14, color="#2c3e50"),
+                    tickfont=dict(size=11, color="#2c3e50"),
+                    gridcolor="#ecf0f1",
+                    showgrid=True
+                )
+            
+            # ============================================================================
+            # GRÁFICO 5: VELOCIDAD
+            # ============================================================================
+            
+            if len(df_players) == 0:
+                fig_velocidad = empty_fig
+            else:
+                # Eliminar NaNs en la métrica
+                df_velocidad = df_players.dropna(subset=["MAX Speed(km/h)"])
+                
+                if len(df_velocidad) == 0:
+                    fig_velocidad = empty_fig
+                else:
+                    # Agrupar por jugador y calcular máximo
+                    df_agrupado_vel = df_velocidad.groupby("Player", as_index=False)["MAX Speed(km/h)"].max()
+                    
+                    # Calcular promedio
+                    promedio_velocidad = df_agrupado_vel["MAX Speed(km/h)"].mean()
+                    
+                    fig_velocidad = px.bar(
+                        df_agrupado_vel,
+                        y="Player",
+                        x="MAX Speed(km/h)",
+                        orientation="h",
+                        title="<b>Velocidad Máxima por Jugador</b>",
+                        color_discrete_sequence=["#12A7C2"],
+                        labels={
+                            "MAX Speed(km/h)": "Velocidad Máxima (km/h)",
+                            "Player": "Jugador"
+                        }
+                    )
+                    
+                    # Añadir línea del promedio
+                    fig_velocidad.add_shape(
+                        type="line",
+                        x0=promedio_velocidad,
+                        x1=promedio_velocidad,
+                        y0=0,
+                        y1=1,
+                        line=dict(color="#e74c3c", width=3, dash="dash"),
+                        xref="x",
+                        yref="paper"
+                    )
+                    
+                    fig_velocidad.add_annotation(
+                        x=promedio_velocidad,
+                        y=1.05,
+                        xref="x",
+                        yref="paper",
+                        text=f"<b>Promedio: {promedio_velocidad:.1f} km/h</b>",
+                        showarrow=False,
+                        font=dict(color="#e74c3c", size=12),
+                        bgcolor="white",
+                        bordercolor="#e74c3c",
+                        borderwidth=1
+                    )
+                    
+                    fig_velocidad.update_layout(
+                        plot_bgcolor="white",
+                        paper_bgcolor="white",
+                        font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
+                        title=dict(x=0.5, font=dict(size=16, color="#2c3e50")),
+                        margin=dict(t=70, b=50, l=120, r=50),
+                        height=500
+                    )
+                    
+                    fig_velocidad.update_xaxes(
+                        title_font=dict(size=14, color="#2c3e50"),
+                        tickfont=dict(size=11, color="#2c3e50"),
+                        gridcolor="#ecf0f1",
+                        showgrid=True
+                    )
+                    
+                    fig_velocidad.update_yaxes(
+                        title_font=dict(size=14, color="#2c3e50"),
+                        tickfont=dict(size=11, color="#2c3e50"),
+                        gridcolor="#ecf0f1",
+                        showgrid=True
+                    )
+            
+            # ============================================================================
+            # GRÁFICO 6: POSICIONES
+            # ============================================================================
+            
+            # Verificar si tenemos columna Position
+            if 'Position' not in df_pandas.columns:
+                fig_posiciones = empty_fig
+            else:
+                # Filtrar jugadores válidos con posición
+                df_pos = df_players.dropna(subset=['Position'])
+                
+                if len(df_pos) == 0:
+                    fig_posiciones = empty_fig
+                else:
+                    # Agrupar por posición y calcular promedio
+                    df_agrupado_pos = df_pos.groupby("Position", as_index=False).agg({
+                        "Speed Zones (m) [0.0, 45.0]% (m)": "mean",
+                        "Speed Zones (m) [45.0, 65.0]% (m)": "mean",
+                        "Speed Zones (m) [65.0, 75.0]% (m)": "mean",
+                        "Speed Zones (m) [75.0, 85.0]% (m)": "mean",
+                        "Speed Zones (m) [85.0, 95.0]% (m)": "mean",
+                        "Speed Zones (m) [95.0, 100.0]% (m)": "mean",
+                        "Abs HSR(m)": "mean",
+                        "Acceleration Zones  [0, 50]% Cnt": "mean",
+                        "Acceleration Zones  [50, 60]% Cnt": "mean",
+                        "Acceleration Zones  [-50, 0]% Cnt": "mean",
+                        "Acceleration Zones  [-60, -50]% Cnt": "mean",
+                        "MAX Speed(km/h)": "mean"
+                    })
+                    
+                    # Crear métricas finales
+                    df_agrupado_pos["Distance"] = (
+                        df_agrupado_pos["Speed Zones (m) [0.0, 45.0]% (m)"] +
+                        df_agrupado_pos["Speed Zones (m) [45.0, 65.0]% (m)"] +
+                        df_agrupado_pos["Speed Zones (m) [65.0, 75.0]% (m)"] +
+                        df_agrupado_pos["Speed Zones (m) [75.0, 85.0]% (m)"] +
+                        df_agrupado_pos["Speed Zones (m) [85.0, 95.0]% (m)"] +
+                        df_agrupado_pos["Speed Zones (m) [95.0, 100.0]% (m)"]
+                    )
+                    
+                    df_agrupado_pos["Acc"] = (
+                        df_agrupado_pos["Acceleration Zones  [0, 50]% Cnt"] +
+                        df_agrupado_pos["Acceleration Zones  [50, 60]% Cnt"]
+                    )
+                    
+                    df_agrupado_pos["Decc"] = (
+                        df_agrupado_pos["Acceleration Zones  [-50, 0]% Cnt"] +
+                        df_agrupado_pos["Acceleration Zones  [-60, -50]% Cnt"]
+                    )
+                    
+                    df_agrupado_pos.rename(columns={"Abs HSR(m)": "HSR", "MAX Speed(km/h)": "Max Speed"}, inplace=True)
+                    
+                    # Seleccionar columnas finales
+                    df_final_pos = df_agrupado_pos[["Position", "Distance", "HSR", "Acc", "Decc", "Max Speed"]]
+                    
+                    # Transformar a formato largo
+                    df_melted_pos = df_final_pos.melt(
+                        id_vars="Position",
+                        var_name="Métrica",
+                        value_name="Valor"
+                    )
+                    
+                    fig_posiciones = px.bar(
+                        df_melted_pos,
+                        x="Position",
+                        y="Valor",
+                        color="Métrica",
+                        barmode="group",
+                        title="<b>Análisis por Posición - Métricas Promedio</b>",
+                        color_discrete_map={
+                            "Distance": "#6e6e6e",
+                            "HSR": "#000000",
+                            "Acc": "#33b300",
+                            "Decc": "#bb0404",
+                            "Max Speed": "#0092cc"
+                        },
+                        text="Valor",
+                        labels={
+                            "Position": "Posición",
+                            "Valor": "Valor Promedio",
+                            "Métrica": "Métrica"
+                        }
+                    )
+                    
+                    fig_posiciones.update_traces(
+                        texttemplate='%{text:.0f}',
+                        textposition="outside",
+                        textangle=0,
+                        textfont=dict(size=10, color="#2c3e50")
+                    )
+                    
+                    fig_posiciones.update_layout(
+                        plot_bgcolor="white",
+                        paper_bgcolor="white",
+                        font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
+                        title=dict(x=0.5, font=dict(size=16, color="#2c3e50")),
+                        margin=dict(t=80, b=80, l=50, r=50),
+                        height=550,
+                        legend=dict(
+                            orientation="h",
+                            yanchor="top",
+                            y=-0.15,
+                            xanchor="center",
+                            x=0.5
+                        )
+                    )
+                    
+                    fig_posiciones.update_xaxes(
+                        title_font=dict(size=14, color="#2c3e50"),
+                        tickfont=dict(size=11, color="#2c3e50"),
+                        gridcolor="#ecf0f1",
+                        showgrid=True
+                    )
+                    
+                    fig_posiciones.update_yaxes(
+                        title_font=dict(size=14, color="#2c3e50"),
+                        tickfont=dict(size=11, color="#2c3e50"),
+                        gridcolor="#ecf0f1",
+                        showgrid=True
+                    )
+            
+            return [fig_distance, fig_hsr, fig_acc, fig_dcc, fig_velocidad, fig_posiciones]
+            
+        except Exception as e:
+            print(f"Error al generar gráficos: {e}")
+            import traceback
+            traceback.print_exc()
+            return [empty_fig] * 6

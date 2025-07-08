@@ -5,6 +5,7 @@ from components.sidebar import make_sidebar
 
 # Inicializa la aplicación Dash con Bootstrap
 app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True, suppress_callback_exceptions=True)
+server = app.server
 
 # Importar páginas después de inicializar la app
 from pages import cargar_datos, sessionReport, settings, summary

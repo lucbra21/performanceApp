@@ -40,5 +40,5 @@ def display_page(pathname):
 cargar_datos.register_callbacks(app)
 sessionReport.register_callbacks(app)
 
-if _name_ == '_main_':
+if __name__ == '__main__':
     app.run_server(host='0.0.0.0', port=8050, debug=False)

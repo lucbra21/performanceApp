@@ -3,6 +3,7 @@ import numpy as np
 from datetime import datetime
 import os
 
+
 # ============================================================================
 # CONFIGURACIÓN DE RUTAS DEL PROYECTO
 # ============================================================================
@@ -10,8 +11,25 @@ import os
 # Obtener la ruta base del proyecto basada en la ubicación de este archivo
 BASE_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 DATA_GPS_PATH = os.path.join(BASE_PATH, 'data', 'gps')
-DATA_PROCESSED_PATH = os.path.join(BASE_PATH, 'data', 'processed')
 
+# ============================================================================
+# FUNCIONES AUXILIARES
+# ============================================================================
+
+def ensure_dir(directory):
+    """
+    Asegura que un directorio existe, creándolo si es necesario.
+    
+    Función auxiliar para garantizar que las carpetas de datos procesados
+    existan antes de intentar guardar archivos.
+    
+    Args:
+        directory (str): Ruta del directorio a verificar/crear
+    """
+    if not os.path.exists(directory):
+        os.makedirs(directory)
+        
+        
 # ============================================================================
 # FUNCIONES DE CARGA Y FILTRADO DE DATOS
 # ============================================================================
@@ -83,6 +101,10 @@ def get_columns_of_interest():
         print(f"Error al cargar columnas de interés: {e}")
         return []
 
+
+
+
+
 # ============================================================================
 # FUNCIONES DE PROCESAMIENTO DE MÉTRICAS
 # ============================================================================
@@ -145,6 +167,7 @@ def add_per_minute_metrics(df, session_minutes):
         
     # Ordenar alfabéticamente
     return df_modified, sorted(new_columns)
+
 
 # ============================================================================
 # FUNCIONES DE MANEJO DE FECHAS
@@ -274,9 +297,10 @@ def format_and_filter_date(selected_date):
     return df_fecha, formatted_date
 
 
-def filter_and_get_players_data(selected_date):
+def get_players_data(selected_date):
     """
-    Filtra y procesa los datos GPS de jugadores para una fecha específica.
+    Procesa los datos de las columnas de interés de jugadores para una fecha específica.
+
     
     Función principal para obtener datos de jugadores listos para análisis.
     Aplica todos los filtros necesarios, calcula métricas por minuto y 
@@ -302,25 +326,22 @@ def filter_and_get_players_data(selected_date):
             print(f"No se encontraron datos para la fecha: {selected_date}")
             return None
         
-        #print(f"Datos encontrados para la fecha: {df_fecha.height} filas")
-        df_filtered = apply_standard_filters(df_fecha)
-        #print(f"Después de filtros: {df_filtered.height} filas")
-        
+
         # Obtener columnas de interés y calcular métricas por minuto
         session_minutes = df_fecha.select('Drills Duration').row(0)[0]
-        df_filtered, columns_of_interest = add_per_minute_metrics(df_filtered, session_minutes)
+        df, columns_of_interest = add_per_minute_metrics(df_fecha, session_minutes)
         #print(f"Columnas de interés: {columns_of_interest}")
         
         # Seleccionar columnas básicas + columnas de interés que existan en el DataFrame
-        basic_columns = ['Player']
-        available_columns = [col for col in columns_of_interest if col in df_filtered.columns]
+        basic_columns = ['Player', 'Position']
+        available_columns = [col for col in columns_of_interest if col in df.columns]
         #print(f"Columnas disponibles en DataFrame: {available_columns}")
         
         selected_columns = basic_columns + available_columns
         #print(f"Columnas seleccionadas: {selected_columns}")
         
-        if df_filtered.height > 0:
-            result_df = df_filtered.select(selected_columns)
+        if df.height > 0:
+            result_df = df.select(selected_columns)
             #print(f"DataFrame resultado: {result_df.height} filas, {len(result_df.columns)} columnas")
             return result_df
         else:
@@ -333,271 +354,138 @@ def filter_and_get_players_data(selected_date):
         traceback.print_exc()
         return None
 
-# ============================================================================
-# FUNCIONES AUXILIARES
-# ============================================================================
 
-def ensure_dir(directory):
+def get_specific_md_data(match_day_target, exclude_date=None):
     """
-    Asegura que un directorio existe, creándolo si es necesario.
+    Obtiene datos acumulados de un Match Day específico.
     
-    Función auxiliar para garantizar que las carpetas de datos procesados
-    existan antes de intentar guardar archivos.
+    Filtra todos los datos GPS para obtener solo las sesiones del mismo tipo
+    de Match Day (ej: MD-1, MD+1, etc.), excluyendo opcionalmente una fecha específica.
+    Útil para comparaciones históricas y cálculo de z-scores.
     
     Args:
-        directory (str): Ruta del directorio a verificar/crear
-    """
-    if not os.path.exists(directory):
-        os.makedirs(directory)
-
-# ============================================================================
-# FUNCIONES DE CÁLCULO DE ESTADÍSTICAS COMPARATIVAS
-# ============================================================================
-        
-def calcular_estadisticas(fecha=None, columnas_interes=None, estadistica=None):
-    """
-    Calcula estadísticas comparativas para jugadores, posiciones y equipos por Match Day.
+        match_day_target (str): Match Day objetivo para filtrar (ej: 'MD-1', 'MD+1')
+        exclude_date (str, optional): Fecha a excluir en formato dd/mm/aaaa
     
-    Función principal para generar análisis estadísticos comparativos. Puede trabajar
-    con todos los datos históricos o filtrar por una fecha específica para comparar
-    con el Match Day de referencia más cercano.
-    
-    Args:
-        fecha (str, optional): Fecha específica en formato dd/mm/aaaa para análisis comparativo
-        columnas_interes (list, optional): Lista de columnas a analizar. Si None, usa todas las de interés
-        estadistica (str, optional): Estadística específica a calcular ('mean', 'median', etc.)
-        
     Returns:
-        tuple: (df_jugadores, df_posiciones, df_equipos) con estadísticas calculadas
+        pl.DataFrame: DataFrame con datos históricos del mismo Match Day o None si no hay datos
     """
-    # Asegurar que el directorio de datos procesados existe
-    ensure_dir(DATA_PROCESSED_PATH)
-    
-    # Cargar datos GPS usando función auxiliar
+    # Cargar datos GPS
     df = load_gps_data()
     if df is None:
         print("Error loading GPS data")
-        return None, None, None
+        return None
+    
+    # Aplicar filtros estándar
+    df = apply_standard_filters(df)
+    
+    # Filtrar por Match Day objetivo
+    df_md = df.filter(pl.col('Match Day') == match_day_target)
+    
+    # Excluir fecha específica si se proporciona
+    if exclude_date is not None:
+        df_md = df_md.filter(pl.col('Date') != exclude_date)
+    
+    return df_md
+
+
+def obtener_datos_fecha_con_md_anterior(fecha):
+    """
+    Filtra los datos GPS por una fecha específica y los combina con datos del MD anterior.
+    
+    Esta función toma una fecha específica, obtiene los datos de esa fecha y busca
+    la fecha más reciente anterior con Match Day = 'MD' para realizar comparaciones.
+    Utiliza la función filter_and_get_players_data para procesar los datos.
+    
+    Args:
+        fecha (str): Fecha específica en formato dd/mm/aaaa para análisis comparativo
         
+    Returns:
+        pl.DataFrame: DataFrame combinado con datos de la fecha específica y del MD anterior,
+                     o None si no se encuentran datos válidos
+    """
     try:
-        df = df.filter(pl.col('Match Day') != 'Rehab')
+        # Cargar datos GPS completos
+        df = load_gps_data()
+        if df is None:
+            print("Error al cargar datos GPS")
+            return None
+            
+        # Verificar que existen las columnas necesarias
+        if 'Date' not in df.columns or 'Match Day' not in df.columns:
+            print("Faltan columnas requeridas (Date o Match Day)")
+            return None
+            
+        # Obtener los datos de la fecha específica
+        df_fecha = df.filter(pl.col('Date') == fecha)
+        if df_fecha.height == 0:
+            print(f"No se encontraron datos para la fecha: {fecha}")
+            return None
+            
+        # Obtener el Match Day para la fecha especificada
+        match_day_especifico = df_fecha['Match Day'][0]
+        print(f"Match Day de la fecha {fecha}: {match_day_especifico}")
         
-        if df.height == 0:
-            print("DataFrame is empty")
-            return None, None, None
+        # Encontrar la fecha más reciente anterior con Match Day == 'MD'
+        # Convertir la columna Date a datetime para comparación y ordenación correcta
+        df_with_datetime = df.with_columns(
+            pl.col('Date').str.strptime(pl.Date, format='%d/%m/%Y').alias('Date_dt')
+        )
         
-        # # Crear backup
-        # backup_path = os.path.join(DATA_GPS_PATH, 'df_gps_backup.parquet')
-        # df.write_parquet(backup_path)
+        # Convertir la fecha objetivo a datetime para comparación
+        fecha_dt = datetime.strptime(fecha, '%d/%m/%Y').date()
         
-        # Filtrar por fecha si se proporciona
-        if fecha is not None:
-            if 'Date' not in df.columns or 'Match Day' not in df.columns:
-                print("Required date columns missing")
-                return None, None, None
-                
-            # Obtener los datos de fecha específica
-            df_fecha = df.filter(pl.col('Date') == fecha)
-            if df_fecha.height == 0:
-                print(f"No data found for date {fecha}")
-                return None, None, None
-                
-            # Obtener el Match Day para la fecha especificada
-            match_day_especifico = df_fecha['Match Day'][0]
-            
-            # Encontrar la primera fecha con Match Day == 'MD' antes de la fecha especificada
-            # Convertir la columna Date a datetime para comparación y ordenación correcta
-            df_with_datetime = df.with_columns(
-                pl.col('Date').str.strptime(pl.Date, format='%d/%m/%Y').alias('Date_dt')
-            )
-            
-            # Convertir la fecha objetivo a datetime para comparación
-            fecha_dt = datetime.strptime(fecha, '%d/%m/%Y').date()
-            
-            # Filtrar datos anteriores a la fecha especificada con Match Day == 'MD'
-            df_md_anteriores = df_with_datetime.filter(
-                (pl.col('Date_dt') < fecha_dt) & 
-                (pl.col('Match Day') == 'MD')
-            ).sort('Date_dt', descending=True)  # Ordenar por fecha datetime descendente para obtener la más reciente
-            
-            if df_md_anteriores.height == 0:
-                print(f"No MD found before date {fecha}")
-                return None, None, None
-            
-            # Obtener la fecha MD más reciente antes de la fecha especificada
-            fecha_md = df_md_anteriores['Date'][0]
-            
-            # Crear nuevo dataframe con las filas de ambas fechas
-            df = df.filter(
-                (pl.col('Date') == fecha) | 
-                (pl.col('Date') == fecha_md)
-            )
-            
-            #print(f"Using data from MD date: {fecha_md} and target date: {fecha}")
-            
-        # Aplicar filtros estándar
-        df = apply_standard_filters(df)
+        # Filtrar datos anteriores a la fecha especificada con Match Day == 'MD'
+        df_md_anteriores = df_with_datetime.filter(
+            (pl.col('Date_dt') < fecha_dt) & 
+            (pl.col('Match Day') == 'MD')
+        ).sort('Date_dt', descending=True)  # Ordenar por fecha descendente para obtener la más reciente
         
-        # Obtener columnas de interés y calcular métricas por minuto
-        # Si hay fecha específica, usar los datos de esa fecha para session_minutes
-        if fecha is not None:
-            df_fecha_actual = df.filter(pl.col('Date') == fecha)
-            if df_fecha_actual.height > 0:
-                session_minutes = df_fecha_actual.select('Drills Duration').row(0)[0]
-            else:
-                session_minutes = 90  # Valor por defecto si no se encuentra
-            df, columnas_interes = add_per_minute_metrics(df, session_minutes)
+        if df_md_anteriores.height == 0:
+            print(f"No se encontró ningún MD anterior a la fecha {fecha}")
+            return None
+        
+        # Obtener la fecha MD más reciente antes de la fecha especificada
+        fecha_md_anterior = df_md_anteriores['Date'][0]
+        print(f"Fecha MD anterior encontrada: {fecha_md_anterior}")
+        
+        # Crear DataFrame combinado con las filas de ambas fechas
+        df_combinado = df.filter(
+            (pl.col('Date') == fecha) | 
+            (pl.col('Date') == fecha_md_anterior)
+        )
+        
+        if df_combinado.height == 0:
+            print("No se pudieron combinar los datos de ambas fechas")
+            return None
+            
+        # Aplicar filtros estándar para limpiar los datos
+        df_combinado = apply_standard_filters(df_combinado)
+        
+        # Calcular métricas por minuto usando los datos de la fecha específica
+        df_fecha_actual = df_combinado.filter(pl.col('Date') == fecha)
+        if df_fecha_actual.height > 0:
+            session_minutes = df_fecha_actual.select('Drills Duration').row(0)[0]
+            df_combinado, columnas_interes = add_per_minute_metrics(df_combinado, session_minutes)
         else:
-            # Cuando fecha es None, calcular métricas por minuto para cada Match Day por separado
-            columnas_interes = get_columns_of_interest().copy()
+            print("No se pudieron obtener los minutos de sesión")
+            return None
             
-            # Obtener valores únicos de Match Day
-            match_days_temp = df['Match Day'].unique().to_list()
-            
-            # Procesar cada Match Day por separado
-            df_list = []
-            for match_day in match_days_temp:
-                df_match_day = df.filter(pl.col('Match Day') == match_day)
-                if df_match_day.height == 0:
-                    continue
-                
-                # Calcular la suma total de minutos para este Match Day
-                # Convertir cada duración de HH:MM:SS a minutos y sumar
-                total_minutes = 0
-                for duration in df_match_day['Drills Duration'].to_list():
-                    time_parts = duration.split(':')
-                    minutes = int(time_parts[0]) * 60 + int(time_parts[1]) + int(time_parts[2]) / 60
-                    total_minutes += minutes
-                
-                session_minutes_str = f"{int(total_minutes//60):02d}:{int(total_minutes%60):02d}:00"
-                #print(f"Match Day {match_day}: Total session minutes = {session_minutes_str} ({total_minutes} minutes)")
-                
-                # Aplicar métricas por minuto usando el total de minutos para este Match Day
-                df_match_day_processed, _ = add_per_minute_metrics(df_match_day, session_minutes_str)
-                df_list.append(df_match_day_processed)
-            
-            # Concatenar todos los DataFrames procesados
-            if df_list:
-                df = pl.concat(df_list)
-                # Actualizar columnas de interés con las nuevas columnas por minuto
-                if 'Explosive Dist (m)' in df.columns:
-                    columnas_interes.append('Explosive Dist (m)/min')
-                if 'Abs HSR(m)' in df.columns:
-                    columnas_interes.append('Abs HSR(m)/Min')
-                if 'Distance (m)' in df.columns:
-                    columnas_interes.append('Distance (m)/min')
-                columnas_interes = sorted(columnas_interes)
-            else:
-                print("No se pudieron procesar datos para ningún Match Day")
-                return None, None, None
-
-        # Obtener valores únicos
-        match_days = df['Match Day'].unique().to_list()
-        jugadores = df['Player'].unique().to_list()
-        posiciones = df['Position'].unique().to_list() 
-        equipos = df['Team '].unique().to_list()
-
-        # Estadísticas a calcular
-        if estadistica is not None:
-            estadisticas = [estadistica]  # Solo calcular la estadística seleccionada
-        else:
-            estadisticas = ["mean", "median", "max", "min", "p75", "p90", "p95"]  # Calcular todas las estadísticas
+        print(f"Datos combinados exitosamente: {df_combinado.height} registros")
+        print(f"Fechas incluidas: {sorted(df_combinado['Date'].unique().to_list())}")
         
-        # Inicializar listas de resultados
-        resultados_jugadores = []
-        resultados_position = []
-        resultados_team = []
-
-        # Calcular estadísticas para cada grupo
-        for jugador in jugadores:
-            df_jugador = df.filter(pl.col('Player') == jugador)
-            posicion_jugador = df_jugador['Position'][0] if df_jugador.height > 0 else "Desconocida"
-            
-            for match_day in match_days:
-                df_match = df_jugador.filter(pl.col('Match Day') == match_day)
-                if df_match.height == 0:
-                    continue
-                    
-                for estadistica in estadisticas:
-                    registro = {
-                        "Player": jugador,
-                        "Position": posicion_jugador,
-                        "Match Day": match_day,
-                        "Estadistica": estadistica
-                    }
-                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
-                    resultados_jugadores.append(registro)
-
-        for posicion in posiciones:
-            df_posicion = df.filter(pl.col('Position') == posicion)
-            for match_day in match_days:
-                df_match = df_posicion.filter(pl.col('Match Day') == match_day)
-                if df_match.height == 0:
-                    continue
-                    
-                for estadistica in estadisticas:
-                    registro = {
-                        "Position": posicion,
-                        "Match Day": match_day,
-                        "Estadistica": estadistica
-                    }
-                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
-                    resultados_position.append(registro)
-
-        for equipo in equipos:
-            df_equipo = df.filter(pl.col('Team ') == equipo)
-            for match_day in match_days:
-                df_match = df_equipo.filter(pl.col('Match Day') == match_day)
-                if df_match.height == 0:
-                    continue
-                    
-                for estadistica in estadisticas:
-                    registro = {
-                        "Team": equipo,
-                        "Match Day": match_day,
-                        "Estadistica": estadistica
-                    }
-                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
-                    resultados_team.append(registro)
-
-        # Crear DataFrames
-        df_estadisticas = pl.DataFrame(resultados_jugadores)
-        df_estadisticas_position = pl.DataFrame(resultados_position)
-        df_estadisticas_team = pl.DataFrame(resultados_team)
-
-        # Calcular diferencias porcentuales
-        df_estadisticas = calcular_diferencia_porcentual(df_estadisticas)
-        df_estadisticas_position = calcular_diferencia_porcentual(df_estadisticas_position)
-        df_estadisticas_team = calcular_diferencia_porcentual(df_estadisticas_team)
-
-        # Guardar resultados o filtrar por Match Day específico si se proporcionó fecha
-        if fecha is not None:
-            # # Filtrar resultados para devolver solo los datos del Match Day específico
-            # df_estadisticas_filtrado = df_estadisticas.filter(pl.col('Match Day') == match_day_especifico)
-            # df_estadisticas_position_filtrado = df_estadisticas_position.filter(pl.col('Match Day') == match_day_especifico)
-            # df_estadisticas_team_filtrado = df_estadisticas_team.filter(pl.col('Match Day') == match_day_especifico)
-            
-            #print(f"Returning statistics for specific Match Day: {match_day_especifico}")
-            
-            #return df_estadisticas_filtrado, df_estadisticas_position_filtrado, df_estadisticas_team_filtrado
-            return df_estadisticas, df_estadisticas_position, df_estadisticas_team
-
-        else:
-            # Nomenclatura original para estadísticas generales
-            output_path = os.path.join(DATA_PROCESSED_PATH, 'df_jugadores_estadisticas.parquet')
-            output_path_position = os.path.join(DATA_PROCESSED_PATH, 'df_position_estadisticas.parquet')
-            output_path_team = os.path.join(DATA_PROCESSED_PATH, 'df_team_estadisticas.parquet')
-
-            df_estadisticas.write_parquet(output_path)
-            df_estadisticas_position.write_parquet(output_path_position)
-            df_estadisticas_team.write_parquet(output_path_team)
-            
-            print("Estadísticas generales guardadas con nomenclatura estándar")
-            return df_estadisticas, df_estadisticas_position, df_estadisticas_team
-
+        return df_combinado
+        
     except Exception as e:
-        print(f"Error calculating statistics: {str(e)}")
-        return None, None, None
+        print(f"Error al obtener datos de fecha con MD anterior: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return None
+    
+    
+# ============================================================================
+# FUNCIONES DE CÁLCULO DE ESTADÍSTICAS COMPARATIVAS
+# ============================================================================
 
 def calcular_metricas(df, columnas, estadistica):
     """
@@ -639,491 +527,600 @@ def calcular_metricas(df, columnas, estadistica):
         resultado[columna] = valor
     return resultado
 
-def calcular_diferencia_porcentual(df):
-    """
-    Calcula diferencias porcentuales entre Match Days no-MD y MD de referencia.
-    
-    Para cada entidad (jugador, posición o equipo), compara sus valores en sesiones
-    de entrenamiento con sus valores en partidos (MD), calculando la diferencia
-    porcentual como: (abs(valor_entrenamiento) / abs(valor_partido)) * 100
-    
-    Args:
-        df (pl.DataFrame): DataFrame con estadísticas por Match Day
-        
-    Returns:
-        pl.DataFrame: DataFrame original más filas adicionales con Match Day = 'diferencia'
-                     conteniendo las diferencias porcentuales calculadas
-    """
-    if df is None or df.height == 0:
-        print("El dataframe está vacío.")
-        return df
-    
-    # Obtener las columnas de métricas (todas las columnas excepto Player, Position, Team, Match Day y Estadistica)
-    columnas_metricas = [col for col in df.columns if col not in ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']]
-    
-    # Determinar si el dataframe tiene la columna 'Player', 'Position' o 'Team'
-    tiene_player = 'Player' in df.columns
-    tiene_position = 'Position' in df.columns
-    tiene_team = 'Team' in df.columns
-    
-    # Determinar las columnas de agrupación
-    columnas_agrupacion = []
-    if tiene_player:
-        columnas_agrupacion.append('Player')
-    if tiene_position:
-        columnas_agrupacion.append('Position')
-    if tiene_team:
-        columnas_agrupacion.append('Team')
-    
-    # Añadir 'Estadistica' a las columnas de agrupación
-    columnas_agrupacion.append('Estadistica')
-    
-    # Lista para almacenar las nuevas filas de diferencias
-    nuevas_filas = []
-    
-    # Agrupar por las columnas de agrupación
-    grupos = df.group_by(columnas_agrupacion)
-    
-    # Para cada grupo, calcular las diferencias porcentuales
-    for grupo_valores, grupo_df in grupos:
-        # Verificar si existe el Match Day 'MD' en este grupo
-        df_md = grupo_df.filter(pl.col('Match Day') == 'MD')
-        if df_md.height == 0:
-            continue
-        
-        # Obtener los valores de referencia (MD)
-        valores_md = df_md.row(0, named=True)
-        
-        # Obtener todos los Match Days que no sean 'MD'
-        df_no_md = grupo_df.filter(pl.col('Match Day') != 'MD')
-        
-        # Para cada Match Day que no sea 'MD', calcular las diferencias
-        for fila_no_md in df_no_md.iter_rows(named=True):
-            # Crear una nueva fila para las diferencias
-            nueva_fila = {}
-            
-            # Copiar las columnas de agrupación excepto 'Match Day'
-            for col in columnas_agrupacion:
-                if col != 'Match Day':  # No copiar Match Day ya que lo estableceremos como 'diferencia'
-                    nueva_fila[col] = fila_no_md[col]
-            
-            # Copiar también las columnas de identificación que no están en columnas_agrupacion
-            if tiene_player and 'Player' not in nueva_fila:
-                nueva_fila['Player'] = fila_no_md['Player']
-            if tiene_position and 'Position' not in nueva_fila:
-                nueva_fila['Position'] = fila_no_md['Position']
-            if tiene_team and 'Team' not in nueva_fila:
-                nueva_fila['Team'] = fila_no_md['Team']
-            
-            # Establecer Match Day como 'diferencia'
-            nueva_fila['Match Day'] = 'diferencia'
-            
-            # Calcular diferencias porcentuales para cada métrica
-            for columna in columnas_metricas:
-                if columna in fila_no_md and columna in valores_md:
-                    valor_no_md = fila_no_md[columna]
-                    valor_md = valores_md[columna]
-                    
-                    # Verificar si alguno de los valores es None o si el valor MD es cero
-                    if valor_no_md is None or valor_md is None or valor_md == 0:
-                        nueva_fila[columna] = None
-                    else:
-                        # Calcular la diferencia porcentual: (abs(valor_no_MD) / abs(valor_MD)) * 100
-                        diff_porcentual = (abs(valor_no_md) / abs(valor_md)) * 100
-                        nueva_fila[columna] = round(diff_porcentual, 2)
-                else:
-                    nueva_fila[columna] = None
-            
-            nuevas_filas.append(nueva_fila)
-    
-    # Si hay nuevas filas, añadirlas al dataframe original
-    if nuevas_filas:
-        # Asegurar que todas las nuevas filas tengan las mismas columnas que el DataFrame original
-        columnas_originales = df.columns
-        for fila in nuevas_filas:
-            for col in columnas_originales:
-                if col not in fila:
-                    fila[col] = None
-        
-        df_diferencias = pl.DataFrame(nuevas_filas)
-        # Reordenar las columnas del DataFrame de diferencias para que coincidan con el original
-        df_diferencias = df_diferencias.select(columnas_originales)
-        df_resultado = pl.concat([df, df_diferencias], how="vertical")
-    else:
-        df_resultado = df
-    
-    return df_resultado
 
-# ============================================================================
-# FUNCIONES DE ANÁLISIS COMPARATIVO CON DATOS HISTÓRICOS
-# ============================================================================
-
-def get_historical_md_data(match_day_target, exclude_date=None):
+def calcular_estadisticas_por_matchday():
     """
-    Obtiene datos históricos para un Match Day específico.
+    Calcula estadísticas para cada Match Day de todos los datos históricos.
     
-    Filtra todos los datos GPS para obtener solo las sesiones del mismo tipo
-    de Match Day (ej: MD-1, MD+1, etc.), excluyendo opcionalmente una fecha específica.
-    Útil para comparaciones históricas y cálculo de z-scores.
-    
-    Args:
-        match_day_target (str): Match Day objetivo para filtrar (ej: 'MD-1', 'MD+1')
-        exclude_date (str, optional): Fecha a excluir en formato dd/mm/aaaa
+    Esta función procesa todos los datos GPS disponibles, los filtra, obtiene las columnas
+    de interés, calcula métricas por minuto para cada Match Day y luego agrupa los datos
+    por Match Day calculando estadísticas descriptivas para jugadores, posiciones y equipos.
     
     Returns:
-        pl.DataFrame: DataFrame con datos históricos del mismo Match Day o None si no hay datos
+        tuple: (df_jugadores, df_posiciones, df_equipos) con estadísticas calculadas por Match Day
     """
-    # Cargar datos GPS
+        # Cargar datos GPS usando función auxiliar
     df = load_gps_data()
     if df is None:
-        print("Error loading GPS data")
+        print("Error al cargar datos GPS")
+        return None, None, None
+        
+    try:
+        if df.height == 0:
+            print("DataFrame está vacío después del filtrado")
+            return None, None, None
+        
+        # Aplicar filtros estándar
+        df = apply_standard_filters(df)
+        
+        # Obtener columnas de interés base
+        columnas_interes = get_columns_of_interest().copy()
+        
+        # Calcular métricas por minuto de forma eficiente 
+        # Converter Drills Duration para minutos para todo el DataFrame de una vez
+        df = df.with_columns([
+            pl.col('Drills Duration').str.split(':').list.eval(
+                pl.element().cast(pl.Int32)
+            ).list.eval(
+                pl.when(pl.int_range(pl.len()) == 0).then(pl.element() * 60)  # horas * 60
+                .when(pl.int_range(pl.len()) == 1).then(pl.element())         # minutos
+                .when(pl.int_range(pl.len()) == 2).then(pl.element() / 60)    # segundos / 60
+                .otherwise(0)
+            ).list.sum().alias('session_minutes')
+        ])
+        
+        # Calcular métricas por minuto para todo el DataFrame de una vez
+        if 'Explosive Dist (m)' in df.columns:
+            df = df.with_columns(
+                (pl.col('Explosive Dist (m)') / pl.col('session_minutes')).alias('Explosive Dist (m)/min')
+            )
+            columnas_interes.append('Explosive Dist (m)/min')
+        
+        if 'Abs HSR(m)' in df.columns:
+            df = df.with_columns(
+                (pl.col('Abs HSR(m)') / pl.col('session_minutes')).alias('Abs HSR(m)/Min')
+            )
+            columnas_interes.append('Abs HSR(m)/Min')
+        
+        if 'Distance (m)' in df.columns:
+            df = df.with_columns(
+                (pl.col('Distance (m)') / pl.col('session_minutes')).alias('Distance (m)/min')
+            )
+            columnas_interes.append('Distance (m)/min')
+        
+        # Ordenar columnas de interés
+        columnas_interes = sorted(columnas_interes)
+
+        # Obtener valores únicos para agrupación
+        match_days = df['Match Day'].unique().to_list()
+        jugadores = df['Player'].unique().to_list()
+        posiciones = df['Position'].unique().to_list() 
+        equipos = df['Team '].unique().to_list()
+
+        # Estadísticas a calcular
+        estadisticas = ["mean", "median", "max", "min", "p75", "p90", "p95"]
+        
+        # Inicializar listas de resultados
+        resultados_jugadores = []
+        resultados_position = []
+        resultados_team = []
+
+        # Calcular estadísticas para jugadores por Match Day
+        for jugador in jugadores:
+            df_jugador = df.filter(pl.col('Player') == jugador)
+            posicion_jugador = df_jugador['Position'][0] if df_jugador.height > 0 else "Desconocida"
+            
+            for match_day in match_days:
+                df_match = df_jugador.filter(pl.col('Match Day') == match_day)
+                if df_match.height == 0:
+                    continue
+                    
+                for estadistica in estadisticas:
+                    registro = {
+                        "Player": jugador,
+                        "Position": posicion_jugador,
+                        "Match Day": match_day,
+                        "Estadistica": estadistica
+                    }
+                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
+                    resultados_jugadores.append(registro)
+
+        # Calcular estadísticas para posiciones por Match Day
+        for posicion in posiciones:
+            df_posicion = df.filter(pl.col('Position') == posicion)
+            for match_day in match_days:
+                df_match = df_posicion.filter(pl.col('Match Day') == match_day)
+                if df_match.height == 0:
+                    continue
+                    
+                for estadistica in estadisticas:
+                    registro = {
+                        "Position": posicion,
+                        "Match Day": match_day,
+                        "Estadistica": estadistica
+                    }
+                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
+                    resultados_position.append(registro)
+
+        # Calcular estadísticas para equipos por Match Day
+        for equipo in equipos:
+            df_equipo = df.filter(pl.col('Team ') == equipo)
+            for match_day in match_days:
+                df_match = df_equipo.filter(pl.col('Match Day') == match_day)
+                if df_match.height == 0:
+                    continue
+                    
+                for estadistica in estadisticas:
+                    registro = {
+                        "Team": equipo,
+                        "Match Day": match_day,
+                        "Estadistica": estadistica
+                    }
+                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
+                    resultados_team.append(registro)
+
+        # Crear DataFrames con los resultados
+        df_estadisticas = pl.DataFrame(resultados_jugadores)
+        df_estadisticas_position = pl.DataFrame(resultados_position)
+        df_estadisticas_team = pl.DataFrame(resultados_team)
+
+        # # Guardar resultados en archivos parquet
+        # output_path = os.path.join(DATA_PROCESSED_PATH, 'df_jugadores_estadisticas.parquet')
+        # output_path_position = os.path.join(DATA_PROCESSED_PATH, 'df_position_estadisticas.parquet')
+        # output_path_team = os.path.join(DATA_PROCESSED_PATH, 'df_team_estadisticas.parquet')
+
+        # df_estadisticas.write_parquet(output_path)
+        # df_estadisticas_position.write_parquet(output_path_position)
+        # df_estadisticas_team.write_parquet(output_path_team)
+        
+        print("Estadísticas por Match Day calculadas y guardadas exitosamente")
+        return df_estadisticas, df_estadisticas_position, df_estadisticas_team
+
+    except Exception as e:
+        print(f"Error al calcular estadísticas por Match Day: {str(e)}")
+        return None, None, None
+
+
+
+def calcular_zscore_fecha_vs_matchday_acumulado(fecha):
+    """
+    Calcula el z-score comparando los datos de una fecha específica con los datos 
+    acumulados históricos del mismo Match Day.
+    
+    Esta función utiliza get_table_data para obtener los valores de la fecha específica
+    y get_specific_md_data para obtener los datos históricos acumulados del mismo Match Day,
+    calculando el z-score para cada métrica de cada jugador, equipo y posición.
+    Incluye métricas por minuto en el cálculo.
+    
+    Args:
+        fecha (str): Fecha específica en formato dd/mm/aaaa para calcular z-scores
+        
+    Returns:
+        dict: Diccionario con z-scores organizados por tipo de entidad:
+              {
+                'jugadores': {nombre_jugador: {'z_scores': {metrica: zscore, ...}, 'valores_actuales': {...}}},
+                'equipos': {nombre_equipo: {'z_scores': {metrica: zscore, ...}, 'valores_actuales': {...}}},
+                'posiciones': {nombre_posicion: {'z_scores': {metrica: zscore, ...}, 'valores_actuales': {...}}}
+              }
+              Retorna None si no se pueden calcular los z-scores
+    """
+    try:
+        # Cargar datos GPS para obtener el Match Day de la fecha específica
+        df = load_gps_data()
+        if df is None:
+            print("Error al cargar datos GPS")
+            return None
+            
+        # Aplicar filtros estándar
+        df = apply_standard_filters(df)
+        
+        # Obtener el Match Day para la fecha especificada
+        df_fecha_info = df.filter(pl.col('Date') == fecha)
+        if df_fecha_info.height == 0:
+            print(f"No se encontraron datos para la fecha: {fecha}")
+            return None
+            
+        match_day_especifico = df_fecha_info['Match Day'][0]
+
+        
+        # Obtener tabla con datos de la fecha específica usando diferentes estadísticas
+        # Esta función ya incluye métricas por minuto
+        tabla_actual_mean = get_table_data(fecha, "median")
+        if tabla_actual_mean is None:
+            print(f"No se pudieron obtener datos actuales para la fecha: {fecha}")
+            return None
+            
+        # Separar jugadores, equipo y posiciones de la tabla actual
+        jugadores_actuales = tabla_actual_mean.filter(
+            ~pl.col('Player').str.starts_with('TEAM') & 
+            ~pl.col('Player').str.starts_with('POS_')
+        )
+        
+        equipo_actual = tabla_actual_mean.filter(pl.col('Player').str.starts_with('TEAM'))
+        posiciones_actuales = tabla_actual_mean.filter(pl.col('Player').str.starts_with('POS_'))
+        
+        
+        # Obtener datos históricos del mismo Match Day (excluyendo la fecha actual)
+        df_historico_raw = get_specific_md_data(match_day_especifico, exclude_date=fecha)
+        if df_historico_raw is None or df_historico_raw.height == 0:
+            print(f"No se encontraron datos históricos para Match Day: {match_day_especifico}")
+            return None
+        
+        # Aplicar métricas por minuto a los datos históricos
+        # Procesar cada fecha histórica por separado para calcular métricas por minuto correctamente
+        fechas_historicas = df_historico_raw['Date'].unique().to_list()
+        df_historico_list = []
+        
+        for fecha_hist in fechas_historicas:
+            df_fecha_hist = df_historico_raw.filter(pl.col('Date') == fecha_hist)
+            if df_fecha_hist.height > 0:
+                # Obtener duración de la sesión para esta fecha
+                session_minutes = df_fecha_hist.select('Drills Duration').row(0)[0]
+                # Aplicar métricas por minuto
+                df_fecha_hist_con_metricas, _ = add_per_minute_metrics(df_fecha_hist, session_minutes)
+                df_historico_list.append(df_fecha_hist_con_metricas)
+        
+        # Combinar todos los datos históricos con métricas por minuto
+        if df_historico_list:
+            df_historico = pl.concat(df_historico_list)
+        else:
+            print(f"No se pudieron procesar datos históricos para Match Day: {match_day_especifico}")
+            return None
+        
+        # Obtener columnas numéricas (excluyendo Player)
+        columnas_numericas = [col for col in jugadores_actuales.columns if col not in ['Player']]
+        
+        # Inicializar diccionario de resultados
+        resultados = {
+            'jugadores': {},
+            'equipos': {},
+            'posiciones': {}
+        }
+        
+        # CALCULAR Z-SCORES PARA JUGADORES
+        # Los datos ya incluyen métricas por minuto calculadas anteriormente
+        for row in jugadores_actuales.iter_rows(named=True):
+            jugador = row['Player']
+            
+            # Datos históricos del mismo jugador en el mismo Match Day
+            df_jugador_historico = df_historico.filter(pl.col('Player') == jugador)
+            if df_jugador_historico.height == 0:
+                print(f"No hay datos históricos para el jugador: {jugador}")
+                continue
+            
+            valores_actuales = {}
+            z_scores = {}
+            
+            for columna in columnas_numericas:
+                if columna not in df_jugador_historico.columns:
+                    continue
+                    
+                # Valor actual del jugador (incluye métricas por minuto)
+                valor_actual = row[columna]
+                valores_actuales[columna] = valor_actual
+                
+                # Valores históricos del jugador (incluyen métricas por minuto)
+                valores_historicos = df_jugador_historico[columna].to_list()
+                if len(valores_historicos) < 2:  # Necesitamos al menos 2 valores para calcular std
+                    z_scores[columna] = None
+                    continue
+                    
+                media_historica = np.mean(valores_historicos)
+                std_historica = np.std(valores_historicos, ddof=1)  # Usar ddof=1 para muestra
+                
+                # Calcular z-score
+                if std_historica > 0:
+                    z_score = (valor_actual - media_historica) / std_historica
+                    z_scores[columna] = z_score
+                else:
+                    z_scores[columna] = None
+            
+            resultados['jugadores'][jugador] = {
+                'z_scores': z_scores,
+                'valores_actuales': valores_actuales
+            }
+        
+
+        # CALCULAR Z-SCORES PARA EQUIPOS
+        # Los datos ya incluyen métricas por minuto calculadas anteriormente
+        if equipo_actual.height > 0:
+            equipo_row = equipo_actual.row(0, named=True)
+            
+            # Obtener datos históricos del equipo agrupados por fecha
+            fechas_historicas = df_historico['Date'].unique().to_list()
+            valores_historicos_por_fecha = {}
+            
+            for fecha_hist in fechas_historicas:
+                df_fecha_hist = df_historico.filter(pl.col('Date') == fecha_hist)
+                valores_historicos_por_fecha[fecha_hist] = {}
+                
+                for columna in columnas_numericas:
+                    if columna in df_fecha_hist.columns:
+                        valores_historicos_por_fecha[fecha_hist][columna] = df_fecha_hist[columna].mean()
+            
+            valores_actuales = {}
+            z_scores = {}
+            
+            for columna in columnas_numericas:
+                # Valor actual del equipo (incluye métricas por minuto)
+                valor_actual = equipo_row[columna]
+                valores_actuales[columna] = valor_actual
+                
+                # Valores históricos del equipo (promedios por fecha, incluyen métricas por minuto)
+                valores_hist = [valores_historicos_por_fecha[f][columna] 
+                               for f in fechas_historicas 
+                               if columna in valores_historicos_por_fecha[f]]
+                
+                if len(valores_hist) < 2:
+                    z_scores[columna] = None
+                    continue
+                    
+                media_historica = np.mean(valores_hist)
+                std_historica = np.std(valores_hist, ddof=1)
+                
+                if std_historica > 0:
+                    z_score = (valor_actual - media_historica) / std_historica
+                    z_scores[columna] = z_score
+                else:
+                    z_scores[columna] = None
+            
+            resultados['equipos']['TEAM'] = {
+                'z_scores': z_scores,
+                'valores_actuales': valores_actuales
+            }
+        
+        # CALCULAR Z-SCORES PARA POSICIONES
+        # Los datos ya incluyen métricas por minuto calculadas anteriormente
+        for row in posiciones_actuales.iter_rows(named=True):
+            posicion_name = row['Player']  # Formato: POS_posicion
+            posicion = posicion_name.replace('POS_', '')
+            
+            # Obtener datos históricos de la posición agrupados por fecha
+            fechas_historicas = df_historico['Date'].unique().to_list()
+            valores_historicos_por_fecha = {}
+            
+            for fecha_hist in fechas_historicas:
+                df_posicion_hist = df_historico.filter(
+                    (pl.col('Date') == fecha_hist) & 
+                    (pl.col('Position') == posicion)
+                )
+                if df_posicion_hist.height > 0:
+                    valores_historicos_por_fecha[fecha_hist] = {}
+                    
+                    for columna in columnas_numericas:
+                        if columna in df_posicion_hist.columns:
+                            valores_historicos_por_fecha[fecha_hist][columna] = df_posicion_hist[columna].mean()
+            
+            valores_actuales = {}
+            z_scores = {}
+            
+            for columna in columnas_numericas:
+                # Valor actual de la posición (incluye métricas por minuto)
+                valor_actual = row[columna]
+                valores_actuales[columna] = valor_actual
+                
+                # Valores históricos de la posición (promedios por fecha, incluyen métricas por minuto)
+                valores_hist = [valores_historicos_por_fecha[f][columna] 
+                               for f in fechas_historicas 
+                               if f in valores_historicos_por_fecha and columna in valores_historicos_por_fecha[f]]
+                
+                if len(valores_hist) < 2:
+                    z_scores[columna] = None
+                    continue
+                    
+                media_historica = np.mean(valores_hist)
+                std_historica = np.std(valores_hist, ddof=1)
+                
+                if std_historica > 0:
+                    z_score = (valor_actual - media_historica) / std_historica
+                    z_scores[columna] = z_score
+                else:
+                    z_scores[columna] = None
+            
+            resultados['posiciones'][posicion] = {
+                'z_scores': z_scores,
+                'valores_actuales': valores_actuales
+            }
+        
+        return resultados
+        
+    except Exception as e:
+        print(f"Error al calcular z-scores: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+
+##################################################
+# FUNCIONES PARA LA PÁGINA SESSION REPORT
+##################################################
+
+def get_table_data(selected_date, selected_statistic):
+    """
+    Procesa los datos de las columnas de interés de la tabla de la página Session Report para una fecha específica
+    (jugadores + equipos + posiciones)
+    
+    Args:
+        selected_date (str): Fecha seleccionada para procesar los datos
+        selected_statistic (str): Estadística seleccionada para agrupar los datos ('mean', 'median', etc)
+
+    Returns:
+        pl.DataFrame: DataFrame combinado con datos de jugadores, equipo y posiciones
+    """
+    
+    # Obtener datos de jugadores para la fecha seleccionada
+    df_players = get_players_data(selected_date)
+    
+    if df_players is None:
         return None
     
-    # Aplicar filtros estándar
-    df = apply_standard_filters(df)
+    # Team 
     
-    # Filtrar por Match Day objetivo
-    df_md = df.filter(pl.col('Match Day') == match_day_target)
+    # Calcular estadísticas del equipo usando calcular_metricas
+    columnas_numericas = [col for col in df_players.columns if col not in ['Player', 'Position']]
+    team_stats = calcular_metricas(df_players, columnas_numericas, selected_statistic)
     
-    # Excluir fecha específica si se proporciona
-    if exclude_date is not None:
-        df_md = df_md.filter(pl.col('Date') != exclude_date)
+    # Crear DataFrame para el equipo
+    team_stats['Player'] = "TEAM"
+    df_team = pl.DataFrame([team_stats])
     
-    return df_md
+    
+    #Position 
+    
+    # Obtener datos de posiciones agrupados por la estadística seleccionada
+    positions = df_players.select('Position').unique()['Position'].to_list()
+    position_data = []
+    
+    for pos in positions:
+        df_pos = df_players.filter(pl.col('Position') == pos)
+        pos_stats = calcular_metricas(df_pos, columnas_numericas, selected_statistic)
+        pos_stats['Player'] = f"POS_{pos}"
+        position_data.append(pos_stats)
+    
+    # Crear DataFrame de posiciones si hay datos
+    df_position = pl.DataFrame(position_data) if position_data else None
+    
+    # Combinar todos los DataFrames
+    # Remover la columna Position del DataFrame de jugadores para compatibilidad
+    df_players_clean = df_players.drop('Position').sort('Player')
+    
+    # Obtener el orden de columnas del DataFrame de jugadores (sin Position)
+    column_order = df_players_clean.columns
+    
+    # Concatenar en el orden deseado: jugadores -> equipo -> posiciones
+    dfs_to_concat = [df_players_clean]
+    
+    if df_team is not None:
+        # Reordenar columnas del DataFrame del equipo para que coincidan
+        df_team = df_team.select(column_order)
+        dfs_to_concat.append(df_team)
+        
+    if df_position is not None:
+        # Reordenar columnas del DataFrame de posiciones para que coincidan
+        df_position = df_position.select(column_order)
+        dfs_to_concat.append(df_position)
+    
+    result_df = pl.concat(dfs_to_concat)
+    
+    return result_df
 
 
-def calcular_comparacion_fecha_md(df_fecha, estadistica_seleccionada, columnas_interes=None):
+def get_combined_table_with_reference(fecha, valor_referencia="zscore", estadistica="median"):
     """
-    Calcula diferencias porcentuales y z-scores comparando datos de una fecha específica
-    con el historial del mismo Match Day.
+    Retorna una tabla combinada donde cada celda contiene el valor absoluto 
+    más el valor de referencia.
     
-    Función principal para análisis comparativo que:
-    1. Detecta automáticamente el tipo de datos (jugador, equipo o posición)
-    2. Obtiene datos históricos del mismo Match Day
-    3. Calcula diferencias porcentuales y z-scores para cada métrica
-    4. Retorna resultados organizados por entidad
+    Esta función combina los datos de get_table_data con los valores de referencia
+    calculados (como z-scores) para crear una tabla donde cada celda muestra
+    tanto el valor absoluto como el valor de referencia formateado.
     
     Args:
-        df_fecha (pl.DataFrame): DataFrame con datos de la fecha específica a analizar
-        estadistica_seleccionada (str): Estadística de referencia ('mean', 'median', etc.)
-        columnas_interes (list, optional): Columnas a analizar. Si None, usa todas las de interés
-    
+        fecha (str): Fecha específica en formato dd/mm/aaaa
+        valor_referencia (str): Tipo de valor de referencia a calcular. 
+                               Opciones: "zscore" (default)
+        estadistica (str): Estadística a usar para get_table_data. 
+                          Opciones: "mean", "median", "max", "min", "quantile"
+                          Default: "median"
+        
     Returns:
-        dict: Diccionario con resultados de comparación organizados por entidad
-              Cada entrada contiene diferencias porcentuales y z-scores por métrica
+        pl.DataFrame: DataFrame con columnas combinadas donde cada celda contiene
+                     el valor absoluto y el valor de referencia formateado.
+                     Formato para z-score: "valor_absoluto (Z=z_score_valor)"
+                     Retorna None si hay errores en el procesamiento
     """
-    if df_fecha is None or df_fecha.height == 0:
-        print("df_fecha está vacío")
-        return {}
-    
-    # Detectar el tipo de datos basado en las columnas disponibles
-    data_type = "unknown"
-    entity_column = None
-    
-    if 'Player' in df_fecha.columns:
-        data_type = "player"
-        entity_column = 'Player'
-        print("Detectado: Datos de jugadores individuales")
-    elif 'Team' in df_fecha.columns:
-        data_type = "team"
-        entity_column = 'Team'
-        print("Detectado: Datos de equipo")
-    elif 'Position' in df_fecha.columns and 'Player' not in df_fecha.columns:
-        data_type = "position"
-        entity_column = 'Position'
-        print("Detectado: Datos por posición")
-    else:
-        print("Error: No se pudo detectar el tipo de datos (Player, Team o Position)")
-        return {}
-    
-    # Obtener el Match Day y la fecha del df_fecha
-    match_day_target = df_fecha['Match Day'][0]
-    fecha_target = df_fecha['Date'][0] if 'Date' in df_fecha.columns else None
-    
-    print(f"Obteniendo datos históricos para Match Day: {match_day_target}")
-    
-    # Obtener datos históricos del mismo Match Day (excluyendo la fecha actual)
-    df_md_filtrado = get_historical_md_data(match_day_target, exclude_date=fecha_target)
-    
-    if df_md_filtrado is None or df_md_filtrado.height == 0:
-        print(f"No se encontraron datos históricos para Match Day: {match_day_target}")
-        return {}
-    
-    print(f"Encontrados {df_md_filtrado.height} registros históricos para Match Day: {match_day_target}")
-    
-    # Aplicar métricas por minuto si es necesario
-    if fecha_target is not None:
-        # Usar los datos de la fecha específica para session_minutes
-        session_minutes = df_fecha.select('Drills Duration').row(0)[0]
-        df_fecha, columnas_interes = add_per_minute_metrics(df_fecha, session_minutes)
-        df_md_filtrado, _ = add_per_minute_metrics(df_md_filtrado, session_minutes)
-    
-    # Obtener columnas de interés si no se proporcionan
-    if columnas_interes is None:
-        columnas_interes = get_columns_of_interest()
-        # Añadir columnas por minuto si existen
-        if 'Explosive Dist (m)/min' in df_fecha.columns:
-            columnas_interes.append('Explosive Dist (m)/min')
-        if 'Abs HSR(m)/Min' in df_fecha.columns:
-            columnas_interes.append('Abs HSR(m)/Min')
-        if 'Distance (m)/min' in df_fecha.columns:
-            columnas_interes.append('Distance (m)/min')
-        columnas_interes = sorted(columnas_interes)
-    
-    # Filtrar solo las columnas que existen en ambos DataFrames
-    columnas_disponibles = [col for col in columnas_interes 
-                           if col in df_fecha.columns and col in df_md_filtrado.columns]
-    
-    if not columnas_disponibles:
-        print("No hay columnas de interés disponibles en ambos DataFrames")
-        return {}
-    
-    # Procesar según el tipo de datos
-    if data_type == "player":
-        return _procesar_datos_jugadores(df_fecha, df_md_filtrado, estadistica_seleccionada, 
-                                       columnas_disponibles, match_day_target, fecha_target)
-    elif data_type == "team":
-        return _procesar_datos_equipo(df_fecha, df_md_filtrado, estadistica_seleccionada, 
-                                    columnas_disponibles, match_day_target, fecha_target)
-    elif data_type == "position":
-        return _procesar_datos_posicion(df_fecha, df_md_filtrado, estadistica_seleccionada, 
-                                      columnas_disponibles, match_day_target, fecha_target)
-    
-    return {}
+    try:
 
-
-def _procesar_datos_jugadores(df_fecha, df_md_filtrado, estadistica_seleccionada, 
-                            columnas_disponibles, match_day_target, fecha_target):
-    """
-    Procesa y compara datos de jugadores individuales con su historial.
-    
-    Para cada jugador en los datos de la fecha específica, busca sus datos históricos
-    del mismo Match Day y calcula las métricas comparativas correspondientes.
-    
-    Args:
-        df_fecha (pl.DataFrame): Datos de jugadores de la fecha específica
-        df_md_filtrado (pl.DataFrame): Datos históricos del mismo Match Day
-        estadistica_seleccionada (str): Estadística de referencia para comparaciones
-        columnas_disponibles (list): Lista de columnas métricas a analizar
-        match_day_target (str): Match Day objetivo
-        fecha_target (str): Fecha específica analizada
-    
-    Returns:
-        dict: Resultados de comparación organizados por jugador
-    """
-    jugadores_fecha = df_fecha['Player'].unique().to_list()
-    resultados = {}
-    
-    for jugador in jugadores_fecha:
-        # Obtener datos del jugador en df_fecha
-        df_jugador_fecha = df_fecha.filter(pl.col('Player') == jugador)
-        if df_jugador_fecha.height == 0:
-            continue
+        # OBTENER DATOS ABSOLUTOS
+        tabla_absoluta = get_table_data(fecha, estadistica)
+        if tabla_absoluta is None:
+            print(f"No se pudieron obtener datos absolutos para la fecha: {fecha}")
+            return None
+         
+        # OBTENER VALORES DE REFERENCIA
+        if valor_referencia.lower() == "zscore":
+            datos_referencia = calcular_zscore_fecha_vs_matchday_acumulado(fecha)
+            if datos_referencia is None:
+                print(f"No se pudieron calcular z-scores para la fecha: {fecha}")
+                return None
+        else:
+            # ADICIONAR AQUI DIFERENÇA PERCENTUAL
+            print(f"Valor de referencia '{valor_referencia}' no soportado actualmente")
+            return None
         
-        # Obtener datos del mismo jugador en df_md_filtrado
-        df_jugador_md = df_md_filtrado.filter(pl.col('Player') == jugador)
-        if df_jugador_md.height == 0:
-            print(f"No se encontraron datos históricos del jugador {jugador} en Match Day {match_day_target}")
-            continue
         
-        # Calcular métricas para este jugador
-        resultado_jugador = _calcular_metricas_entidad(
-            df_jugador_fecha, df_jugador_md, estadistica_seleccionada, columnas_disponibles,
-            entity_name=jugador, entity_type="Player", match_day_target=match_day_target, 
-            fecha_target=fecha_target, df_fecha_completo=df_fecha
-        )
+        # COMBINAR DATOS ABSOLUTOS CON VALORES DE REFERENCIA
         
-        resultados[jugador] = resultado_jugador
-    
-    return resultados
-
-
-def _procesar_datos_equipo(df_fecha, df_md_filtrado, estadistica_seleccionada, 
-                         columnas_disponibles, match_day_target, fecha_target):
-    """
-    Procesa y compara datos de equipos con su historial.
-    
-    Para cada equipo en los datos de la fecha específica, calcula estadísticas
-    agregadas y las compara con el historial del mismo equipo en el mismo Match Day.
-    
-    Args:
-        df_fecha (pl.DataFrame): Datos de equipo de la fecha específica
-        df_md_filtrado (pl.DataFrame): Datos históricos del mismo Match Day
-        estadistica_seleccionada (str): Estadística de referencia para comparaciones
-        columnas_disponibles (list): Lista de columnas métricas a analizar
-        match_day_target (str): Match Day objetivo
-        fecha_target (str): Fecha específica analizada
-    
-    Returns:
-        dict: Resultados de comparación organizados por equipo
-    """
-    equipos_fecha = df_fecha['Team'].unique().to_list()
-    resultados = {}
-    
-    for equipo in equipos_fecha:
-        # Obtener datos del equipo en df_fecha
-        df_equipo_fecha = df_fecha.filter(pl.col('Team') == equipo)
-        if df_equipo_fecha.height == 0:
-            continue
+        # Crear una copia de la tabla absoluta para modificar
+        tabla_combinada = tabla_absoluta.clone()
         
-        # Para datos de equipo, necesitamos calcular estadísticas históricas del mismo equipo
-        # Primero calculamos las estadísticas por fecha en los datos históricos
-        df_equipo_md = df_md_filtrado.filter(pl.col('Team') == equipo) if 'Team' in df_md_filtrado.columns else df_md_filtrado
+        # Obtener columnas numéricas (excluyendo Player)
+        columnas_numericas = [col for col in tabla_combinada.columns if col not in ['Player']]
         
-        if df_equipo_md.height == 0:
-            print(f"No se encontraron datos históricos del equipo {equipo} en Match Day {match_day_target}")
-            continue
+        # Procesar cada fila de la tabla
+        filas_procesadas = []
         
-        # Calcular métricas para este equipo
-        resultado_equipo = _calcular_metricas_entidad(
-            df_equipo_fecha, df_equipo_md, estadistica_seleccionada, columnas_disponibles,
-            entity_name=equipo, entity_type="Team", match_day_target=match_day_target, 
-            fecha_target=fecha_target, df_fecha_completo=df_fecha
-        )
-        
-        resultados[equipo] = resultado_equipo
-    
-    return resultados
-
-
-def _procesar_datos_posicion(df_fecha, df_md_filtrado, estadistica_seleccionada, 
-                           columnas_disponibles, match_day_target, fecha_target):
-    """
-    Procesa y compara datos por posición con su historial.
-    
-    Para cada posición en los datos de la fecha específica, calcula estadísticas
-    agregadas de todos los jugadores de esa posición y las compara con el historial.
-    
-    Args:
-        df_fecha (pl.DataFrame): Datos por posición de la fecha específica
-        df_md_filtrado (pl.DataFrame): Datos históricos del mismo Match Day
-        estadistica_seleccionada (str): Estadística de referencia para comparaciones
-        columnas_disponibles (list): Lista de columnas métricas a analizar
-        match_day_target (str): Match Day objetivo
-        fecha_target (str): Fecha específica analizada
-    
-    Returns:
-        dict: Resultados de comparación organizados por posición
-    """
-    posiciones_fecha = df_fecha['Position'].unique().to_list()
-    resultados = {}
-    
-    for posicion in posiciones_fecha:
-        # Obtener datos de la posición en df_fecha
-        df_posicion_fecha = df_fecha.filter(pl.col('Position') == posicion)
-        if df_posicion_fecha.height == 0:
-            continue
-        
-        # Para datos por posición, calculamos estadísticas históricas de la misma posición
-        df_posicion_md = df_md_filtrado.filter(pl.col('Position') == posicion) if 'Position' in df_md_filtrado.columns else df_md_filtrado
-        
-        if df_posicion_md.height == 0:
-            print(f"No se encontraron datos históricos de la posición {posicion} en Match Day {match_day_target}")
-            continue
-        
-        # Calcular métricas para esta posición
-        resultado_posicion = _calcular_metricas_entidad(
-            df_posicion_fecha, df_posicion_md, estadistica_seleccionada, columnas_disponibles,
-            entity_name=posicion, entity_type="Position", match_day_target=match_day_target, 
-            fecha_target=fecha_target, df_fecha_completo=df_fecha
-        )
-        
-        resultados[posicion] = resultado_posicion
-    
-    return resultados
-
-
-def _calcular_metricas_entidad(df_entidad_fecha, df_entidad_md, estadistica_seleccionada, 
-                             columnas_disponibles, entity_name, entity_type, 
-                             match_day_target, fecha_target, df_fecha_completo):
-    """
-    Calcula métricas comparativas detalladas para una entidad específica.
-    
-    Función central que realiza todos los cálculos estadísticos para una entidad
-    (jugador, equipo o posición), incluyendo diferencias porcentuales y z-scores.
-    
-    Args:
-        df_entidad_fecha (pl.DataFrame): Datos de la entidad en la fecha específica
-        df_entidad_md (pl.DataFrame): Datos históricos de la entidad en el mismo Match Day
-        estadistica_seleccionada (str): Estadística de referencia ('mean', 'median', etc.)
-        columnas_disponibles (list): Lista de columnas métricas a analizar
-        entity_name (str): Nombre de la entidad (jugador, equipo o posición)
-        entity_type (str): Tipo de entidad ('Player', 'Team', 'Position')
-        match_day_target (str): Match Day objetivo
-        fecha_target (str): Fecha específica analizada
-        df_fecha_completo (pl.DataFrame): DataFrame completo de la fecha para contexto adicional
-    
-    Returns:
-        dict: Diccionario con todas las métricas calculadas para la entidad
-              Incluye diferencias porcentuales, z-scores y metadatos
-    """
-    # Inicializar resultado para esta entidad
-    resultado_entidad = {
-        entity_type: entity_name,
-        'Match_Day': match_day_target,
-        'Date': fecha_target,
-        'diferencias_porcentuales': {},
-        'z_scores': {}
-    }
-    
-    # Añadir información adicional según el tipo
-    if entity_type == "Player" and 'Position' in df_entidad_fecha.columns:
-        resultado_entidad['Position'] = df_entidad_fecha['Position'][0]
-    elif entity_type == "Position" and 'Team' in df_fecha_completo.columns:
-        resultado_entidad['Team'] = df_fecha_completo['Team'][0] if df_fecha_completo.height > 0 else 'Desconocido'
-    
-    # Calcular métricas para cada columna de interés
-    for columna in columnas_disponibles:
-        try:
-            # Obtener valor de la entidad en df_fecha (valor actual)
-            valor_fecha = df_entidad_fecha[columna][0]
+        for row in tabla_combinada.iter_rows(named=True):
+            player_name = row['Player']
+            fila_procesada = {'Player': player_name}
             
-            # Calcular estadística del grupo MD (valor de referencia para diferencia porcentual)
-            if estadistica_seleccionada == "mean":
-                valor_referencia = df_entidad_md[columna].mean()
-            elif estadistica_seleccionada == "median":
-                valor_referencia = df_entidad_md[columna].median()
-            elif estadistica_seleccionada == "max":
-                valor_referencia = df_entidad_md[columna].max()
-            elif estadistica_seleccionada == "min":
-                valor_referencia = df_entidad_md[columna].min()
-            elif estadistica_seleccionada == "p75":
-                valor_referencia = df_entidad_md[columna].quantile(0.75)
-            elif estadistica_seleccionada == "p90":
-                valor_referencia = df_entidad_md[columna].quantile(0.90)
-            elif estadistica_seleccionada == "p95":
-                valor_referencia = df_entidad_md[columna].quantile(0.95)
+            # Determinar el tipo de entidad (jugador, equipo o posición)
+            if player_name.startswith('TEAM'):
+                # Es un equipo
+                entidad_tipo = 'equipos'
+                entidad_key = 'TEAM'
+            elif player_name.startswith('POS_'):
+                # Es una posición
+                entidad_tipo = 'posiciones'
+                entidad_key = player_name.replace('POS_', '')
             else:
-                print(f"Estadística no reconocida: {estadistica_seleccionada}")
-                continue
+                # Es un jugador
+                entidad_tipo = 'jugadores'
+                entidad_key = player_name
             
-            # Calcular media y desviación estándar para z-score (siempre usar fórmula estándar)
-            media_referencia = df_entidad_md[columna].mean()
-            std_referencia = df_entidad_md[columna].std()
+            # Obtener los datos de referencia para esta entidad
+            datos_entidad = None
+            if entidad_tipo in datos_referencia and entidad_key in datos_referencia[entidad_tipo]:
+                datos_entidad = datos_referencia[entidad_tipo][entidad_key]
             
-            # Verificar valores válidos
-            if valor_fecha is None or valor_referencia is None:
-                resultado_entidad['diferencias_porcentuales'][columna] = None
-                resultado_entidad['z_scores'][columna] = None
-                continue
+            # Procesar cada columna numérica
+            for columna in columnas_numericas:
+                valor_absoluto = row[columna]
+                
+                # Formatear el valor absoluto
+                if isinstance(valor_absoluto, (int, float)) and not np.isnan(valor_absoluto):
+                    if abs(valor_absoluto) >= 1000:
+                        valor_abs_str = f"{valor_absoluto:.0f}"
+                    elif abs(valor_absoluto) >= 10:
+                        valor_abs_str = f"{valor_absoluto:.1f}"
+                    else:
+                        valor_abs_str = f"{valor_absoluto:.2f}"
+                else:
+                    valor_abs_str = "N/A"
+                
+                # Obtener el valor de referencia
+                valor_ref_str = ""
+                if datos_entidad and 'z_scores' in datos_entidad:
+                    z_scores = datos_entidad['z_scores']
+                    if columna in z_scores and z_scores[columna] is not None:
+                        z_score = z_scores[columna]
+                        if valor_referencia.lower() == "zscore":
+                            valor_ref_str = f"     Z={z_score:.2f}"
+                
+                # Combinar valor absoluto con valor de referencia
+                valor_combinado = valor_abs_str + valor_ref_str
+                fila_procesada[columna] = valor_combinado
             
-            # Calcular diferencia porcentual
-            if valor_referencia != 0:
-                diff_porcentual = ((valor_fecha - valor_referencia) / abs(valor_referencia)) * 100
-                resultado_entidad['diferencias_porcentuales'][columna] = round(diff_porcentual, 2)
-            else:
-                resultado_entidad['diferencias_porcentuales'][columna] = None
-            
-            # Calcular z-score usando fórmula padrão: (valor - media) / desvio_padrão
-            if std_referencia is not None and std_referencia != 0:
-                z_score = (valor_fecha - media_referencia) / std_referencia
-                resultado_entidad['z_scores'][columna] = round(z_score, 2)
-            else:
-                resultado_entidad['z_scores'][columna] = None
-            
-        except Exception as e:
-            print(f"Error calculando métricas para {entity_name} - {columna}: {e}")
-            resultado_entidad['diferencias_porcentuales'][columna] = None
-            resultado_entidad['z_scores'][columna] = None
-    
-    return resultado_entidad
+            filas_procesadas.append(fila_procesada)
+        
+        # Crear el DataFrame final
+        tabla_final = pl.DataFrame(filas_procesadas)
+        
+        print(f"Tabla combinada generada exitosamente con {tabla_final.height} filas")
+        return tabla_final
+        
+    except Exception as e:
+        print(f"Error al generar tabla combinada: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return None

@@ -553,7 +553,7 @@
 /* Estilos para tabla de jugadores */
 .players-data-table-style .dash-spreadsheet-container {
     overflow-x: auto;
-    max-height: 600px;
+    max-height: 800px;
     overflow-y: auto;
 }
 
@@ -587,10 +587,21 @@
     font-family: Arial, sans-serif;
 }
 
+/* Container da tabela combinada - largura total */
+.combined-stats-table-container {
+    width: 100% !important;
+    max-width: none !important;
+    overflow-x: auto;
+    margin: 0;
+    padding: 0;
+}
+
 .combined-stats-table-style .dash-spreadsheet-container {
     overflow-x: auto;
     max-height: 600px;
     overflow-y: auto;
+    width: 100% !important;
+    min-width: 1400px !important;
 }
 
 .combined-stats-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table tbody td,
@@ -672,7 +683,7 @@
 .card-title {
     margin: 0 0 15px 0;
     color: #2c3e50;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: bold;
     text-align: center;
 }
@@ -685,6 +696,7 @@
 /* Etiqueta de la sesión */
 .session-label {
     font-weight: bold;
+    font-size: 12px;
     color: #7f8c8d;
     display: block;
     text-align: center;
@@ -694,7 +706,7 @@
 /* Valor de la estadística */
 .stat-value {
     font-weight: bold;
-    font-size: 24px;
+    font-size: 20px;
     display: block;
     text-align: center;
 }
@@ -785,4 +797,54 @@
     .players-main-table {
         padding: 15px;
     }
+}
+
+/* ============================================================================ */
+/* BOTÃO Z-SCORE */
+/* ============================================================================ */
+
+/* Botão de toggle do Z-Score */
+.zscore-toggle-btn {
+    padding: 12px 24px;
+    border: 2px solid #c3b89a;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: 150px;
+}
+
+/* Estado ativo (dourado) */
+.zscore-toggle-btn.zscore-active {
+    background: linear-gradient(135deg, #c3b89a 0%, #adb300 100%);
+    color: #2c3e50;
+    border-color: #adb300;
+}
+
+.zscore-toggle-btn.zscore-active:hover {
+    background: linear-gradient(135deg, #adb300 0%, #c3b89a 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(173, 179, 0, 0.3);
+}
+
+/* Estado inativo (cinza) */
+.zscore-toggle-btn.zscore-inactive {
+    background: linear-gradient(135deg, #e9ecef 0%, #dee2e6 100%);
+    color: #6c757d;
+    border-color: #dee2e6;
+}
+
+.zscore-toggle-btn.zscore-inactive:hover {
+    background: linear-gradient(135deg, #dee2e6 0%, #e9ecef 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(108, 117, 125, 0.2);
+}
+
+.zscore-toggle-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }

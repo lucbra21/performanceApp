@@ -15,7 +15,7 @@ import datetime
 import json
 
 # Importación de funciones desde utils
-from utils.utils import calcular_estadisticas
+from utils.utils import calcular_estadisticas_por_matchday
 
 
 # ============================================================================
@@ -54,6 +54,38 @@ def add_history_entry(action, filename):
     history_path = os.path.join(data_folder, 'file_history.json')
     with open(history_path, 'w') as f:
         json.dump(history, f)
+
+# Función para limpar os arquivos da pasta processed
+def clear_processed_files():
+    """Elimina todos los archivos de la carpeta processed antes de recalcular estadísticas"""
+    processed_folder = os.path.join(os.path.dirname(__file__), '..', 'data', 'processed')
+    
+    if os.path.exists(processed_folder):
+        try:
+            # Lista todos los archivos en la carpeta processed
+            files_to_remove = []
+            for filename in os.listdir(processed_folder):
+                file_path = os.path.join(processed_folder, filename)
+                if os.path.isfile(file_path):
+                    files_to_remove.append(file_path)
+            
+            # Elimina cada archivo
+            for file_path in files_to_remove:
+                try:
+                    os.remove(file_path)
+                    print(f"Archivo eliminado: {os.path.basename(file_path)}")
+                except Exception as e:
+                    print(f"Error al eliminar {os.path.basename(file_path)}: {str(e)}")
+            
+            if files_to_remove:
+                print(f"Se eliminaron {len(files_to_remove)} archivos de la carpeta processed.")
+            else:
+                print("No había archivos para eliminar en la carpeta processed.")
+                
+        except Exception as e:
+            print(f"Error al acceder a la carpeta processed: {str(e)}")
+    else:
+        print("La carpeta processed no existe.")
         
 # ============================================================================
 # FUNCIONES DE INTERFAZ
@@ -254,9 +286,12 @@ def register_callbacks(app):
             # Registra la acción en el historial
             add_history_entry("upload", filename)
             
-            # Ejecuta la función calcular_estadisticas para actualizar las estadísticas
+            # Eliminar archivos de la carpeta processed antes de recalcular estadísticas
+            clear_processed_files()
+            
+            # Ejecuta la función calcular_estadisticas_por_matchday para actualizar las estadísticas
             try:
-                resultado = calcular_estadisticas()
+                resultado = calcular_estadisticas_por_matchday()
                 if resultado is not None and len(resultado) > 0 and resultado[0] is not None:
                     print("Estadísticas calculadas correctamente después de añadir archivo.")
                 else:
@@ -413,6 +448,9 @@ def register_callbacks(app):
                             if os.path.exists(backup_path):
                                 os.remove(backup_path)
                                 print("Archivo de backup eliminado.")
+                            # Limpiar también la carpeta processed cuando todos los archivos son eliminados
+                            clear_processed_files()
+                            print("Carpeta processed limpiada después de eliminar todos los archivos.")
                         else:
                             # Guardar el dataframe filtrado en formato Parquet
                             df_filtrado.write_parquet(merge_path)
@@ -446,13 +484,16 @@ def register_callbacks(app):
         if not selected_files:
             msg = "No se seleccionó ningún archivo para eliminar."
         
-        #Ejecuta la función calcular_estadisticas para actualizar las estadísticas
+        #Ejecuta la función calcular_estadisticas_por_matchday para actualizar las estadísticas
         try:
             # Verificar si aún hay datos en el dataframe después de eliminar archivos
             if os.path.exists(merge_path) and os.path.getsize(merge_path) > 0:
                 df_check = pl.read_parquet(merge_path)
                 if df_check.height > 0:
-                    resultado = calcular_estadisticas()
+                    # Eliminar archivos de la carpeta processed antes de recalcular estadísticas
+                    clear_processed_files()
+                    
+                    resultado = calcular_estadisticas_por_matchday()
                     if resultado is not None and len(resultado) > 0 and resultado[0] is not None:
                         print("Estadísticas calculadas correctamente después de editar archivos.")
                     else:

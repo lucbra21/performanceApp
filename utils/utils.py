@@ -1124,3 +1124,198 @@ def get_combined_table_with_reference(fecha, valor_referencia="zscore", estadist
         import traceback
         traceback.print_exc()
         return None
+
+
+def get_zscore_matrix_for_styling(fecha):
+    """
+    Extrae una matriz de z-scores organizada para aplicar estilos de color en DataTable.
+    
+    Esta función utiliza los z-scores ya calculados por calcular_zscore_fecha_vs_matchday_acumulado
+    y los organiza en una estructura optimizada para generar estilos condicionales en Dash DataTable.
+    La matriz resultante mapea cada fila (jugador/equipo/posición) con cada columna y su z-score correspondiente.
+    
+    Args:
+        fecha (str): Fecha específica en formato dd/mm/aaaa para obtener z-scores
+        
+    Returns:
+        dict: Diccionario con estructura {row_index: {column_name: zscore_value}}
+              donde row_index corresponde al índice de la fila en la tabla y 
+              column_name es el nombre de la columna métrica.
+              Retorna None si no se pueden obtener los z-scores.
+              
+    Example:
+        {
+            0: {'Distance (m)': 1.5, 'HSR': -0.8, 'Explosive Dist (m)': 2.1},
+            1: {'Distance (m)': -1.2, 'HSR': 0.3, 'Explosive Dist (m)': -0.5},
+            ...
+        }
+    """
+    try:
+        # Obtener datos de z-scores calculados
+        datos_zscore = calcular_zscore_fecha_vs_matchday_acumulado(fecha)
+        if datos_zscore is None:
+            print(f"No se pudieron obtener z-scores para la fecha: {fecha}")
+            return None
+        
+        # Obtener tabla de datos para conocer el orden de filas
+        tabla_datos = get_table_data(fecha, "median")
+        if tabla_datos is None:
+            print(f"No se pudieron obtener datos de tabla para la fecha: {fecha}")
+            return None
+        
+        # Obtener columnas numéricas (excluyendo Player)
+        columnas_numericas = [col for col in tabla_datos.columns if col not in ['Player']]
+        
+        # Inicializar matriz de z-scores
+        zscore_matrix = {}
+        
+        # Procesar cada fila de la tabla para mantener el mismo orden
+        for row_index, row in enumerate(tabla_datos.iter_rows(named=True)):
+            player_name = row['Player']
+            
+            # Determinar el tipo de entidad y clave para buscar en datos_zscore
+            if player_name.startswith('TEAM'):
+                entidad_tipo = 'equipos'
+                entidad_key = 'TEAM'
+            elif player_name.startswith('POS_'):
+                entidad_tipo = 'posiciones'
+                entidad_key = player_name.replace('POS_', '')
+            else:
+                entidad_tipo = 'jugadores'
+                entidad_key = player_name
+            
+            # Inicializar diccionario para esta fila
+            zscore_matrix[row_index] = {}
+            
+            # Obtener z-scores para esta entidad
+            datos_entidad = None
+            if entidad_tipo in datos_zscore and entidad_key in datos_zscore[entidad_tipo]:
+                datos_entidad = datos_zscore[entidad_tipo][entidad_key]
+            
+            # Procesar cada columna numérica
+            for columna in columnas_numericas:
+                zscore_value = None
+                
+                if datos_entidad and 'z_scores' in datos_entidad:
+                    z_scores = datos_entidad['z_scores']
+                    if columna in z_scores and z_scores[columna] is not None:
+                        zscore_value = z_scores[columna]
+                
+                # Almacenar el z-score (puede ser None si no existe)
+                zscore_matrix[row_index][columna] = zscore_value
+        
+        print(f"Matriz de z-scores generada exitosamente para {len(zscore_matrix)} filas")
+        return zscore_matrix
+        
+    except Exception as e:
+        print(f"Error al generar matriz de z-scores: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+def generate_color_styles_from_zscore(zscore_matrix):
+    """
+    Genera estilos condicionales para DataTable basados en una matriz de z-scores.
+    
+    Esta función toma una matriz de z-scores y genera una lista de estilos condicionales
+    que aplican un gradiente de colores desde azul oscuro (z-scores bajos) hasta 
+    rojo oscuro (z-scores altos). Los valores nulos no reciben coloración.
+    
+    Args:
+        zscore_matrix (dict): Matriz de z-scores con estructura {row_index: {column_name: zscore_value}}
+        
+    Returns:
+        list: Lista de diccionarios con estilos condicionales para Dash DataTable.
+              Cada elemento tiene la estructura:
+              {
+                  'if': {'row_index': row, 'column_id': column},
+                  'backgroundColor': color_hex,
+                  'color': text_color_hex
+              }
+              
+    Example:
+        [
+            {'if': {'row_index': 0, 'column_id': 'Distance (m)'}, 
+             'backgroundColor': '#ff4444', 'color': 'white'},
+            {'if': {'row_index': 0, 'column_id': 'HSR'}, 
+             'backgroundColor': '#4444ff', 'color': 'white'},
+            ...
+        ]
+    """
+    try:
+        if zscore_matrix is None:
+            return []
+        
+        # Recopilar todos los z-scores válidos para normalización
+        all_zscores = []
+        for row_data in zscore_matrix.values():
+            for zscore in row_data.values():
+                if zscore is not None and not np.isnan(zscore):
+                    all_zscores.append(zscore)
+        
+        if not all_zscores:
+            print("No hay z-scores válidos para generar colores")
+            return []
+        
+        # Calcular rango absoluto máximo para normalización simétrica
+        # Esto garantiza que z-score 0.0 siempre esté en el centro (blanco)
+        max_abs_zscore = max(abs(min(all_zscores)), abs(max(all_zscores)))
+        
+        # Evitar división por cero
+        if max_abs_zscore == 0:
+            max_abs_zscore = 1
+        
+        # Generar estilos condicionales
+        conditional_styles = []
+        
+        for row_index, row_data in zscore_matrix.items():
+            for column_name, zscore_value in row_data.items():
+                if zscore_value is not None and not np.isnan(zscore_value):
+                    # Normalizar z-score de forma simétrica alrededor de 0
+                    # Rango: [-1, 1] donde 0 = neutro, -1 = azul máximo, +1 = rojo máximo
+                    normalized_score = zscore_value / max_abs_zscore
+                    
+                    # Limitar a rango [-1, 1]
+                    normalized_score = max(-1, min(1, normalized_score))
+                    
+                    # Generar color basado en z-score normalizado
+                    if normalized_score < 0:
+                        # Z-score negativo: gradiente de azul oscuro a blanco
+                        # normalized_score va de -1 a 0
+                        intensity = abs(normalized_score)  # 0 a 1
+                        red_green = int(255 * (1 - intensity))  # 255 a 0
+                        blue = 255  # Siempre azul máximo
+                        bg_color = f'rgb({red_green}, {red_green}, {blue})'
+                        text_color = 'white' if intensity > 0.5 else 'black'
+                    elif normalized_score > 0:
+                        # Z-score positivo: gradiente de blanco a rojo oscuro
+                        # normalized_score va de 0 a 1
+                        intensity = normalized_score  # 0 a 1
+                        red = 255  # Siempre rojo máximo
+                        green_blue = int(255 * (1 - intensity))  # 255 a 0
+                        bg_color = f'rgb({red}, {green_blue}, {green_blue})'
+                        text_color = 'white' if intensity > 0.5 else 'black'
+                    else:
+                        # Z-score exactamente 0: color neutro (blanco)
+                        bg_color = 'rgb(255, 255, 255)'
+                        text_color = 'black'
+                    
+                    # Agregar estilo condicional
+                    conditional_styles.append({
+                        'if': {
+                            'row_index': row_index,
+                            'column_id': column_name
+                        },
+                        'backgroundColor': bg_color,
+                        'color': text_color
+                    })
+        
+        print(f"Generados {len(conditional_styles)} estilos condicionales")
+        return conditional_styles
+        
+    except Exception as e:
+        print(f"Error al generar estilos de color: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return []

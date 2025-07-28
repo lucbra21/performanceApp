@@ -18,546 +18,13 @@ from utils.utils import *
 import plotly.graph_objects as go
 import plotly.express as px
 
-# ============================================================================
-# ESTILOS PARA DATATABLES - CENTRALIZADOS PARA MEJOR ORGANIZACIÓN
-# ============================================================================
-
-# Estilos para tabla de jugadores
-PLAYERS_TABLE_STYLES = {
-    'style_table': {
-        'overflowX': 'auto',
-        'maxHeight': '600px',
-        'overflowY': 'auto'
-    },
-    'style_cell': {
-        'textAlign': 'left',
-        'padding': '10px',
-        'fontFamily': 'Arial, sans-serif',
-        'fontSize': '14px',
-        'border': '1px solid #ddd'
-    },
-    'style_header': {
-        'backgroundColor': '#f8f9fa',
-        'fontWeight': 'bold',
-        'textAlign': 'center',
-        'border': '1px solid #ddd'
-    },
-    'style_data': {
-        'backgroundColor': 'white',
-        'border': '1px solid #ddd'
-    },
-    'style_data_conditional': [
-        {
-            'if': {'row_index': 'odd'},
-            'backgroundColor': '#f8f9fa'
-        }
-    ]
-}
-
-# Estilos para tabla combinada de estadísticas
-COMBINED_TABLE_STYLES = {
-    'style_table': {
-        'overflowX': 'auto',
-        'maxHeight': '600px',
-        'overflowY': 'auto'
-    },
-    'style_cell': {
-        'textAlign': 'left',
-        'padding': '8px',
-        'fontFamily': 'Arial, sans-serif',
-        'fontSize': '13px',
-        'border': '1px solid #ddd'
-    },
-    'style_header': {
-        'backgroundColor': '#e8f4fd',
-        'fontWeight': 'bold',
-        'textAlign': 'center',
-        'border': '1px solid #ddd'
-    },
-    'style_data': {
-        'backgroundColor': 'white',
-        'border': '1px solid #ddd'
-    },
-    'style_data_conditional': [
-        {
-            'if': {'row_index': 'odd'},
-            'backgroundColor': '#f8f9fa'
-        },
-        {
-            'if': {'filter_query': '{_tipo_interno} = JugadorIndividual'},
-            'backgroundColor': '#e8f5e8'
-        },
-        {
-            'if': {'filter_query': '{_tipo_interno} = Jugador'},
-            'backgroundColor': '#f0f8ff'
-        },
-        {
-            'if': {'filter_query': '{_tipo_interno} = Equipo'},
-            'backgroundColor': '#e8f4fd'
-        },
-        {
-            'if': {'filter_query': '{_tipo_interno} = Posición'},
-            'backgroundColor': '#fff3cd'
-        }
-    ]
-}
-
-
-
-# ============================================================================
-# FUNCIONES AUXILIARES
-# ============================================================================
-
-# Función auxiliar para formatear valores con absoluto y relativo
-def format_value_with_relative(df_data, match_day_filter):
-    """
-    Formatea valores de métricas mostrando valor absoluto y diferencia porcentual relativa.
-    
-    Esta función procesa los datos de un DataFrame específico para mostrar tanto el valor
-    absoluto de cada métrica como su diferencia porcentual respecto al promedio histórico,
-    presentándolos en formato "valor_absoluto (diferencia_relativa%)".
-    
-    Args:
-        df_data (pl.DataFrame): DataFrame con datos de métricas que incluye tanto valores
-                               absolutos como diferencias porcentuales por Match Day
-        match_day_filter (str): Identificador del Match Day específico para filtrar los datos
-                               de la fecha seleccionada
-    
-    Returns:
-        list: Lista de diccionarios donde cada diccionario representa una fila formateada
-              con valores en formato "absoluto (relativo%)" para visualización en tabla
-    """
-    formatted_data = []
-    
-    # Filtrar solo los datos del Match Day específico de la fecha seleccionada
-    df_filtered = df_data.filter(pl.col('Match Day') == match_day_filter)
-    
-    if df_filtered.height == 0:
-        return []
-    
-    df_pandas = df_filtered.to_pandas()
-    
-    # Obtener datos de diferencia para calcular valores relativos
-    df_diff = df_data.filter(pl.col('Match Day') == 'diferencia')
-    df_diff_pandas = df_diff.to_pandas() if df_diff.height > 0 else None
-    
-    for _, row in df_pandas.iterrows():
-        formatted_row = {}
-        
-        # Copiar columnas de identificación
-        for col in ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']:
-            if col in row:
-                formatted_row[col] = row[col]
-        
-        # Formatear columnas numéricas con valor absoluto y relativo
-        for col in df_pandas.columns:
-            if col not in ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']:
-                abs_value = row[col]
-                
-                # Buscar valor relativo correspondiente en df_diff
-                rel_value = None
-                if df_diff_pandas is not None:
-                    # Buscar la fila correspondiente en diferencias
-                    mask = True
-                    for id_col in ['Player', 'Position', 'Team', 'Estadistica']:
-                        if id_col in row and id_col in df_diff_pandas.columns:
-                            mask = mask & (df_diff_pandas[id_col] == row[id_col])
-                    
-                    matching_rows = df_diff_pandas[mask]
-                    if len(matching_rows) > 0 and col in matching_rows.columns:
-                        rel_value = matching_rows[col].iloc[0]
-                
-                # Formatear el valor
-                if abs_value is not None and not pd.isna(abs_value):
-                    if rel_value is not None and not pd.isna(rel_value):
-                        formatted_row[col] = f"{abs_value:.1f}        ({rel_value:.1f}%)"
-                    else:
-                        formatted_row[col] = f"{abs_value:.1f}"
-                else:
-                    formatted_row[col] = "N/A"
-        
-        formatted_data.append(formatted_row)
-    
-    return formatted_data
-
-
-def extract_zscore_from_formatted_value(value_str):
-    """
-    Extrae el valor de z-score de una cadena de texto formateada.
-    
-    Esta función utiliza expresiones regulares para buscar y extraer valores de z-score
-    que están embebidos en cadenas de texto con formato específico. Es especialmente útil
-    para procesar datos que han sido formateados previamente con información estadística.
-    
-    Args:
-        value_str (str): Cadena de texto que contiene un valor formateado con patrón
-                        "valor (relativo%) [z:zscore]" donde se busca extraer el z-score
-    
-    Returns:
-        float: Valor numérico del z-score extraído de la cadena, o None si no se encuentra
-               un patrón válido o si ocurre un error en la conversión
-    
-    Example:
-        >>> extract_zscore_from_formatted_value("15.3 (12.5%) [z:1.25]")
-        1.25
-        >>> extract_zscore_from_formatted_value("10.0")
-        None
-    """
-    if not isinstance(value_str, str):
-        return None
-    
-    import re
-    # Buscar patrón [z:número]
-    match = re.search(r'\[z:([-+]?\d*\.?\d+)\]', value_str)
-    if match:
-        try:
-            return float(match.group(1))
-        except ValueError:
-            return None
-    return None
-
-
-def create_zscore_heatmap_styles(data, columns_order):
-    """
-    Genera estilos condicionales para crear un mapa de calor basado en valores de z-score.
-    
-    Esta función crea un sistema de coloración gradual para tablas donde cada celda se colorea
-    según su valor de z-score. Los valores positivos se muestran en gradiente naranja y los
-    negativos en gradiente azul, con intensidad proporcional al valor absoluto del z-score.
-    
-    Args:
-        data (list): Lista de diccionarios donde cada diccionario representa una fila de datos
-                    con valores formateados que contienen z-scores embebidos
-        columns_order (list): Lista ordenada de nombres de columnas que determina qué columnas
-                             serán procesadas para el mapa de calor
-    
-    Returns:
-        list: Lista de estilos condicionales de Dash DataTable que incluye:
-              - Estilos base para diferentes tipos de entidades (jugador, equipo, posición)
-              - Estilos de mapa de calor con gradientes de color basados en z-scores
-              - Configuraciones de peso de fuente según intensidad del z-score
-    
-    Note:
-        - Z-scores positivos: gradiente blanco → naranja oscuro
-        - Z-scores negativos: gradiente blanco → azul oscuro  
-        - Z-scores cercanos a 0: color blanco (sin resaltado)
-        - Valores extremos (>70% del máximo): texto en negrita
-    """
-    styles = []
-    
-    # Mantener estilos existentes para tipos de entidad (solo para la columna Player/Team/Position)
-    base_styles = [
-        {
-            'if': {'row_index': 'odd', 'column_id': 'Player/Team/Position'},
-            'backgroundColor': '#f8f9fa'
-        },
-        {
-            'if': {'filter_query': '{_tipo_interno} = JugadorIndividual', 'column_id': 'Player/Team/Position'},
-            'backgroundColor': '#e8f5e8'
-        },
-        {
-            'if': {'filter_query': '{_tipo_interno} = Jugador', 'column_id': 'Player/Team/Position'},
-            'backgroundColor': '#f0f8ff'
-        },
-        {
-            'if': {'filter_query': '{_tipo_interno} = Equipo', 'column_id': 'Player/Team/Position'},
-            'backgroundColor': '#e8f4fd'
-        },
-        {
-            'if': {'filter_query': '{_tipo_interno} = Posición', 'column_id': 'Player/Team/Position'},
-            'backgroundColor': '#fff3cd'
-        }
-    ]
-    
-    # Recopilar todos los z-scores para normalización
-    all_zscores = []
-    for record in data:
-        for col in columns_order:
-            if col != 'Player/Team/Position':  # Excluir columna de identificación
-                value = record.get(col, '')
-                zscore = extract_zscore_from_formatted_value(value)
-                if zscore is not None:
-                    all_zscores.append(abs(zscore))
-    
-    if not all_zscores:
-        return base_styles
-    
-    # Calcular el valor máximo de z-score para normalización
-    max_zscore = max(all_zscores)
-    
-    # Definir umbral mínimo para considerar "próximo a cero"
-    min_threshold = 0.1
-    
-    def get_gradient_color(zscore_value, max_value):
-        """
-        Calcula el color del gradiente basado en el valor del z-score
-        
-        Args:
-            zscore_value: Valor del z-score
-            max_value: Valor máximo de z-score para normalización
-        
-        Returns:
-            str: Color en formato rgba
-        """
-        abs_zscore = abs(zscore_value)
-        
-        # Si el z-score está muy cerca de 0, usar blanco
-        if abs_zscore <= min_threshold:
-            return 'rgba(255, 255, 255, 1.0)'  # Blanco
-        
-        # Normalizar el valor absoluto del z-score (0 a 1)
-        if max_value > min_threshold:
-            intensity = min(1.0, (abs_zscore - min_threshold) / (max_value - min_threshold))
-        else:
-            intensity = 0
-        
-        # Aplicar función de suavizado para gradiente más natural
-        intensity = intensity ** 0.7  # Raíz para suavizar la transición
-        
-        if zscore_value > 0:
-            # Z-score positivo: gradiente de blanco a naranja oscuro
-            # RGB del naranja oscuro: (255, 140, 0)
-            red = 255
-            green = int(255 - (255 - 140) * intensity)
-            blue = int(255 - 255 * intensity)
-            alpha = 0.3 + 0.7 * intensity  # De transparente a opaco
-        else:
-            # Z-score negativo: gradiente de blanco a azul oscuro
-            # RGB del azul oscuro: (0, 100, 200)
-            red = int(255 - 255 * intensity)
-            green = int(255 - (255 - 100) * intensity)
-            blue = int(255 - (255 - 200) * intensity)
-            alpha = 0.3 + 0.7 * intensity  # De transparente a opaco
-        
-        return f'rgba({red}, {green}, {blue}, {alpha})'
-    
-    # Crear estilos para cada celda con z-score
-    for row_idx, record in enumerate(data):
-        for col in columns_order:
-            if col != 'Player/Team/Position':  # Excluir columna de identificación
-                value = record.get(col, '')
-                zscore = extract_zscore_from_formatted_value(value)
-                
-                if zscore is not None:
-                    color = get_gradient_color(zscore, max_zscore)
-                    abs_zscore = abs(zscore)
-                    
-                    # Determinar peso de la fuente basado en la intensidad
-                    font_weight = 'bold' if abs_zscore > max_zscore * 0.7 else 'normal'
-                    
-                    # Añadir estilo para esta celda específica
-                    styles.append({
-                        'if': {
-                            'row_index': row_idx,
-                            'column_id': col
-                        },
-                        'backgroundColor': color,
-                        'color': 'black',
-                        'fontWeight': font_weight
-                    })
-    
-    # Combinar estilos base con estilos de mapa de calor
-    return base_styles + styles
-
-
-def format_value_with_zscore_only(df_data, match_day_filter, zscore_data, estadistica_seleccionada):
-    """
-    Formatea valores de métricas mostrando únicamente valor absoluto y z-score.
-    
-    Esta función procesa datos de rendimiento para presentar información estadística
-    en formato simplificado, mostrando solo el valor absoluto de cada métrica junto
-    con su correspondiente z-score, omitiendo las diferencias porcentuales relativas.
-    
-    Args:
-        df_data (pl.DataFrame): DataFrame principal con datos de métricas organizados por Match Day
-        match_day_filter (str): Identificador del Match Day específico para filtrar los datos
-                               de la fecha seleccionada
-        zscore_data (dict): Diccionario con datos de z-score calculados previamente, organizado
-                           por entidad (jugador/equipo/posición) con estructura:
-                           {entidad: {'z_scores': {métrica: valor_zscore}}}
-        estadistica_seleccionada (str): Tipo de estadística de referencia utilizada para
-                                      los cálculos ('mean', 'median', etc.)
-    
-    Returns:
-        list: Lista de diccionarios formateados donde cada diccionario representa una fila
-              con valores en formato "valor_absoluto [z:zscore]" para visualización en tabla
-    
-    Note:
-        Esta función es ideal cuando se quiere mostrar información estadística sin
-        sobrecargar la visualización con demasiados números, manteniendo solo los
-        datos más relevantes para análisis de rendimiento.
-    """
-    formatted_data = []
-    
-    # Filtrar solo los datos del Match Day específico de la fecha seleccionada
-    df_filtered = df_data.filter(pl.col('Match Day') == match_day_filter)
-    
-    if df_filtered.height == 0:
-        return []
-    
-    df_pandas = df_filtered.to_pandas()
-    
-    for _, row in df_pandas.iterrows():
-        formatted_row = {}
-        
-        # Copiar columnas de identificación
-        for col in ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']:
-            if col in row:
-                formatted_row[col] = row[col]
-        
-        # Formatear columnas numéricas con valor absoluto y z-score
-        for col in df_pandas.columns:
-            if col not in ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']:
-                abs_value = row[col]
-                
-                # Buscar valor de z-score correspondiente
-                zscore_value = None
-                if zscore_data:
-                    # Identificar la entidad (jugador, equipo o posición)
-                    entity_key = None
-                    if 'Player' in row and row['Player'] in zscore_data:
-                        entity_key = row['Player']
-                    elif 'Team' in row and row['Team'] in zscore_data:
-                        entity_key = row['Team']
-                    elif 'Position' in row and row['Position'] in zscore_data:
-                        entity_key = row['Position']
-                    
-                    if entity_key and 'z_scores' in zscore_data[entity_key]:
-                        zscore_value = zscore_data[entity_key]['z_scores'].get(col)
-                
-                # Formatear el valor con absoluto y z-score
-                if abs_value is not None and not pd.isna(abs_value):
-                    value_str = f"{abs_value:.1f}"
-                    
-                    # Añadir z-score si existe
-                    if zscore_value is not None and not pd.isna(zscore_value):
-                        value_str += f" [z:{zscore_value:.2f}]"
-                    
-                    formatted_row[col] = value_str
-                else:
-                    formatted_row[col] = "N/A"
-        
-        formatted_data.append(formatted_row)
-    
-    return formatted_data
-
-
-def format_value_with_relative_and_zscore(df_data, match_day_filter, zscore_data, estadistica_seleccionada):
-    """
-    Formatea valores de métricas mostrando información estadística completa.
-    
-    Esta función procesa datos de rendimiento para presentar la información más completa
-    posible, combinando valor absoluto, diferencia porcentual relativa y z-score en un
-    formato integrado que facilita el análisis comparativo detallado.
-    
-    Args:
-        df_data (pl.DataFrame): DataFrame principal con datos de métricas que incluye valores
-                               absolutos y diferencias porcentuales organizados por Match Day
-        match_day_filter (str): Identificador del Match Day específico para filtrar los datos
-                               de la fecha seleccionada
-        zscore_data (dict): Diccionario con datos de z-score calculados previamente, organizado
-                           por entidad (jugador/equipo/posición) con estructura:
-                           {entidad: {'z_scores': {métrica: valor_zscore}}}
-        estadistica_seleccionada (str): Tipo de estadística de referencia utilizada para
-                                      los cálculos ('mean', 'median', etc.)
-    
-    Returns:
-        list: Lista de diccionarios formateados donde cada diccionario representa una fila
-              con valores en formato "valor_absoluto (diferencia_relativa%) [z:zscore]"
-              para visualización completa en tabla
-    
-    Note:
-        Esta función proporciona la vista más detallada de los datos, ideal para análisis
-        profundos donde se requiere toda la información estadística disponible para
-        tomar decisiones informadas sobre el rendimiento.
-    """
-    formatted_data = []
-    
-    # Filtrar solo los datos del Match Day específico de la fecha seleccionada
-    df_filtered = df_data.filter(pl.col('Match Day') == match_day_filter)
-    
-    if df_filtered.height == 0:
-        return []
-    
-    df_pandas = df_filtered.to_pandas()
-    
-    # Obtener datos de diferencia para calcular valores relativos
-    df_diff = df_data.filter(pl.col('Match Day') == 'diferencia')
-    df_diff_pandas = df_diff.to_pandas() if df_diff.height > 0 else None
-    
-    for _, row in df_pandas.iterrows():
-        formatted_row = {}
-        
-        # Copiar columnas de identificación
-        for col in ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']:
-            if col in row:
-                formatted_row[col] = row[col]
-        
-        # Formatear columnas numéricas con valor absoluto, relativo y z-score
-        for col in df_pandas.columns:
-            if col not in ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']:
-                abs_value = row[col]
-                
-                # Buscar valor relativo correspondiente en df_diff
-                rel_value = None
-                if df_diff_pandas is not None:
-                    # Buscar la fila correspondiente en diferencias
-                    mask = True
-                    for id_col in ['Player', 'Position', 'Team', 'Estadistica']:
-                        if id_col in row and id_col in df_diff_pandas.columns:
-                            mask = mask & (df_diff_pandas[id_col] == row[id_col])
-                    
-                    matching_rows = df_diff_pandas[mask]
-                    if len(matching_rows) > 0 and col in matching_rows.columns:
-                        rel_value = matching_rows[col].iloc[0]
-                
-                # Buscar valor de z-score correspondiente
-                zscore_value = None
-                if zscore_data:
-                    # Identificar la entidad (jugador, equipo o posición)
-                    entity_key = None
-                    if 'Player' in row and row['Player'] in zscore_data:
-                        entity_key = row['Player']
-                    elif 'Team' in row and row['Team'] in zscore_data:
-                        entity_key = row['Team']
-                    elif 'Position' in row and row['Position'] in zscore_data:
-                        entity_key = row['Position']
-                    
-                    if entity_key and 'z_scores' in zscore_data[entity_key]:
-                        zscore_value = zscore_data[entity_key]['z_scores'].get(col)
-                
-                # Formatear el valor con absoluto, relativo y z-score
-                if abs_value is not None and not pd.isna(abs_value):
-                    value_str = f"{abs_value:.1f}"
-                    
-                    # Añadir valor relativo si existe
-                    if rel_value is not None and not pd.isna(rel_value):
-                        value_str += f" ({rel_value:.1f}%)"
-                    
-                    # Añadir z-score si existe
-                    if zscore_value is not None and not pd.isna(zscore_value):
-                        value_str += f" [z:{zscore_value:.2f}]"
-                    
-                    formatted_row[col] = value_str
-                else:
-                    formatted_row[col] = "N/A"
-        
-        formatted_data.append(formatted_row)
-    
-    return formatted_data
-            
-# Las funciones get_sorted_dates y get_latest_date_for_picker ahora están en utils.py
-# y se importan automáticamente con 'from utils.utils import *'
-    
-
 
 # ============================================================================
 # LAYOUT DE LA PÁGINA
 # ============================================================================
 
 layout = html.Div([
-    # Store para manter o estado do botão de alternância
-    dcc.Store(id='toggle-values-store', data={'show_zscore': True}),
+
     
     # Título de la página
     html.H2('Session Report', className="page-title"),
@@ -634,11 +101,11 @@ layout = html.Div([
                     )
                 ], className="input-item", style={'display': 'inline-block', 'margin-right': '100px'}),
                 
-                # Selector de columnas diff
+                # Selector de columnas de las tarjetas
                 html.Div([
                     html.Label('Columnas a mostrar:', className="input-label"),
                     dcc.Dropdown(
-                        id='diff-columns-selector',
+                        id='tarjetas-columns-selector',
                         placeholder='Selecciona columnas...',
                         multi=True,
                         className="statistic-dropdown",
@@ -646,28 +113,7 @@ layout = html.Div([
                     )
                 ], className="input-item", style={'display': 'inline-block'})
             ], style={'margin-bottom': '10px', 'margin-top': '20px'}),
-            html.Div(id='team-diff-cards-output'),
-            
-            # Botón para alternar entre z-scores y valores relativos
-            html.Div([
-                html.Button(
-                    'Mostrar Valores Relativos (%)',
-                    id='toggle-values-btn',
-                    className='toggle-btn',
-                    style={
-                        'backgroundColor': '#007bff',
-                        'color': 'white',
-                        'border': 'none',
-                        'padding': '10px 20px',
-                        'borderRadius': '5px',
-                        'cursor': 'pointer',
-                        'fontSize': '14px',
-                        'fontWeight': 'bold',
-                        'marginBottom': '15px',
-                        'marginTop': '20px'
-                    }
-                )
-            ], style={'textAlign': 'center'}),
+            html.Div(id='team-tarjetas-output'),
             
             html.Div(id='players-table-output'),
             
@@ -721,7 +167,10 @@ layout = html.Div([
                 ], style={'margin-bottom': '20px'})
             ], id='graficos-section')
         ], className="session-and-players-container")
-    ])
+    ]),
+    
+    # Store para controlar o estado do Z-Score
+    dcc.Store(id='zscore-state-store', data={'active': True})
 ])
 
 # ============================================================================
@@ -968,108 +417,31 @@ def register_callbacks(app):
     # CALLBACKS - Tabla
     # ============================================================================
 
-    # Callback para gerenciar o estado do botão de alternância
-    @app.callback(
-        [Output('toggle-values-store', 'data'),
-         Output('toggle-values-btn', 'children'),
-         Output('toggle-values-btn', 'style')],
-        [Input('toggle-values-btn', 'n_clicks')],
-        [State('toggle-values-store', 'data')]
-    )
-    def toggle_values_display(n_clicks, current_state):
-        """
-        Alterna entre mostrar z-scores y valores relativos en la tabla.
-        
-        Esta función callback gestiona el estado del botón de alternancia que permite
-        cambiar entre la visualización de z-scores (valores estandarizados) y valores
-        relativos (porcentajes) en la tabla de datos de rendimiento.
-        
-        Args:
-            n_clicks (int): Número de clics en el botón de alternancia
-            current_state (dict): Estado actual del botón con clave 'show_zscore'
-        
-        Returns:
-            tuple: (nuevo_estado, texto_botón, estilo_botón)
-                  - nuevo_estado: Diccionario con 'show_zscore' (bool)
-                  - texto_botón: Texto a mostrar en el botón
-                  - estilo_botón: Diccionario con estilos CSS del botón
-        
-        Note:
-            El estado inicial muestra z-scores por defecto
-        """
-        if n_clicks is None:
-            # Estado inicial
-            return {'show_zscore': True}, 'Mostrar Valores Relativos (%)', {
-                'backgroundColor': '#007bff',
-                'color': 'white',
-                'border': 'none',
-                'padding': '10px 20px',
-                'borderRadius': '5px',
-                'cursor': 'pointer',
-                'fontSize': '14px',
-                'fontWeight': 'bold',
-                'marginBottom': '15px',
-                'marginTop': '20px'
-            }
-        
-        # Alternar estado
-        new_show_zscore = not current_state.get('show_zscore', True)
-        
-        if new_show_zscore:
-            # Mostrando z-scores, botão para alternar para relativos
-            button_text = 'Mostrar Valores Relativos (%)'
-            button_color = '#007bff'
-        else:
-            # Mostrando relativos, botão para alternar para z-scores
-            button_text = 'Mostrar Z-Scores'
-            button_color = '#28a745'
-        
-        button_style = {
-            'backgroundColor': button_color,
-            'color': 'white',
-            'border': 'none',
-            'padding': '10px 20px',
-            'borderRadius': '5px',
-            'cursor': 'pointer',
-            'fontSize': '14px',
-            'fontWeight': 'bold',
-            'marginBottom': '15px',
-            'marginTop': '20px'
-        }
-        
-        return {'show_zscore': new_show_zscore}, button_text, button_style
-
     
     @app.callback(
         Output('players-table-output', 'children'),
         [Input('date-selector', 'date'),
          Input('statistic-selector', 'value'),
-         Input('toggle-values-store', 'data')]
+         Input('zscore-state-store', 'data')
+        ]
     )
-    def update_players_table(selected_date, selected_statistic, toggle_state):
+    def update_players_table(selected_date, selected_statistic, zscore_state):
         """
-        Actualiza la tabla de jugadores con datos de jugadores, equipos y posiciones.
+        Actualiza la tabla de jugadores usando la función get_combined_table_with_reference
+        con gradiente de cores baseado nos z-scores.
         
-        Esta función callback genera una tabla unificada que combina datos de rendimiento
-        de jugadores individuales, equipos y posiciones, aplicando la formatación apropiada
-        según el estado del botón de alternancia (z-scores o valores relativos).
+        Esta función callback utiliza get_combined_table_with_reference para
+        generar una tabla que combina valores absolutos con z-scores para jugadores,
+        equipos y posiciones, aplicando un gradiente de cores baseado nos valores z-score.
         
         Args:
             selected_date (str): Fecha seleccionada en formato YYYY-MM-DD
             selected_statistic (str): Estadística seleccionada para el análisis
-            toggle_state (dict): Estado del botón de alternancia con clave 'show_zscore'
         
         Returns:
-            html.Div: Componente HTML con la tabla de datos formateada, incluyendo:
-                     - Datos de jugadores individuales
-                     - Datos agregados por equipo
-                     - Datos agregados por posición
-                     - Mapa de calor basado en z-scores
-                     - Información de resumen de la tabla
-        
-        Note:
-            La tabla siempre usa z-scores para el mapa de calor, independientemente
-            del modo de visualización seleccionado
+            html.Div: Componente HTML con la tabla de datos formateada que incluye
+                     valores absolutos y z-scores para jugadores, equipos y posiciones
+                     con gradiente de cores baseado nos z-scores
         """
         
         if not selected_date:
@@ -1080,283 +452,230 @@ def register_callbacks(app):
             return html.Div("Selecciona una estadística para ver los datos.", 
                           className="info-message")
         
-        # Determinar qué tipo de formatação usar baseado no estado do botão
-        show_zscore = toggle_state.get('show_zscore', True) if toggle_state else True
-        
         try:
-            # Convertir fecha al formato correcto para calcular_estadisticas
+            # Convertir fecha al formato correcto (dd/mm/aaaa)
             result = format_and_filter_date(selected_date)
             if result is None or result[0] is None:
                 return html.Div(f"No se encontraron datos para la fecha {selected_date}.", 
                               className="warning-message")
             
             df_fecha, formatted_date = result
-
-            # Obtener columnas de interés y calcular métricas por minuto
-            session_minutes = df_fecha.select('Drills Duration').row(0)[0]
-            df_inutil, columnas_interes = add_per_minute_metrics(df_fecha, session_minutes)
             
-            # Obtener datos individuales de jugadores para la fecha seleccionada
-            df_individual_players = filter_and_get_players_data(formatted_date)
-            print(df_individual_players)
+            # Determinar o tipo de referência baseado no estado do Z-Score
+            if zscore_state is None:
+                zscore_state = {'active': True}
             
-            # Calcular estadísticas para la fecha y estadística seleccionadas
-            df_players, df_position, df_team = calcular_estadisticas( fecha=formatted_date, estadistica=selected_statistic)
+            is_zscore_active = zscore_state.get('active', True)
+            valor_referencia = "zscore" if is_zscore_active else "diferencia"
             
-            # Obtener el Match Day específico de la fecha seleccionada
-            match_day_especifico = df_fecha['Match Day'][0] if df_fecha.height > 0 else None
+            # Usar la función get_combined_table_with_reference
+            tabla_combinada = get_combined_table_with_reference(
+                fecha=formatted_date, 
+                valor_referencia=valor_referencia, 
+                estadistica=selected_statistic
+            )
             
-            # Calcular z-scores usando la nueva función
-            zscore_data_players = None
-            zscore_data_team = None
-            zscore_data_position = None
-            
-            try:
-                # Calcular z-scores para jugadores
-                if df_players is not None and df_players.height > 0:
-                    zscore_data_players = calcular_comparacion_fecha_md(df_players, selected_statistic, columnas_interes)
-                
-                # Calcular z-scores para equipos
-                if df_team is not None and df_team.height > 0:
-                    zscore_data_team = calcular_comparacion_fecha_md(df_team, selected_statistic, columnas_interes)
-                
-                # Calcular z-scores para posiciones
-                if df_position is not None and df_position.height > 0:
-                    zscore_data_position = calcular_comparacion_fecha_md(df_position, selected_statistic, columnas_interes)
-                    
-            except Exception as e:
-                print(f"Error al calcular z-scores: {e}")
-            
-            # Crear dataframe combinado con todos los datos
-            combined_data_all = []
-            combined_info = []
-            
-            # Agregar datos individuales de jugadores (solo del Match Day específico)
-            if df_players is not None and df_players.height > 0 and match_day_especifico:
-                if show_zscore:
-                    # Formatear solo con valores absolutos y z-scores (sin valores relativos)
-                    formatted_players_data = format_value_with_zscore_only(
-                        df_players, match_day_especifico, zscore_data_players, selected_statistic
-                    )
-                else:
-                    # Formatear solo con valores relativos
-                    formatted_players_data = format_value_with_relative(
-                        df_players, match_day_especifico
-                    )
-                
-                for record in formatted_players_data:
-                    # Renombrar columna Player a Player/Team/Position
-                    if 'Player' in record:
-                        record['Player/Team/Position'] = record.pop('Player')
-                    
-                    # Filtrar solo columnas de interés y Player/Team/Position
-                    available_columns = ['Player/Team/Position'] + [col for col in columnas_interes if col in record]
-                    filtered_record = {col: record.get(col, '') for col in available_columns}
-                    
-                    # Agregar identificador interno para estilos
-                    filtered_record['_tipo_interno'] = 'JugadorIndividual'
-                    
-                    combined_data_all.append(filtered_record)
-                
-                combined_info.append(f"Jugadores: {len(formatted_players_data)} registros")
-            
-            # Agregar datos de equipos (solo del Match Day específico)
-            if df_team is not None and df_team.height > 0 and match_day_especifico:
-                if show_zscore:
-                    # Formatear solo con valores absolutos y z-scores (sin valores relativos)
-                    formatted_team_data = format_value_with_zscore_only(
-                        df_team, match_day_especifico, zscore_data_team, selected_statistic
-                    )
-                else:
-                    # Formatear solo con valores relativos
-                    formatted_team_data = format_value_with_relative(
-                        df_team, match_day_especifico
-                    )
-                
-                for record in formatted_team_data:
-                    # Renombrar columna Team a Player/Team/Position
-                    if 'Team' in record:
-                        record['Player/Team/Position'] = record.pop('Team')
-                    
-                    # Filtrar solo columnas de interés y Player/Team/Position
-                    available_columns = ['Player/Team/Position'] + [col for col in columnas_interes if col in record]
-                    filtered_record = {col: record.get(col, '') for col in available_columns}
-                    
-                    # Agregar identificador interno para estilos
-                    filtered_record['_tipo_interno'] = 'Equipo'
-                    
-                    combined_data_all.append(filtered_record)
-                
-                combined_info.append(f"Equipos: {len(formatted_team_data)} registros")
-            
-            # Agregar datos de posiciones (solo del Match Day específico)
-            if df_position is not None and df_position.height > 0 and match_day_especifico:
-                if show_zscore:
-                    # Formatear solo con valores absolutos y z-scores (sin valores relativos)
-                    formatted_position_data = format_value_with_zscore_only(
-                        df_position, match_day_especifico, zscore_data_position, selected_statistic
-                    )
-                else:
-                    # Formatear solo con valores relativos
-                    formatted_position_data = format_value_with_relative(
-                        df_position, match_day_especifico
-                    )
-                
-                for record in formatted_position_data:
-                    # Renombrar columna Position a Player/Team/Position
-                    if 'Position' in record:
-                        record['Player/Team/Position'] = record.pop('Position')
-                    
-                    # Filtrar solo columnas de interés y Player/Team/Position
-                    available_columns = ['Player/Team/Position'] + [col for col in columnas_interes if col in record]
-                    filtered_record = {col: record.get(col, '') for col in available_columns}
-                    
-                    # Agregar identificador interno para estilos
-                    filtered_record['_tipo_interno'] = 'Posición'
-                    
-                    combined_data_all.append(filtered_record)
-                
-                combined_info.append(f"Posiciones: {len(formatted_position_data)} registros")
-            
-            # Crear tabla única con todos los dados
-            if combined_data_all:
-                # Ordenar los datos alfabéticamente por tipo y nombre
-                def get_sort_key(record):
-                    """
-                    Función para ordenar los registros por tipo y luego alfabéticamente
-                    Orden: Equipo, Posiciones (alfabético), Jugadores (alfabético)
-                    """
-                    tipo = record.get('_tipo_interno', '')
-                    nombre = record.get('Player/Team/Position', '')
-                    
-                    # Asignar prioridad por tipo
-                    if tipo == 'Equipo':
-                        return (1, nombre)  # Equipos primero
-                    elif tipo == 'Posición':
-                        return (2, nombre)  # Posiciones segundo
-                    elif tipo == 'JugadorIndividual':
-                        return (3, nombre)  # Jugadores último
-                    else:
-                        return (4, nombre)  # Otros al final
-                
-                # Ordenar los datos combinados
-                combined_data_all.sort(key=get_sort_key)
-                # Obtener todas las columnas únicas
-                all_columns = set()
-                for record in combined_data_all:
-                    all_columns.update(record.keys())
-                
-                # Reorganizar columnas para que 'Player/Team/Position' esté al principio, excluyendo el identificador interno
-                columns_order = ['Player/Team/Position'] + [col for col in sorted(all_columns) if col not in ['Player/Team/Position', '_tipo_interno']]
-                
-                # Completar registros faltantes con valores vacíos
-                for record in combined_data_all:
-                    for col in columns_order:
-                        if col not in record:
-                            record[col] = 'NULL'
-                
-                # Todas las columnas serán tratadas como texto ya que contienen formato "valor (porcentaje%)"
-                numeric_columns_combined = []
-                
-                # Filtrar datos para mostrar solo las columnas visibles
-                filtered_data_all = []
-                for record in combined_data_all:
-                    filtered_record = {col: record.get(col, '') for col in columns_order}
-                    
-                    # Mantener _tipo_interno para estilos pero no mostrarlo
-                    filtered_record['_tipo_interno'] = record.get('_tipo_interno', '')
-                    filtered_data_all.append(filtered_record)
-                
-                # Sempre aplicar o mapa de calor baseado em z-scores
-                # Para isso, precisamos criar dados temporários com z-scores para calcular os estilos
-                temp_data_for_heatmap = []
-                
-                # Recriar dados com z-scores para o mapa de calor
-                for record in combined_data_all:
-                    temp_record = record.copy()
-                    
-                    # Se não estamos mostrando z-scores, precisamos adicioná-los temporariamente para o mapa de calor
-                    if not show_zscore:
-                        entity_type = record.get('_tipo_interno', '')
-                        entity_name = record.get('Player/Team/Position', '')
-                        
-                        # Determinar qual zscore_data usar
-                        zscore_data_to_use = None
-                        if entity_type == 'JugadorIndividual' and zscore_data_players:
-                            zscore_data_to_use = zscore_data_players
-                        elif entity_type == 'Equipo' and zscore_data_team:
-                            zscore_data_to_use = zscore_data_team
-                        elif entity_type == 'Posición' and zscore_data_position:
-                            zscore_data_to_use = zscore_data_position
-                        
-                        # Adicionar z-scores temporariamente para o cálculo do mapa de calor
-                        if zscore_data_to_use and entity_name in zscore_data_to_use:
-                            z_scores = zscore_data_to_use[entity_name].get('z_scores', {})
-                            for col in columns_order:
-                                if col != 'Player/Team/Position' and col in temp_record:
-                                    current_value = temp_record[col]
-                                    if col in z_scores and z_scores[col] is not None:
-                                        # Adicionar z-score temporariamente para o mapa de calor
-                                        temp_record[col] = f"{current_value} [z:{z_scores[col]:.2f}]"
-                    
-                    temp_data_for_heatmap.append(temp_record)
-                
-                # Criar estilos de mapa de calor sempre baseados em z-scores
-                heatmap_styles = create_zscore_heatmap_styles(temp_data_for_heatmap, columns_order)
-                
-                # Crear estilos de tabla con mapa de calor
-                table_styles_with_heatmap = {
-                    'style_table': {
-                        'overflowX': 'auto',
-                        'maxHeight': '600px',
-                        'overflowY': 'auto'
-                    },
-                    'style_cell': {
-                        'textAlign': 'left',
-                        'padding': '8px',
-                        'fontFamily': 'Arial, sans-serif',
-                        'fontSize': '13px',
-                        'border': '1px solid #ddd'
-                    },
-                    'style_header': {
-                        'backgroundColor': '#e8f4fd',
-                        'fontWeight': 'bold',
-                        'textAlign': 'center',
-                        'border': '1px solid #ddd'
-                    },
-                    'style_data': {
-                        'backgroundColor': 'white',
-                        'border': '1px solid #ddd'
-                    },
-                    'style_data_conditional': heatmap_styles
-                }
-                
-                combined_table = dash_table.DataTable(
-                    id='combined-all-stats-table',
-                    data=filtered_data_all,
-                    columns=[
-                        {"name": col, "id": col, "type": "numeric" if col in numeric_columns_combined else "text"}
-                        for col in columns_order
-                    ],
-                    **table_styles_with_heatmap,
-                    sort_action="native",
-                    filter_action="native",
-                    page_action="none",
-                    export_format="xlsx",
-                    export_headers="display"
-                )
-                
-                # Crear información de resumen
-                combined_info_text = ' | '.join(combined_info)
-                
-                return html.Div([
-                    html.H5('Datos Combinados - Jugadores, Equipos y Posiciones', className="section-subtitle"),
-                    html.P(f"Mostrando {combined_info_text}", className="table-info"),
-                    combined_table
-                ], className="combined-stats-table-container")
-            else:
-                return html.Div("No se encontraron datos para la fecha y estadística seleccionadas.", 
+            if tabla_combinada is None:
+                return html.Div("No se pudieron obtener los datos combinados para la fecha seleccionada.", 
                               className="warning-message")
+            
+            # Obter matriz de z-scores para estilização
+            zscore_matrix = get_zscore_matrix_for_styling(
+                fecha=formatted_date
+            )
+            
+            # Convertir el DataFrame de Polars a formato compatible con Dash DataTable
+            data_for_table = tabla_combinada.to_dicts()
+            
+            # Obtener las columnas
+            columns = tabla_combinada.columns
+            
+            # Renombrar la columna Player a Player/Team/Position para mayor claridad
+            columns_renamed = []
+            for col in columns:
+                if col == 'Player':
+                    columns_renamed.append('Player/Team/Position')
+                else:
+                    columns_renamed.append(col)
+            
+            # Actualizar los datos con el nuevo nombre de columna y agregar tipo de entidad
+            for record in data_for_table:
+                if 'Player' in record:
+                    player_name = record['Player']
+                    record['Player/Team/Position'] = player_name
+                    record.pop('Player')
+                    
+                    # Identificar tipo de entidad para estilos condicionais
+                    if player_name.startswith('TEAM'):
+                        record['_entity_type'] = 'team'
+                    elif player_name.startswith('POS_'):
+                        record['_entity_type'] = 'position'
+                    else:
+                        record['_entity_type'] = 'player'
+            
+            # Gerar estilos condicionais baseados nos z-scores (sempre aplicar gradiente)
+            zscore_styles = []
+            if zscore_matrix is not None:
+                zscore_styles = generate_color_styles_from_zscore(zscore_matrix)
+            
+            # Estilos condicionais para diferentes tipos de entidades na coluna Player/Team/Position
+            entity_styles = [
+                # Jogadores - Amarelo claro
+                {
+                    'if': {
+                        'filter_query': '{_entity_type} = player',
+                        'column_id': 'Player/Team/Position'
+                    },
+                    'backgroundColor': '#fff9c4',  # Amarelo claro
+                    'color': '#856404',  # Texto amarelo escuro
+                    'fontWeight': 'bold'
+                },
+                # Equipos - Azul claro
+                {
+                    'if': {
+                        'filter_query': '{_entity_type} = team',
+                        'column_id': 'Player/Team/Position'
+                    },
+                    'backgroundColor': '#cce7ff',  # Azul claro
+                    'color': '#004085',  # Texto azul escuro
+                    'fontWeight': 'bold'
+                },
+                # Posições - Verde claro
+                {
+                    'if': {
+                        'filter_query': '{_entity_type} = position',
+                        'column_id': 'Player/Team/Position'
+                    },
+                    'backgroundColor': '#d4edda',  # Verde claro
+                    'color': '#155724',  # Texto verde escuro
+                    'fontWeight': 'bold'
+                }
+            ]
+            
+            # Combinar estilos de entidades com estilos de z-score
+            all_styles = entity_styles + zscore_styles
+            
+            # Crear la tabla con estilos básicos, cabeçalho fixo e cores condicionais
+            combined_table = dash_table.DataTable(
+                id='combined-table-with-zscore',
+                data=data_for_table,
+                columns=[
+                    {"name": col, "id": col, "type": "text"}
+                    for col in columns_renamed if col != '_entity_type'  # Excluir coluna auxiliar
+                ],
+                style_table={
+                    'overflowX': 'auto',
+                    'maxHeight': '800px',
+                    'overflowY': 'auto'
+                },
+                style_cell={
+                    'textAlign': 'left',
+                    'padding': '8px',
+                    'fontFamily': 'Arial, sans-serif',
+                    'fontSize': '13px',
+                    'border': '1px solid #ddd',
+                    'whiteSpace': 'normal',
+                    'height': 'auto'
+                },
+                style_header={
+                    'backgroundColor': '#e8f4fd',
+                    'fontWeight': 'bold',
+                    'textAlign': 'center',
+                    'border': '1px solid #ddd',
+                    'position': 'sticky',
+                    'top': '0',
+                    'zIndex': '1'
+                },
+                style_data={
+                    'backgroundColor': 'white',
+                    'border': '1px solid #ddd'
+                },
+                # Aplicar todos os estilos condicionais (entidades + gradiente z-score)
+                style_data_conditional=all_styles,
+                sort_action="native",
+                filter_action="native",
+                page_action="none",
+                export_format="xlsx",
+                export_headers="display",
+                fixed_rows={'headers': True}
+            )
+            
+            # Contar registros por tipo
+            num_jugadores = len([d for d in data_for_table if not d['Player/Team/Position'].startswith(('TEAM', 'POS_'))])
+            num_equipos = len([d for d in data_for_table if d['Player/Team/Position'].startswith('TEAM')])
+            num_posiciones = len([d for d in data_for_table if d['Player/Team/Position'].startswith('POS_')])
+            
+            info_text = f"Jugadores: {num_jugadores} | Equipos: {num_equipos} | Posiciones: {num_posiciones}"
+            
+            # Definir título baseado no estado do Z-Score
+            if is_zscore_active:
+                table_title = 'Tabla Combinada - Valores Absolutos con Z-Scores'
+            else:
+                table_title = 'Tabla Combinada - Valores Absolutos con Diferencias %'
+            
+            # Legenda sempre mostra o gradiente de z-scores
+            legend_content = html.Div([
+                html.P("Gradiente de cores baseado nos Z-Scores:", style={'margin-bottom': '5px', 'font-weight': 'bold'}),
+                html.Div([
+                    html.Span("Z-Score baixo", style={'color': '#1a365d', 'font-weight': 'bold', 'margin-right': '10px'}),
+                    html.Div(style={
+                        'display': 'inline-block',
+                        'width': '200px',
+                        'height': '20px',
+                        'background': 'linear-gradient(to right, #1a365d, #ffffff, #8b0000)',
+                        'border': '1px solid #ccc',
+                        'margin': '0 10px',
+                        'vertical-align': 'middle'
+                    }),
+                    html.Span("Z-Score alto", style={'color': '#8b0000', 'font-weight': 'bold', 'margin-left': '10px'})
+                ], style={'display': 'flex', 'align-items': 'center', 'justify-content': 'center'})
+            ], style={'text-align': 'center', 'margin': '10px 0', 'padding': '10px', 'background-color': '#f8f9fa', 'border-radius': '5px'})
+            
+            # Adicionar informação sobre o tipo de dados mostrados
+            if not is_zscore_active:
+                additional_info = html.Div([
+                    html.P("Mostrando diferencias porcentuales respecto a la media del equipo", 
+                           style={'margin': '5px 0', 'padding': '5px', 'background-color': '#e9ecef', 
+                                  'border-radius': '3px', 'text-align': 'center', 'font-style': 'italic'})
+                ])
+            else:
+                additional_info = html.Div()
+            
+            return html.Div([
+                html.H5(table_title, className="section-subtitle"),
+                html.P(f"Mostrando {info_text} | Estadística: {selected_statistic}", className="table-info"),
+                # Legenda baseada no estado
+                legend_content,
+                # Informação adicional sobre o tipo de dados
+                additional_info,
+                # Container para tabela com botões alinhados
+                html.Div([
+                    # Container para botões na parte superior direita
+                    html.Div([
+                        html.Button(
+                            "Z Score",
+                            id="zscore-toggle-btn",
+                            className="zscore-toggle-btn-gray",
+                            style={
+                                'background-color': '#6c757d',
+                                'color': 'white',
+                                'border': '1px solid #6c757d',
+                                'border-radius': '4px',
+                                'padding': '8px 16px',
+                                'cursor': 'pointer',
+                                'font-size': '14px',
+                                'margin-bottom': '2px'
+                            }
+                        )
+                    ], style={
+                        'display': 'flex', 
+                        'justify-content': 'flex-end', 
+                        'margin-bottom': '1px'
+                    }),
+                    # Tabela (com botão Export nativo que aparecerá próximo ao Z-Score)
+                    combined_table
+                ], style={'width': '100%'})
+            ], className="combined-stats-table-container")
             
         except Exception as e:
             return html.Div(f"Error al cargar tabla de jugadores: {str(e)}", 
@@ -1366,269 +685,176 @@ def register_callbacks(app):
     # CALLBACKS - Tarjetas
     # ============================================================================
     
+    # Callback para popular as opções do dropdown tarjetas-columns-selector
+    @app.callback(
+        Output('tarjetas-columns-selector', 'options'),
+        [Input('date-selector', 'date')]
+    )
+    def update_tarjetas_columns_options(selected_date):
+        """
+        Atualiza as opções do dropdown tarjetas-columns-selector com todas as colunas disponíveis.
+        
+        Args:
+            selected_date (str): Data selecionada em formato YYYY-MM-DD
+            
+        Returns:
+            list: Lista de opções para o dropdown com todas as colunas de métricas disponíveis
+        """
+        if not selected_date:
+            return []
+        
+        try:
+            # Obter dados de jogadores para a data selecionada
+            df_players = get_players_data(selected_date)
+                      
+            exclude_cols = ['Player', 'Position', 'Team', 'Match Day', 'Estadistica', 'Date']
+            all_columns = [col for col in df_players.columns if col not in exclude_cols]
+            
+            # Criar opções para o dropdown ordenadas alfabeticamente
+            options = [{'label': col, 'value': col} for col in sorted(all_columns)]
+            
+            return options
+            
+        except Exception as e:
+            print(f"Erro ao atualizar opções do dropdown de colunas: {e}")
+            # Fallback para colunas básicas
+            basic_columns = [
+                'Distance (m)',
+                'Speed Zones (m) [0.0, 6.0]km/h (m)',
+                'Abs HSR(m)',
+                'Rel HSR(m)',
+            ]
+            return [{'label': col, 'value': col} for col in sorted(basic_columns)]
 
-    # Callback para popular el dropdown de vista de tarjetas
+    # Callback para popular as opções do dropdown cards-view-selector
     @app.callback(
         Output('cards-view-selector', 'options'),
         [Input('date-selector', 'date')]
     )
     def update_cards_view_options(selected_date):
         """
-        Actualiza las opciones del dropdown de vista de tarjetas basado en la fecha seleccionada.
-        
-        Esta función callback genera dinámicamente las opciones disponibles para el selector
-        de vista de tarjetas, incluyendo equipos, posiciones y jugadores individuales
-        basándose en los datos disponibles para la fecha seleccionada.
+        Atualiza as opções do dropdown cards-view-selector com base na data selecionada.
         
         Args:
             selected_date (str): Fecha seleccionada en formato YYYY-MM-DD
         
         Returns:
-            list: Lista de diccionarios con opciones del dropdown, cada uno con:
-                 - 'label': Texto a mostrar en el dropdown
-                 - 'value': Valor interno para identificar la selección
-                 Incluye 'Equipo', posiciones (Position_X) y jugadores (Player_X)
-        
-        Note:
-            Siempre incluye la opción 'Equipo' como predeterminada, incluso si no hay datos
+            list: Lista de opções para o dropdown (Equipo e posições disponíveis)
         """
         if not selected_date:
             return [{'label': 'Equipo', 'value': 'Equipo'}]
         
         try:
-            result = format_and_filter_date(selected_date)
-            if result is None or result[0] is None:
+            
+            # Obtener datos de jugadores para la fecha seleccionada
+            df_players = get_players_data(selected_date)
+            
+            if df_players is None:
                 return [{'label': 'Equipo', 'value': 'Equipo'}]
             
-            df_fecha, formatted_date = result
-            
-            if df_fecha.height == 0:
-                return [{'label': 'Equipo', 'value': 'Equipo'}]
-            
-            # Obtener valores únicos de jugadores y posiciones
-            players = sorted(df_fecha.select('Player').unique().to_series().to_list())
-            positions = sorted(df_fecha.select('Position').unique().to_series().to_list())
-            
-            # Crear opciones del dropdown
+            # Criar opções básicas
             options = [{'label': 'Equipo', 'value': 'Equipo'}]
             
-            # Añadir posiciones
-            for position in positions:
-                options.append({'label': f'{position}', 'value': f'Position_{position}'})
-            
-            # Añadir jugadores
-            for player in players:
-                options.append({'label': f'{player}', 'value': f'Player_{player}'})
+            # Adicionar posições únicas disponíveis
+            if 'Position' in df_players.columns:
+                positions = df_players['Position'].unique().to_list()
+                for position in sorted(positions):
+                    if position and str(position) != 'null':
+                        options.append({
+                            'label': f'Posición: {position}',
+                            'value': f'Position_{position}'
+                        })
             
             return options
             
         except Exception as e:
-            print(f"Error al cargar opciones del dropdown: {e}")
+            print(f"Error al actualizar opciones del dropdown: {e}")
             return [{'label': 'Equipo', 'value': 'Equipo'}]
-    
-    # Callback para popular el dropdown de columnas diff
-    @app.callback(
-        Output('diff-columns-selector', 'options'),
-        [Input('date-selector', 'date'),
-         Input('statistic-selector', 'value'),
-         Input('cards-view-selector', 'value')]
-    )
-    def update_diff_columns_options(selected_date, selected_statistic, selected_view):
-        """
-        Actualiza las opciones del dropdown de columnas diff basado en la vista seleccionada.
-        
-        Esta función callback genera las opciones disponibles para el selector de columnas
-        de diferencias, basándose en las métricas disponibles en los datos de diferencias
-        porcentuales para la vista seleccionada (equipo, posición o jugador).
-        
-        Args:
-            selected_date (str): Fecha seleccionada en formato YYYY-MM-DD
-            selected_statistic (str): Estadística seleccionada para el análisis
-            selected_view (str): Vista seleccionada ('Equipo', 'Position_X', 'Player_X')
-        
-        Returns:
-            list: Lista de diccionarios con opciones del dropdown, cada uno con:
-                 - 'label': Nombre de la métrica
-                 - 'value': Nombre de la columna para uso interno
-                 Solo incluye métricas de rendimiento, excluyendo columnas de identificación
-        
-        Note:
-            Filtra automáticamente las filas con Match Day = 'diferencia' para obtener
-            solo las métricas de comparación porcentual
-        """
-        if not selected_date or not selected_statistic or not selected_view:
-            return []
-        
-        try:
-            # Convertir fecha al formato correcto
-            result = format_and_filter_date(selected_date)
-            if result is None or result[0] is None:
-                return []
-            
-            df_fecha, formatted_date = result
 
-            
-            # Calcular estadísticas para obtener las columnas diff
-            df_players, df_position, df_team = calcular_estadisticas(
-                fecha=formatted_date,  
-                estadistica=selected_statistic
-            )
-            
-            # Determinar qué dataframe usar basado en selected_view
-            if selected_view == 'Equipo':
-                df_to_use = df_team
-            elif selected_view and selected_view.startswith('Position_'):
-                df_to_use = df_position
-            elif selected_view and selected_view.startswith('Player_'):
-                df_to_use = df_players
-            else:
-                df_to_use = df_team
-            
-            if df_to_use is None or df_to_use.height == 0:
-                return []
-            
-            # Filtrar filas con Match Day = 'diferencia' para obtener las métricas disponibles
-            df_diferencias = df_to_use.filter(pl.col('Match Day') == 'diferencia')
-            
-            if df_diferencias.height == 0:
-                return []
-            
-            df_pandas = df_diferencias.to_pandas()
-            
-            # Obtener columnas de métricas (excluyendo columnas de identificación)
-            exclude_cols = ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']
-            metric_columns = [col for col in df_pandas.columns if col not in exclude_cols]
-            
-            # Crear opciones del dropdown
-            options = []
-            for col in sorted(metric_columns):
-                options.append({'label': col, 'value': col})
-            
-            return options
-            
-        except Exception as e:
-            print(f"Error al cargar opciones de columnas diff: {e}")
-            return []
-    
-    
-    # Callback para actualizar las tarjetas de diferencias
+    # Callback para actualizar las tarjetas de métricas absolutas
     @app.callback(
-        Output('team-diff-cards-output', 'children'),
+        Output('team-tarjetas-output', 'children'),
         [Input('date-selector', 'date'),
          Input('statistic-selector', 'value'),
          Input('cards-view-selector', 'value'),
-         Input('diff-columns-selector', 'value')]
+         Input('tarjetas-columns-selector', 'value')]
     )
-    def update_team_diff_cards(selected_date, selected_statistic, selected_view, selected_columns):
+    def update_team_cards(selected_date, selected_statistic, selected_view, selected_columns):
         """
-        Crea tarjetas mostrando las diferencias porcentuales para la vista seleccionada.
+        Crea tarjetas mostrando los valores absolutos de métricas para equipos y posiciones.
         
-        Esta función callback genera tarjetas visuales que muestran las diferencias porcentuales
-        entre el rendimiento actual y el histórico para equipos, posiciones o jugadores
-        individuales, basándose en las columnas de métricas seleccionadas.
+        Esta función callback genera tarjetas visuales que muestran los valores absolutos
+        de las métricas para el equipo completo o por posición específica.
         
         Args:
             selected_date (str): Fecha seleccionada en formato YYYY-MM-DD
             selected_statistic (str): Estadística seleccionada para el análisis
-            selected_view (str): Vista seleccionada ('Equipo', 'Position_X', 'Player_X')
+            selected_view (str): Vista seleccionada ('Equipo' o 'Position_X')
             selected_columns (list): Lista de columnas de métricas a mostrar en las tarjetas
         
         Returns:
-            html.Div: Componente HTML con tarjetas de diferencias que incluyen:
+            html.Div: Componente HTML con tarjetas de métricas que incluyen:
                      - Título descriptivo de la vista
                      - Tarjetas individuales para cada métrica seleccionada
-                     - Valores de diferencia porcentual con codificación de colores
-                     - Información contextual sobre el rendimiento
-        
-        Note:
-            Las tarjetas muestran diferencias porcentuales con colores indicativos:
-            verde para mejoras, rojo para decrementos, según la métrica
+                     - Valores absolutos de las métricas
         """
         
         if not selected_date or not selected_statistic:
             return html.Div()
         
         try:
-            # Convertir fecha al formato correcto para calcular_estadisticas
-            result = format_and_filter_date(selected_date)
-            if result is None or result[0] is None:
-                return html.Div()
+            # Obtener datos de jugadores para la fecha seleccionada
+            df_players = get_players_data(selected_date)
             
-            df_fecha, formatted_date = result
-
-            # Obtener columnas de interés y calcular métricas por minuto
-            session_minutes = df_fecha.select('Drills Duration').row(0)[0]
-            df_inutil, columnas_interes = add_per_minute_metrics(df_fecha, session_minutes)
+            if df_players is None:
+                return html.Div("No se encontraron datos para la fecha seleccionada.", 
+                              className="info-message")
             
-             # Cargar datos originales del archivo parquet
-            try:
-                
-                        match_day_value = df_fecha['Match Day'].unique().to_list()[0]
-                        #print(match_day_value)
-                        
-                        # Ahora cargar y filtrar df_team_estadisticas
-                        df_team_estadisticas_path = os.path.join(DATA_GPS_PATH, '../processed/df_team_estadisticas.parquet')
-                        if os.path.exists(df_team_estadisticas_path):
-                            df_team_estadisticas = pl.read_parquet(df_team_estadisticas_path)
-                            # Filtrar datos originales por el Match Day correcto y Estadística
-                            df_team_estadisticas_filtered = df_team_estadisticas.filter(
-                                (pl.col('Match Day') == match_day_value) & 
-                                (pl.col('Estadistica') == selected_statistic)
-                            )          
-                        else:
-                            df_team_estadisticas_filtered = None
-
-            except Exception as e:
-                print(f"Error cargando archivo original: {e}")
-                df_team_estadisticas_filtered = None
-            
-            # print(df_team_estadisticas_filtered)
-            # print("df_team_estadisticas_filtered.height = ", df_team_estadisticas_filtered.height )
-            
-            # Calcular estadísticas para la fecha y estadística seleccionadas
-            df_players, df_position, df_team = calcular_estadisticas(
-                fecha=formatted_date, 
-                columnas_interes=columnas_interes, 
-                estadistica=selected_statistic
-            )
-            
-            # Determinar qué dataframe usar basado en selected_view
+            # Determinar qué datos usar basado en selected_view
             if selected_view == 'Equipo':
-                df_to_use = df_team
-                title_prefix = 'Diferencias Porcentuales del Equipo'
+                # Calcular estadísticas del equipo usando calcular_metricas
+                columnas_numericas = [col for col in df_players.columns if col not in ['Player', 'Position']]
+                team_stats = calcular_metricas(df_players, columnas_numericas, selected_statistic)
+                # Crear DataFrame para el equipo
+                team_stats['Player'] = "TEAM"
+                df_to_use = pl.DataFrame([team_stats])
+                title_prefix = f'Métricas del Equipo - {selected_statistic}'
+                
             elif selected_view and selected_view.startswith('Position_'):
                 # Extraer la posición del valor selected_view
                 position = selected_view.replace('Position_', '')
-                if df_position is None or df_position.height == 0:
-                    return html.Div()
-                # Filtrar por posición
-                df_to_use = df_position.filter(pl.col('Position') == position)
-                title_prefix = f'Diferencias Porcentuales - Posición: {position}'
-            elif selected_view and selected_view.startswith('Player_'):
-                # Extraer el nombre del jugador del valor selected_view
-                player = selected_view.replace('Player_', '')
-                if df_players is None or df_players.height == 0:
-                    return html.Div()
-                # Filtrar por jugador
-                df_to_use = df_players.filter(pl.col('Player') == player)
-                title_prefix = f'Diferencias Porcentuales - Jugador: {player}'
+                
+                # Filtrar jugadores por posición
+                df_position_players = df_players.filter(pl.col('Position') == position)
+                
+                if df_position_players.height == 0:
+                    return html.Div(f"No se encontraron jugadores para la posición {position}.", 
+                                  className="info-message")
+                
+                # Calcular estadísticas de la posición usando calcular_metricas
+                columnas_numericas = [col for col in df_position_players.columns if col not in ['Player', 'Position']]
+                position_stats = calcular_metricas(df_position_players, columnas_numericas, selected_statistic)
+                
+                # Crear DataFrame para la posición
+                position_stats['Player'] = f"POS_{position}"
+                df_to_use = pl.DataFrame([position_stats])
+                title_prefix = f'Métricas de la Posición {position} - {selected_statistic}'
+                
             else:
                 # Fallback a equipo
-                df_to_use = df_team
-                title_prefix = 'Diferencias Porcentuales del Equipo'
+                columnas_numericas = [col for col in df_players.columns if col not in ['Player', 'Position']]
+                team_stats = calcular_metricas(df_players, columnas_numericas, selected_statistic)
+                # Crear DataFrame para el equipo
+                team_stats['Player'] = "TEAM"
+                df_to_use = pl.DataFrame([team_stats])
+                title_prefix = f'Métricas del Equipo - {selected_statistic}'
             
-            if df_to_use is None or df_to_use.height == 0:
-                return html.Div()
-            
-            # Filtrar filas con Match Day = 'diferencia'
-            df_diferencias = df_to_use.filter(pl.col('Match Day') == 'diferencia')
-            
-            if df_diferencias.height == 0:
-                return html.Div("No hay datos de diferencias disponibles para esta selección.", 
+            if df_to_use.height == 0:
+                return html.Div("No hay datos disponibles para esta selección.", 
                               className="info-message")
             
             # Convertir a pandas para facilitar el manejo
-            df_pandas = df_diferencias.to_pandas()
+            df_pandas = df_to_use.to_pandas()
             
             # Obtener columnas de métricas (excluyendo columnas de identificación)
             exclude_cols = ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']
@@ -1646,7 +872,7 @@ def register_callbacks(app):
                 return html.Div("Selecciona al menos una métrica para mostrar.", 
                               className="info-message")
             
-            # Crear tarjetas para cada columna diff
+            # Crear tarjetas para cada métrica
             cards = []
             
             # Título de la sección
@@ -1660,15 +886,29 @@ def register_callbacks(app):
             cards_container = []
             
             for col in metric_columns:
-                # Obtener el valor de la diferencia porcentual
+                # Obtener el valor absoluto de la métrica
                 if len(df_pandas) > 0:
-                    diff_value = df_pandas[col].iloc[0]
+                    metric_value = df_pandas[col].iloc[0]
                     
-                    # Formatear valor de la diferencia porcentual
-                    if pd.isna(diff_value):
-                        formatted_diff_value = 'N/A'
+                    # Formatear valor de la métrica
+                    if pd.isna(metric_value):
+                        formatted_value = 'N/A'
                     else:
-                        formatted_diff_value = f'{diff_value:.2f}%'
+                        try:
+                            metric_value_num = float(metric_value)
+                            # Formatear según el tipo de métrica
+                            if 'percentage' in col.lower() or '%' in col:
+                                formatted_value = f'{metric_value_num:.2f}%'
+                            elif 'speed' in col.lower() or 'km/h' in col:
+                                formatted_value = f'{metric_value_num:.2f} km/h'
+                            elif 'distance' in col.lower() or '(m)' in col:
+                                formatted_value = f'{metric_value_num:.0f} m'
+                            elif 'cnt' in col.lower() or 'count' in col.lower():
+                                formatted_value = f'{metric_value_num:.0f}'
+                            else:
+                                formatted_value = f'{metric_value_num:.2f}'
+                        except (ValueError, TypeError):
+                            formatted_value = str(metric_value)
                      
                     # Crear tarjeta usando estilos CSS definidos
                     card_content = [
@@ -1677,8 +917,8 @@ def register_callbacks(app):
                          
                          # Container de valores usando classe card-values-container
                          html.Div([
-                             html.Span("Diferencia con respecto al partido", className="session-label"),
-                             html.Span(formatted_diff_value, className="stat-value")
+                             html.Span("Valor absoluto", className="session-label"),
+                             html.Span(formatted_value, className="stat-value")
                          ], className="card-values-container")
                      ]
                      
@@ -1695,7 +935,7 @@ def register_callbacks(app):
             return html.Div(cards)
             
         except Exception as e:
-            return html.Div(f"Error al cargar cartões de diferencias: {str(e)}", 
+            return html.Div(f"Error al cargar tarjetas de métricas: {str(e)}", 
                           className="error-message")
             
             
@@ -1934,7 +1174,7 @@ def register_callbacks(app):
                         y=1.05,
                         xref="x",
                         yref="paper",
-                        text=f"<b>Promedio: {promedio_hsr:.1f} m</b>",
+                        text=f"<b>Promedio: {float(promedio_hsr):.1f} m</b>",
                         showarrow=False,
                         font=dict(color="#e74c3c", size=12),
                         bgcolor="white",
@@ -2158,7 +1398,7 @@ def register_callbacks(app):
                         y=1.05,
                         xref="x",
                         yref="paper",
-                        text=f"<b>Promedio: {promedio_velocidad:.1f} km/h</b>",
+                        text=f"<b>Promedio: {float(promedio_velocidad):.1f} km/h</b>",
                         showarrow=False,
                         font=dict(color="#e74c3c", size=12),
                         bgcolor="white",
@@ -2317,3 +1557,61 @@ def register_callbacks(app):
             import traceback
             traceback.print_exc()
             return [empty_fig] * 6
+
+    # ============================================================================
+    # CALLBACK - Z-Score Toggle Button
+    # ============================================================================
+    
+    @app.callback(
+        [Output('zscore-toggle-btn', 'children'),
+         Output('zscore-toggle-btn', 'style'),
+         Output('zscore-state-store', 'data')],
+        [Input('zscore-toggle-btn', 'n_clicks')],
+        [State('zscore-state-store', 'data')]
+    )
+    def toggle_zscore_button(n_clicks, current_state):
+        """
+        Controla o estado do botão Z-Score, alternando entre ativo e inativo.
+        
+        Args:
+            n_clicks (int): Número de cliques no botão
+            current_state (dict): Estado atual do Z-Score
+            
+        Returns:
+            tuple: (texto do botão, estilo do botão, novo estado)
+        """
+        if n_clicks is None:
+            n_clicks = 0
+        
+        # Determinar o novo estado
+        if current_state is None:
+            current_state = {'active': True}
+        
+        # Alternar estado a cada clique
+        new_active = not current_state.get('active', True) if n_clicks > 0 else current_state.get('active', True)
+        
+        # Definir texto e estilo baseado no estado
+        if new_active:
+            button_text = "Z Score"
+            button_style = {
+                'background-color': '#6c757d',
+                'color': 'white',
+                'border': '1px solid #6c757d',
+                'border-radius': '4px',
+                'padding': '8px 16px',
+                'cursor': 'pointer',
+                'font-size': '14px'
+            }
+        else:
+            button_text = "Diferencia %"
+            button_style = {
+                'background-color': '#6c757d',
+                'color': 'white',
+                'border': '1px solid #6c757d',
+                'border-radius': '4px',
+                'padding': '8px 16px',
+                'cursor': 'pointer',
+                'font-size': '14px'
+            }
+        
+        return button_text, button_style, {'active': new_active}

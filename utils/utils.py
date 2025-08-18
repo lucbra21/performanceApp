@@ -487,6 +487,7 @@ def obtener_datos_fecha_con_md_anterior(fecha):
 # FUNCIONES DE CÁLCULO DE ESTADÍSTICAS COMPARATIVAS
 # ============================================================================
 
+
 def calcular_metricas(df, columnas, estadistica):
     """
     Función auxiliar para calcular estadísticas específicas sobre columnas dadas.
@@ -1319,3 +1320,277 @@ def generate_color_styles_from_zscore(zscore_matrix):
         import traceback
         traceback.print_exc()
         return []
+
+
+def calculate_metcrics_for_94min():
+    """
+    Carga el dataset principal usando load_gps_data, filtra por Match Day "MD" y aplica filtros adicionales.
+    No se usa get_specific_md_data porque no se filtra por 'Drills' en la columna Selection.
+    Luego, para cada fecha única, suma la duración de los drills por jugador.
+
+    Returns:
+        dict: Diccionario con fechas como claves y otro diccionario como valor,
+              donde las claves son jugadores y los valores la suma de Drills Duration.
+    """
+    df = load_gps_data()
+    if df is None:
+        print("No se pudo cargar el dataset principal.")
+        return None
+
+    columns_of_interest = ['Abs HSR(m)',
+                           'Accelerations',
+                           'Decelerations',
+                           'Distance (m)', 
+                           'Explosive Dist (m)',
+                           'HSR Rel (m)',
+                           'Sprint Abs (m)',
+                           'Sprint Rel (m)',
+                           'Total impacts']                        
+                           
+    # Filtrar para mantener solo las columnas de interés
+    columns = ['Date', 'Match Day', 'Team ', 'Selection', 'Player', 'Drills Duration'] + columns_of_interest
+    df = df.select(columns)
+    if df is None:
+        print("No se pudo cargar el dataset principal.")
+        return None
+
+    # Filtrar por Match Day objetivo
+    df_md = df.filter(pl.col('Match Day') == "MD")
+
+    # Aplicar filtros adicionales
+    # No podemos usar get_specific_md_data porque no estamos filtrando por 'Drills' en la columna Selection
+    df_filtered = (df_md.filter(pl.col('Match Day') != 'Rehab')
+                        .filter(pl.col('Player') != 'TEAM')
+                        .filter(pl.col('Team ') != 'TEAM')
+                        .filter(pl.col('Selection').is_in(['Fútbol_11v11_105x68m', 'Fútbol_10v10_105x68m']))
+                        .with_columns(
+                            pl.when(pl.col('Team ').str.contains('Sporting'))
+                            .then(pl.lit('Sporting de Gijón'))
+                            .otherwise(pl.col('Team '))
+                            .alias('Team ')
+                        ))
+
+    # Obtener todas las fechas únicas de todos los partidos
+    unique_dates = df_filtered.select('Date').unique().to_series().to_list()
+
+    # Lista para acumular los DataFrames de cada jugador
+    result_dataframes = []
+
+    # Loop por cada fecha
+    for date in unique_dates:
+        df_date = df_filtered.filter(pl.col('Date') == date)
+        players = df_date.select('Player').unique().to_series().to_list()
+        
+        for player in players:
+            df_player = df_date.filter(pl.col('Player') == player)
+            # Convertir 'Drills Duration' de HH:MM:SS a minutos
+            durations = df_player.select('Drills Duration').to_series().to_list()
+            total_minutes = 0
+            for dur in durations:
+                 if isinstance(dur, str):
+                     parts = dur.split(':')
+                     if len(parts) == 3:
+                         h, m, s = parts
+                         total_minutes += int(h)*60 + int(m) + int(s)/60
+
+            # Aplicar regra de três simples se total_minutes > 50
+            if total_minutes > 50:
+                # Primero sumamos las métricas de ambas partes
+                for col in columns_of_interest:
+                    if col in df_player.columns:
+                        # Sumar los valores para cada métrica
+                        total_metric = df_player[col].sum()
+                        # Calcular métrica ajustada para 94 minutos
+                        df_player = df_player.with_columns(
+                            (pl.lit(total_metric) * 94 / total_minutes).alias(f"{col}_94min")
+                        )
+                
+                # Crear DataFrame con Player, Date y métricas ajustadas
+                metrics_94min_cols = [f"{col}_94min" for col in columns_of_interest if f"{col}_94min" in df_player.columns]
+                if metrics_94min_cols:  # Solo si hay métricas calculadas
+                    final_columns = ['Player', 'Date'] + metrics_94min_cols
+                    df_player_result = df_player.select(final_columns).unique()
+                    result_dataframes.append(df_player_result)
+
+    # Concatenar todos los DataFrames acumulados
+    if result_dataframes:
+        df_final = pl.concat(result_dataframes, how="vertical")
+        return df_final
+    else:
+        # Retornar DataFrame vacío con las columnas esperadas si no hay datos
+        empty_columns = ['Player', 'Date'] + [f"{col}_94min" for col in columns_of_interest]
+        return pl.DataFrame({col: [] for col in empty_columns})
+
+
+def calculate_player_statistics_94min():
+    """
+    Recibe el DataFrame generado por calculate_metcrics_for_94min y calcula todas las estadísticas
+    agrupadas por jugador para cada métrica. Incluye una columna 'estadistica' que identifica
+    el tipo de estadística calculada.
+    
+    Returns:
+        pl.DataFrame: DataFrame con columnas 'Player', 'estadistica' y métricas calculadas por jugador
+    """
+    
+    df_94min = calculate_metcrics_for_94min()
+
+    # Verificar si el DataFrame está vacío
+    if df_94min.is_empty():
+        print("El DataFrame de entrada está vacío.")
+        return pl.DataFrame()
+    
+    # Obtener las columnas de métricas (todas las que terminan en '_94min')
+    metric_columns = [col for col in df_94min.columns if col.endswith('_94min')]
+    
+    if not metric_columns:
+        print("No se encontraron columnas de métricas en el DataFrame.")
+        return pl.DataFrame()
+    
+    # Diccionario para mapear nombres de estadísticas a funciones de Polars
+    stat_functions = {
+        'median': pl.median,
+        'mean': pl.mean,
+        'max': pl.max,
+        'min': pl.min,
+        'p75': lambda col: pl.col(col).quantile(0.75),
+        'p90': lambda col: pl.col(col).quantile(0.90), 
+        'p99': lambda col: pl.col(col).quantile(0.99)
+    }
+    
+    # Lista para almacenar los DataFrames de cada estadística
+    result_dataframes = []
+    
+    try:
+        # Calcular cada estadística por separado
+        for stat_name, agg_function in stat_functions.items():
+            # Agrupar por jugador y calcular la estadística para cada métrica
+            df_stat = df_94min.group_by('Player').agg([
+                agg_function(col)for col in metric_columns
+            ])
+            
+            # Agregar columna con el nombre de la estadística
+            df_stat = df_stat.with_columns(
+                pl.lit(stat_name).alias('estadistica')
+            )
+            
+            # Reordenar columnas para que 'estadistica' esté después de 'Player'
+            columns_order = ['Player', 'estadistica'] + [col for col in df_stat.columns if col not in ['Player', 'estadistica']]
+            df_stat = df_stat.select(columns_order)
+            
+            result_dataframes.append(df_stat)
+        
+        # Concatenar todos los DataFrames
+        df_final = pl.concat(result_dataframes, how="vertical")
+        
+        # Ordenar por jugador y estadística para mejor presentación
+        df_final = df_final.sort(['Player', 'estadistica'])
+        
+        return df_final
+        
+    except Exception as e:
+        print(f"Error al calcular estadísticas: {str(e)}")
+        return pl.DataFrame()
+
+
+def calculate_percentage_difference_vs_reference(selected_date, reference_statistic='median'):
+    """
+    Calcula la diferencia porcentual entre las métricas de un día específico
+    y las estadísticas de referencia (calculadas con calculate_player_statistics).
+    
+    Args:
+        selected_date (str): Fecha específica para obtener datos del día
+        reference_statistic (str): Estadística de referencia ('median', 'mean', 'max', 'min', 'p75', 'p90', 'p99')
+                                  Por defecto es 'median'
+    
+    Returns:
+        pl.DataFrame: DataFrame con columnas 'Player' y diferencias porcentuales para cada métrica
+    """
+    
+    columns_of_interest = ['Abs HSR(m)',
+                           'Accelerations',
+                           'Decelerations',
+                           'Distance (m)', 
+                           'Explosive Dist (m)',
+                           'HSR Rel (m)',
+                           'Sprint Abs (m)',
+                           'Sprint Rel (m)',
+                           'Total impacts']  
+    
+    try:
+        # Obtener datos del día específico
+        df_day = get_players_data(selected_date)
+        if df_day is None or df_day.is_empty():
+            print(f"No se encontraron datos para la fecha {selected_date}.")
+            return pl.DataFrame()
+        
+        # Obtener estadísticas de referencia (todas las estadísticas)
+        df_reference = calculate_player_statistics_94min()
+        if df_reference is None or df_reference.is_empty():
+            print("No se pudieron obtener estadísticas de referencia.")
+            return pl.DataFrame()
+        
+        # Filtrar por la estadística de referencia seleccionada
+        df_reference_filtered = df_reference.filter(
+            pl.col('estadistica') == reference_statistic
+        )
+        
+        if df_reference_filtered.is_empty():
+            print(f"No se encontraron datos para la estadística '{reference_statistic}'.")
+            return pl.DataFrame()
+        
+         # Obtener las columnas de métricas de la sesión
+        session_metric_columns = columns_of_interest
+        
+        # Obtener las columnas de métricas de referencia 
+        ref_metric_columns = [col + '_94min' for col in columns_of_interest]
+        
+        # Identificar los jugadores presentes en df_day
+        players_in_day = df_day.select('Player').unique().to_series().to_list()
+        
+        # Filtrar df_reference para incluir solo los jugadores del día
+        df_reference_players = df_reference_filtered.filter(
+            pl.col('Player').is_in(players_in_day)
+        )
+        
+        if df_reference_players.is_empty():
+            print(f"No se encontraron jugadores coincidentes entre el día {selected_date} y las estadísticas de referencia.")
+            return pl.DataFrame()
+        
+        # Crear DataFrame base con jugadores y columnas de interés
+        # Seleccionar solo las columnas necesarias del día
+        df_day_selected = df_day.select(['Player'] + session_metric_columns)
+        
+        # Seleccionar solo las columnas necesarias de referencia
+        df_reference_selected = df_reference_players.select(['Player'] + ref_metric_columns)
+        
+        # Paso 4: Realizar join y calcular diferencias porcentuales
+        df_joined = df_day_selected.join(
+            df_reference_selected,
+            on='Player',
+            how='inner'
+        )
+        
+        # Calcular diferencias porcentuales para cada métrica
+        percentage_diff_expressions = [pl.col('Player')]
+        
+        for i, col in enumerate(session_metric_columns):
+            ref_col = ref_metric_columns[i]
+            # Calcular diferencia porcentual: ((valor_día - valor_referencia) / valor_referencia) * 100
+            percentage_diff_expr = (
+                ((pl.col(col) - pl.col(ref_col)) / pl.col(ref_col) * 100).round(2)
+
+            ).alias(f'{col}_diff_pct')
+            percentage_diff_expressions.append(percentage_diff_expr)
+        
+        # Crear DataFrame final con diferencias porcentuales
+        df_result = df_joined.select(percentage_diff_expressions)
+        
+        return df_result
+        
+    except Exception as e:
+        print(f"Error al calcular diferencias porcentuales: {str(e)}")
+        return pl.DataFrame()
+        
+        
+        
+

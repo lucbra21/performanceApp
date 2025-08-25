@@ -2,6 +2,7 @@ import polars as pl
 import numpy as np
 from datetime import datetime
 import os
+import json
 
 
 # ============================================================================
@@ -76,6 +77,43 @@ def apply_standard_filters(df):
                   .alias('Team ')
               ))
 
+
+def load_metrics_mapping():
+    """
+    Carrega o mapeamento de métricas do arquivo JSON.
+    
+    Returns:
+        dict: Dicionário com o mapeamento de métricas ou None se houver erro.
+    """
+    try:
+        mapping_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'gps', 'metrics_mapping.json')
+        with open(mapping_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception as e:
+        print(f"Erro ao carregar mapeamento de métricas: {e}")
+        return None
+
+def get_calculation_method(metrics_mapping, column_name):
+    """
+    Obtém o método de cálculo para uma coluna específica.
+    
+    Args:
+        metrics_mapping (dict): Mapeamento de métricas carregado do JSON.
+        column_name (str): Nome da coluna.
+    
+    Returns:
+        str: Método de cálculo ('sum', 'max', 'mean', 'accelerations_minus_decelerations') ou 'sum' como padrão.
+    """
+    if not metrics_mapping:
+        return 'sum'
+    
+    for metric_key, metric_data in metrics_mapping.get('metrics', {}).items():
+        if metric_data.get('project_name') == column_name:
+            calc_methods = metric_data.get('calculation_methods', {})
+            method_data = calc_methods.get('calculate_metrics_for_94min', {})
+            return method_data.get('method', 'sum')
+    
+    return 'sum'  # Padrão se não encontrar
 
 def get_columns_of_interest():
     """
@@ -1337,15 +1375,26 @@ def calculate_metcrics_for_94min():
         print("No se pudo cargar el dataset principal.")
         return None
 
-    columns_of_interest = ['Abs HSR(m)',
-                           'Accelerations',
-                           'Decelerations',
-                           'Distance (m)', 
-                           'Explosive Dist (m)',
-                           'HSR Rel (m)',
-                           'Sprint Abs (m)',
-                           'Sprint Rel (m)',
-                           'Total impacts']                        
+    # Carregar o mapeamento de métricas
+    metrics_mapping = load_metrics_mapping()
+    
+    # Usar todas as colunas do arquivo Columnas_interés.txt
+    columns_of_interest = [
+        'Distance (m)',
+        'Speed Zones (m) [0.0, 6.0]km/h (m)',
+        'Abs HSR(m)',
+        'HSR Rel (m)',
+        'Sprint Abs (m)',
+        'Sprint Rel (m)',
+        'Explosive Dist (m)',
+        'MAX Speed(km/h)',
+        'Max Acceleration',
+        'Accelerations',
+        'Decelerations',
+        'Dif. ACC/DEC',
+        'Step Balance (%)',
+        'Total impacts'
+    ]
                            
     # Filtrar para mantener solo las columnas de interés
     columns = ['Date', 'Match Day', 'Team ', 'Selection', 'Player', 'Drills Duration'] + columns_of_interest
@@ -1358,7 +1407,6 @@ def calculate_metcrics_for_94min():
     df_md = df.filter(pl.col('Match Day') == "MD")
 
     # Aplicar filtros adicionales
-    # No podemos usar get_specific_md_data porque no estamos filtrando por 'Drills' en la columna Selection
     df_filtered = (df_md.filter(pl.col('Match Day') != 'Rehab')
                         .filter(pl.col('Player') != 'TEAM')
                         .filter(pl.col('Team ') != 'TEAM')
@@ -1395,21 +1443,46 @@ def calculate_metcrics_for_94min():
 
             # Aplicar regra de três simples se total_minutes > 50
             if total_minutes > 50:
-                # Primero sumamos las métricas de ambas partes
+                # Calcular métricas usando métodos específicos para cada coluna
+                metrics_94min = {}
+                
                 for col in columns_of_interest:
                     if col in df_player.columns:
-                        # Sumar los valores para cada métrica
-                        total_metric = df_player[col].sum()
-                        # Calcular métrica ajustada para 94 minutos
-                        df_player = df_player.with_columns(
-                            (pl.lit(total_metric) * 94 / total_minutes).alias(f"{col}_94min")
-                        )
+                        method = get_calculation_method(metrics_mapping, col)
+                        
+                        if method == 'sum':
+                            total_metric = df_player[col].sum()
+                            adjusted_metric = total_metric * 94 / total_minutes
+                        elif method == 'max':
+                            adjusted_metric = df_player[col].max()
+                        elif method == 'mean':
+                            adjusted_metric = df_player[col].mean()
+                        elif method == 'accelerations_minus_decelerations':
+                            # Caso especial para Dif. ACC/DEC
+                            if 'Accelerations' in df_player.columns and 'Decelerations' in df_player.columns:
+                                acc_total = df_player['Accelerations'].sum()
+                                dec_total = df_player['Decelerations'].sum()
+                                acc_adjusted = acc_total * 94 / total_minutes
+                                dec_adjusted = dec_total * 94 / total_minutes
+                                adjusted_metric = acc_adjusted - dec_adjusted
+                            else:
+                                adjusted_metric = 0
+                        else:
+                            # Método padrão: sum
+                            total_metric = df_player[col].sum()
+                            adjusted_metric = total_metric * 94 / total_minutes
+                        
+                        metrics_94min[f"{col}_94min"] = adjusted_metric
                 
-                # Crear DataFrame con Player, Date y métricas ajustadas
-                metrics_94min_cols = [f"{col}_94min" for col in columns_of_interest if f"{col}_94min" in df_player.columns]
-                if metrics_94min_cols:  # Solo si hay métricas calculadas
-                    final_columns = ['Player', 'Date'] + metrics_94min_cols
-                    df_player_result = df_player.select(final_columns).unique()
+                # Criar DataFrame com Player, Date e métricas ajustadas
+                if metrics_94min:  # Solo si hay métricas calculadas
+                    player_data = {
+                        'Player': [player],
+                        'Date': [date]
+                    }
+                    player_data.update({k: [v] for k, v in metrics_94min.items()})
+                    
+                    df_player_result = pl.DataFrame(player_data)
                     result_dataframes.append(df_player_result)
 
     # Concatenar todos los DataFrames acumulados
@@ -1506,15 +1579,22 @@ def calculate_percentage_difference_vs_reference(selected_date, reference_statis
         pl.DataFrame: DataFrame con columnas 'Player' y diferencias porcentuales para cada métrica
     """
     
-    columns_of_interest = ['Abs HSR(m)',
-                           'Accelerations',
-                           'Decelerations',
-                           'Distance (m)', 
-                           'Explosive Dist (m)',
-                           'HSR Rel (m)',
-                           'Sprint Abs (m)',
-                           'Sprint Rel (m)',
-                           'Total impacts']  
+    columns_of_interest = [
+        'Distance (m)',
+        'Speed Zones (m) [0.0, 6.0]km/h (m)',
+        'Abs HSR(m)',
+        'HSR Rel (m)',
+        'Sprint Abs (m)',
+        'Sprint Rel (m)',
+        'Explosive Dist (m)',
+        'MAX Speed(km/h)',
+        'Max Acceleration',
+        'Accelerations',
+        'Decelerations',
+        'Dif. ACC/DEC',
+        'Step Balance (%)',
+        'Total impacts'
+    ]  
     
     try:
         # Obtener datos del día específico
@@ -1577,7 +1657,7 @@ def calculate_percentage_difference_vs_reference(selected_date, reference_statis
             ref_col = ref_metric_columns[i]
             # Calcular diferencia porcentual: ((valor_día - valor_referencia) / valor_referencia) * 100
             percentage_diff_expr = (
-                ((pl.col(col) - pl.col(ref_col)) / pl.col(ref_col) * 100).round(2)
+                ((pl.col(col) / pl.col(ref_col)) * 100).round(2)
 
             ).alias(f'{col}_diff_pct')
             percentage_diff_expressions.append(percentage_diff_expr)

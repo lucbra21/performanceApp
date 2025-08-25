@@ -1,0 +1,177 @@
+{
+  "metadata": {
+    "version": "1.0",
+    "last_updated": "2024-01-15",
+    "description": "Mapeamento de métricas GPS entre fornecedores"
+  },
+  "vendors": {
+    "provider_example": {
+      "name": "Provedora Exemplo",
+      "prefix": "EXAMPLE"
+    }
+  },
+  "metrics": {
+    "distance": {
+      "project_name": "Distance (m)",
+      "description": "Distância total percorrida em metros",
+      "unit": "meters",
+      "original_column_name": "Distance_Original_Column",
+      "calculation_methods": {
+        "per_minute": {
+          "method": "division"
+        },
+        "calculate_metrics_for_94min": {
+          "method": "sum"
+        }
+      }
+    },
+    "high_speed_running": {
+      "project_name": "Abs HSR(m)",
+      "description": "Distância de corrida de alta velocidade absoluta",
+      "unit": "meters",
+      "original_column_name": "HSR_Absolute_Original_Column",
+      "calculation_methods": {
+        "per_minute": {
+          "method": "division"
+        },
+        "calculate_metrics_for_94min": {
+          "method": "sum"
+        }
+      }
+    },
+    "explosive_distance": {
+      "project_name": "Explosive Dist (m)",
+      "description": "Distância percorrida em velocidades explosivas",
+      "unit": "meters",
+      "original_column_name": "Explosive_Distance_Original_Column",
+      "calculation_methods": {
+        "per_minute": {
+          "method": "division"
+        },
+        "calculate_metrics_for_94min": {
+          "method": "sum"
+        }
+      }
+    },
+    "accelerations": {
+      "project_name": "Accelerations",
+      "description": "Número total de acelerações",
+      "unit": "count",
+      "original_column_name": "Accelerations_Original_Column",
+      "calculation_methods": {
+        "calculate_metrics_for_94min": {
+          "method": "sum"
+        }
+      }
+    },
+    "decelerations": {
+      "project_name": "Decelerations",
+      "description": "Número total de desacelerações",
+      "unit": "count",
+      "original_column_name": "Decelerations_Original_Column",
+      "calculation_methods": {
+        "calculate_metrics_for_94min": {
+          "method": "sum"
+        }
+      }
+    },
+    "max_speed": {
+      "project_name": "MAX Speed(km/h)",
+      "description": "Velocidade máxima atingida",
+      "unit": "km/h",
+      "original_column_name": "Max_Speed_Original_Column",
+      "calculation_methods": {
+        "calculate_metrics_for_94min": {
+          "method": "max"
+        }
+      }
+    },
+    "hsr_relative": {
+      "project_name": "HSR Rel (m)",
+      "description": "Distância de corrida de alta velocidade relativa",
+      "unit": "meters",
+      "original_column_name": "HSR_Relative_Original_Column",
+      "calculation_methods": {
+        "calculate_metrics_for_94min": {
+          "method": "sum"
+        }
+      }
+    },
+    "sprint_absolute": {
+      "project_name": "Sprint Abs (m)",
+      "description": "Distância de sprint absoluta",
+      "unit": "meters",
+      "original_column_name": "Sprint_Absolute_Original_Column",
+      "calculation_methods": {
+        "calculate_metrics_for_94min": {
+          "method": "sum"
+        }
+      }
+    },
+    "sprint_relative": {
+      "project_name": "Sprint Rel (m)",
+      "description": "Distância de sprint relativa",
+      "unit": "meters",
+      "original_column_name": "Sprint_Relative_Original_Column",
+      "calculation_methods": {
+        "calculate_metrics_for_94min": {
+          "method": "sum"
+        }
+      }
+    },
+    "total_impacts": {
+      "project_name": "Total impacts",
+      "description": "Número total de impactos",
+      "unit": "count",
+      "original_column_name": "Total_Impacts_Original_Column",
+      "calculation_methods": {
+        "calculate_metrics_for_94min": {
+          "method": "sum"
+        }
+      }    },
+    "acc_dec_difference": {
+      "project_name": "Dif. ACC/DEC",
+      "description": "Diferença entre acelerações e desacelerações",
+      "unit": "count",
+      "original_column_name": "Acc_Dec_Difference_Original_Column",
+      "calculation_methods": {
+        "calculate_metrics_for_94min": {
+          "method": "accelerations_minus_decelerations"
+        }
+      }
+    },
+    "max_acceleration": {
+      "project_name": "Max Acceleration",
+      "description": "Aceleração máxima atingida",
+      "unit": "m/s²",
+      "original_column_name": "Max_Acceleration_Original_Column",
+      "calculation_methods": {
+        "calculate_metrics_for_94min": {
+          "method": "max"
+        }
+      }
+    },
+    "step_balance": {
+      "project_name": "Step Balance (%)",
+      "description": "Percentual de equilíbrio dos passos",
+      "unit": "percentage",
+      "original_column_name": "Step_Balance_Original_Column",
+      "calculation_methods": {
+        "calculate_metrics_for_94min": {
+          "method": "mean"
+        }
+      }
+    },
+    "speed_zones_low": {
+      "project_name": "Speed Zones (m) [0.0, 6.0]km/h (m)",
+      "description": "Distância percorrida em zona de velocidade baixa (0.0-6.0 km/h)",
+      "unit": "meters",
+      "original_column_name": "Speed_Zones_Low_Original_Column",
+      "calculation_methods": {
+        "calculate_metrics_for_94min": {
+          "method": "sum"
+        }
+      }
+    }
+  }
+}

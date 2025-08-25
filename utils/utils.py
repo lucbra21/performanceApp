@@ -1379,22 +1379,7 @@ def calculate_metcrics_for_94min():
     metrics_mapping = load_metrics_mapping()
     
     # Usar todas as colunas do arquivo Columnas_interés.txt
-    columns_of_interest = [
-        'Distance (m)',
-        'Speed Zones (m) [0.0, 6.0]km/h (m)',
-        'Abs HSR(m)',
-        'HSR Rel (m)',
-        'Sprint Abs (m)',
-        'Sprint Rel (m)',
-        'Explosive Dist (m)',
-        'MAX Speed(km/h)',
-        'Max Acceleration',
-        'Accelerations',
-        'Decelerations',
-        'Dif. ACC/DEC',
-        'Step Balance (%)',
-        'Total impacts'
-    ]
+    columns_of_interest = get_columns_of_interest()
                            
     # Filtrar para mantener solo las columnas de interés
     columns = ['Date', 'Match Day', 'Team ', 'Selection', 'Player', 'Drills Duration'] + columns_of_interest
@@ -1454,9 +1439,11 @@ def calculate_metcrics_for_94min():
                             total_metric = df_player[col].sum()
                             adjusted_metric = total_metric * 94 / total_minutes
                         elif method == 'max':
-                            adjusted_metric = df_player[col].max()
+                            total_metric = df_player[col].max()
+                            adjusted_metric = total_metric * 94 / total_minutes
                         elif method == 'mean':
-                            adjusted_metric = df_player[col].mean()
+                            total_metric = df_player[col].mean()
+                            adjusted_metric = total_metric * 94 / total_minutes
                         elif method == 'accelerations_minus_decelerations':
                             # Caso especial para Dif. ACC/DEC
                             if 'Accelerations' in df_player.columns and 'Decelerations' in df_player.columns:
@@ -1478,7 +1465,8 @@ def calculate_metcrics_for_94min():
                 if metrics_94min:  # Solo si hay métricas calculadas
                     player_data = {
                         'Player': [player],
-                        'Date': [date]
+                        'Date': [date],
+                        'Total Minutes en Partido': [total_minutes]
                     }
                     player_data.update({k: [v] for k, v in metrics_94min.items()})
                     

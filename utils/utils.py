@@ -1360,11 +1360,15 @@ def generate_color_styles_from_zscore(zscore_matrix):
         return []
 
 
-def calculate_metcrics_for_94min():
+def calculate_metrics_for_94min(last_games=4):
     """
     Carga el dataset principal usando load_gps_data, filtra por Match Day "MD" y aplica filtros adicionales.
     No se usa get_specific_md_data porque no se filtra por 'Drills' en la columna Selection.
     Luego, para cada fecha única, suma la duración de los drills por jugador.
+    Guarda dos DataFrames: histórico completo y últimos partidos en la carpeta data/processed/references.
+
+    Args:
+        last_games (int): Número de últimos partidos para crear DataFrame de referencia (default: 4)
 
     Returns:
         dict: Diccionario con fechas como claves y otro diccionario como valor,
@@ -1375,14 +1379,14 @@ def calculate_metcrics_for_94min():
         print("No se pudo cargar el dataset principal.")
         return None
 
-    # Carregar o mapeamento de métricas
+    # Cargar el mapeo de métricas
     metrics_mapping = load_metrics_mapping()
     
-    # Usar todas as colunas do arquivo Columnas_interés.txt
+    # Usar todas las columnas del archivo Columnas_interés.txt
     columns_of_interest = get_columns_of_interest()
                            
     # Filtrar para mantener solo las columnas de interés
-    columns = ['Date', 'Match Day', 'Team ', 'Selection', 'Player', 'Drills Duration'] + columns_of_interest
+    columns = ['Date', 'Match Day', 'Team ', 'Selection', 'Player', 'Position', 'Drills Duration'] + columns_of_interest
     df = df.select(columns)
     if df is None:
         print("No se pudo cargar el dataset principal.")
@@ -1416,6 +1420,7 @@ def calculate_metcrics_for_94min():
         
         for player in players:
             df_player = df_date.filter(pl.col('Player') == player)
+            
             # Convertir 'Drills Duration' de HH:MM:SS a minutos
             durations = df_player.select('Drills Duration').to_series().to_list()
             total_minutes = 0
@@ -1439,8 +1444,8 @@ def calculate_metcrics_for_94min():
                             total_metric = df_player[col].sum()
                             adjusted_metric = total_metric * 94 / total_minutes
                         elif method == 'max':
-                            total_metric = df_player[col].max()
-                            adjusted_metric = total_metric * 94 / total_minutes
+                            total_metric = df_player[col].quantile(0.99)
+                            adjusted_metric = total_metric
                         elif method == 'mean':
                             total_metric = df_player[col].mean()
                             adjusted_metric = total_metric * 94 / total_minutes
@@ -1455,16 +1460,17 @@ def calculate_metcrics_for_94min():
                             else:
                                 adjusted_metric = 0
                         else:
-                            # Método padrão: sum
+                            # Método por defecto: sum
                             total_metric = df_player[col].sum()
                             adjusted_metric = total_metric * 94 / total_minutes
                         
                         metrics_94min[f"{col}_94min"] = adjusted_metric
                 
-                # Criar DataFrame com Player, Date e métricas ajustadas
+                # Crear DataFrame con Player, Date y métricas ajustadas
                 if metrics_94min:  # Solo si hay métricas calculadas
                     player_data = {
                         'Player': [player],
+                        'Position': [df_player['Position'].first()],
                         'Date': [date],
                         'Total Minutes en Partido': [total_minutes]
                     }
@@ -1476,29 +1482,74 @@ def calculate_metcrics_for_94min():
     # Concatenar todos los DataFrames acumulados
     if result_dataframes:
         df_final = pl.concat(result_dataframes, how="vertical")
-        return df_final
+        
+        # Ordenar por fecha para obtener los últimos partidos
+        df_final_sorted = df_final.sort('Date', descending=True)
+        
+        # Crear carpeta data/processed/references si no existe
+        references_path = os.path.join(BASE_PATH, 'data', 'processed', 'references')
+        ensure_dir(references_path)
+        
+        # Guardar DataFrame histórico completo
+        historical_file = os.path.join(references_path, 'metrics_94min_historical.parquet')
+        df_final_sorted.write_parquet(historical_file)
+        
+        # Obtener últimas fechas únicas para crear DataFrame de referencia
+        unique_dates_sorted = df_final_sorted.select('Date').unique().sort('Date', descending=True)
+        last_dates = unique_dates_sorted.head(last_games).to_series().to_list()
+        
+        # Filtrar DataFrame para últimos partidos
+        df_last_games = df_final_sorted.filter(pl.col('Date').is_in(last_dates))
+        
+        # Guardar DataFrame de los últimos partidos
+        last_games_file = os.path.join(references_path, f'metrics_94min_last_{last_games}_games.parquet')
+        df_last_games.write_parquet(last_games_file)
+        
+        print(f"DataFrames salvos em {references_path}:")
+        print(f"- Histórico completo: metrics_94min_historical.parquet ({len(df_final_sorted)} registros)")
+        print(f"- Últimos {last_games} jogos: metrics_94min_last_{last_games}_games.parquet ({len(df_last_games)} registros)")
+        
+        return df_final_sorted
     else:
         # Retornar DataFrame vacío con las columnas esperadas si no hay datos
         empty_columns = ['Player', 'Date'] + [f"{col}_94min" for col in columns_of_interest]
         return pl.DataFrame({col: [] for col in empty_columns})
 
-
-def calculate_player_statistics_94min():
+def calculate_player_statistics_94min(last_games=None):
     """
     Recibe el DataFrame generado por calculate_metcrics_for_94min y calcula todas las estadísticas
     agrupadas por jugador para cada métrica. Incluye una columna 'estadistica' que identifica
     el tipo de estadística calculada.
+    Guarda dos DataFrames: histórico completo y últimos partidos en la carpeta data/processed/references.
+    
+    Args:
+        last_games (int, optional): Número de últimos partidos a considerar por jugador.
+                                   Se None, considera todos los partidos disponibles.
     
     Returns:
         pl.DataFrame: DataFrame con columnas 'Player', 'estadistica' y métricas calculadas por jugador
     """
     
-    df_94min = calculate_metcrics_for_94min()
+    df_94min = calculate_metrics_for_94min()
 
     # Verificar si el DataFrame está vacío
     if df_94min.is_empty():
         print("El DataFrame de entrada está vacío.")
         return pl.DataFrame()
+    
+    # Se last_games foi especificado, filtrar para os partidos mais recentes por jogador
+    if last_games is not None and last_games > 0:
+        # Ordenar por jogador e data (mais recente primeiro)
+        df_94min = df_94min.sort(['Player', 'Date'], descending=[False, True])
+        
+        # Filtrar para manter apenas os N partidos mais recentes por jogador
+        df_94min = (df_94min
+                   .with_row_count('row_num')
+                   .with_columns(
+                       pl.col('row_num').rank('dense').over('Player').alias('game_rank')
+                   )
+                   .filter(pl.col('game_rank') <= last_games)
+                   .drop(['row_num', 'game_rank']))
     
     # Obtener las columnas de métricas (todas las que terminan en '_94min')
     metric_columns = [col for col in df_94min.columns if col.endswith('_94min')]
@@ -1522,11 +1573,11 @@ def calculate_player_statistics_94min():
     result_dataframes = []
     
     try:
-        # Calcular cada estadística por separado
+        # 1. Calcular estadísticas por jugador individual
         for stat_name, agg_function in stat_functions.items():
             # Agrupar por jugador y calcular la estadística para cada métrica
             df_stat = df_94min.group_by('Player').agg([
-                agg_function(col)for col in metric_columns
+                agg_function(col) for col in metric_columns
             ])
             
             # Agregar columna con el nombre de la estadística
@@ -1540,11 +1591,126 @@ def calculate_player_statistics_94min():
             
             result_dataframes.append(df_stat)
         
+        # 2. Calcular estadísticas por posição
+        for stat_name, agg_function in stat_functions.items():
+            # Agrupar por posição e calcular a estadística para cada métrica
+            df_position_stat = df_94min.group_by('Position').agg([
+                agg_function(col) for col in metric_columns
+            ])
+            
+            # Renomear a coluna Position para Player e adicionar estadística
+            df_position_stat = df_position_stat.rename({'Position': 'Player'})
+            df_position_stat = df_position_stat.with_columns(
+                pl.lit(stat_name).alias('estadistica')
+            )
+            
+            # Reordenar columnas
+            columns_order = ['Player', 'estadistica'] + [col for col in df_position_stat.columns if col not in ['Player', 'estadistica']]
+            df_position_stat = df_position_stat.select(columns_order)
+            
+            result_dataframes.append(df_position_stat)
+        
+        # 3. Calcular estadísticas para toda a equipe (Team)
+        for stat_name, agg_function in stat_functions.items():
+            # Calcular a estadística para toda a equipe
+            df_team_stat = df_94min.select([
+                agg_function(col).alias(col) for col in metric_columns
+            ])
+            
+            # Adicionar colunas Player e estadistica
+            df_team_stat = df_team_stat.with_columns([
+                pl.lit('Team').alias('Player'),
+                pl.lit(stat_name).alias('estadistica')
+            ])
+            
+            # Reordenar columnas
+            columns_order = ['Player', 'estadistica'] + [col for col in df_team_stat.columns if col not in ['Player', 'estadistica']]
+            df_team_stat = df_team_stat.select(columns_order)
+            
+            result_dataframes.append(df_team_stat)
+        
         # Concatenar todos los DataFrames
         df_final = pl.concat(result_dataframes, how="vertical")
         
-        # Ordenar por jugador y estadística para mejor presentación
-        df_final = df_final.sort(['Player', 'estadistica'])
+        ##!!!!!!!!!!!!!!! Fazer este bloco a baixo de outra maneira!!!!!!!!!!!!!!!!!!!!!
+        # Criar uma coluna auxiliar para ordenação personalizada
+        df_final = df_final.with_columns(
+            pl.when(pl.col('Player') == 'Team')
+            .then(pl.lit(3))  # Team aparece por último
+            .when(pl.col('Player').is_in(['Delantero', 'Central', 'Centrocampista', 'Defensa', 'Portero']))  # Ajustar conforme as posições reais
+            .then(pl.lit(2))  # Posições aparecem no meio
+            .otherwise(pl.lit(1))  # Jogadores individuais aparecem primeiro
+            .alias('order_priority')
+        )
+        
+        # Ordenar por prioridade, depois por Player alfabeticamente, depois por estadística
+        df_final = df_final.sort(['order_priority', 'Player', 'estadistica'])
+        
+        # Remover a coluna auxiliar
+        df_final = df_final.drop('order_priority')
+        
+        # Crear carpeta data/processed/references si no existe
+        references_path = os.path.join(BASE_PATH, 'data', 'processed', 'references')
+        ensure_dir(references_path)
+        
+        # Guardar DataFrame histórico completo
+        historical_file = os.path.join(references_path, 'player_statistics_94min_historical.parquet')
+        df_final.write_parquet(historical_file)
+        
+        # Crear DataFrame de los últimos 4 partidos por defecto
+        # Obtener datos de métricas para 94 minutos
+        df_metrics_94min = calculate_metrics_for_94min(4)
+        
+        if not df_metrics_94min.is_empty():
+            # Calcular estadísticas para los últimos 4 partidos
+            df_last_games_stats = df_metrics_94min.group_by('Player').agg([
+                pl.col('Total Distance (m)').mean().alias('Total Distance (m)_mean'),
+                pl.col('Total Distance (m)').median().alias('Total Distance (m)_median'),
+                pl.col('Total Distance (m)').std().alias('Total Distance (m)_std'),
+                pl.col('HSR Distance (m)').mean().alias('HSR Distance (m)_mean'),
+                pl.col('HSR Distance (m)').median().alias('HSR Distance (m)_median'),
+                pl.col('HSR Distance (m)').std().alias('HSR Distance (m)_std'),
+                pl.col('Sprint Distance (m)').mean().alias('Sprint Distance (m)_mean'),
+                pl.col('Sprint Distance (m)').median().alias('Sprint Distance (m)_median'),
+                pl.col('Sprint Distance (m)').std().alias('Sprint Distance (m)_std'),
+                pl.col('Player Load').mean().alias('Player Load_mean'),
+                pl.col('Player Load').median().alias('Player Load_median'),
+                pl.col('Player Load').std().alias('Player Load_std'),
+                pl.col('Max Speed (km/h)').mean().alias('Max Speed (km/h)_mean'),
+                pl.col('Max Speed (km/h)').median().alias('Max Speed (km/h)_median'),
+                pl.col('Max Speed (km/h)').std().alias('Max Speed (km/h)_std'),
+                pl.col('Accelerations').mean().alias('Accelerations_mean'),
+                pl.col('Accelerations').median().alias('Accelerations_median'),
+                pl.col('Accelerations').std().alias('Accelerations_std'),
+                pl.col('Decelerations').mean().alias('Decelerations_mean'),
+                pl.col('Decelerations').median().alias('Decelerations_median'),
+                pl.col('Decelerations').std().alias('Decelerations_std')
+            ])
+            
+            # Transformar para formato longo similar ao df_final
+            df_last_games_melted = df_last_games_stats.melt(
+                id_vars=['Player'],
+                variable_name='metric_stat',
+                value_name='valor'
+            )
+            
+            # Separar métrica e estatística
+            df_last_games_final = df_last_games_melted.with_columns([
+                pl.col('metric_stat').str.split('_').list.slice(0, -1).list.join('_').alias('metrica'),
+                pl.col('metric_stat').str.split('_').list.get(-1).alias('estadistica')
+            ]).drop('metric_stat')
+            
+            # Guardar DataFrame de los últimos partidos
+            last_games_file = os.path.join(references_path, 'player_statistics_94min_last_4_games.parquet')
+            df_last_games_final.write_parquet(last_games_file)
+            
+            print(f"DataFrames guardados en {references_path}:")
+            print(f"- Histórico completo: player_statistics_94min_historical.parquet ({len(df_final)} registros)")
+            print(f"- Últimos 4 partidos: player_statistics_94min_last_4_games.parquet ({len(df_last_games_final)} registros)")
+        else:
+            print(f"DataFrame histórico guardado en {references_path}:")
+            print(f"- Histórico completo: player_statistics_94min_historical.parquet ({len(df_final)} registros)")
+            print("- Aviso: No se pudieron calcular estadísticas de los últimos 4 partidos (datos insuficientes)")
         
         return df_final
         
@@ -1553,10 +1719,11 @@ def calculate_player_statistics_94min():
         return pl.DataFrame()
 
 
-def calculate_percentage_difference_vs_reference(selected_date, reference_statistic='median'):
+def calculate_percentage_difference_vs_reference(selected_date, num_games=None, reference_statistic='median'):
     """
     Calcula la diferencia porcentual entre las métricas de un día específico
     y las estadísticas de referencia (calculadas con calculate_player_statistics).
+    Incluye comparaciones individuales, por posición y por equipe.
     
     Args:
         selected_date (str): Fecha específica para obtener datos del día
@@ -1567,32 +1734,17 @@ def calculate_percentage_difference_vs_reference(selected_date, reference_statis
         pl.DataFrame: DataFrame con columnas 'Player' y diferencias porcentuales para cada métrica
     """
     
-    columns_of_interest = [
-        'Distance (m)',
-        'Speed Zones (m) [0.0, 6.0]km/h (m)',
-        'Abs HSR(m)',
-        'HSR Rel (m)',
-        'Sprint Abs (m)',
-        'Sprint Rel (m)',
-        'Explosive Dist (m)',
-        'MAX Speed(km/h)',
-        'Max Acceleration',
-        'Accelerations',
-        'Decelerations',
-        'Dif. ACC/DEC',
-        'Step Balance (%)',
-        'Total impacts'
-    ]  
+    columns_of_interest = get_columns_of_interest()
     
     try:
         # Obtener datos del día específico
-        df_day = get_players_data(selected_date)
+        df_day = get_table_data(selected_date, reference_statistic)
         if df_day is None or df_day.is_empty():
             print(f"No se encontraron datos para la fecha {selected_date}.")
             return pl.DataFrame()
         
         # Obtener estadísticas de referencia (todas las estadísticas)
-        df_reference = calculate_player_statistics_94min()
+        df_reference = calculate_player_statistics_94min(num_games)
         if df_reference is None or df_reference.is_empty():
             print("No se pudieron obtener estadísticas de referencia.")
             return pl.DataFrame()
@@ -1606,59 +1758,152 @@ def calculate_percentage_difference_vs_reference(selected_date, reference_statis
             print(f"No se encontraron datos para la estadística '{reference_statistic}'.")
             return pl.DataFrame()
         
-         # Obtener las columnas de métricas de la sesión
+        # Obtener las columnas de métricas de la sesión
         session_metric_columns = columns_of_interest
         
         # Obtener las columnas de métricas de referencia 
         ref_metric_columns = [col + '_94min' for col in columns_of_interest]
         
+        # Lista para almacenar todos los resultados
+        result_dataframes = []
+        
+        # 1. COMPARACIONES INDIVIDUALES POR JUGADOR
         # Identificar los jugadores presentes en df_day
         players_in_day = df_day.select('Player').unique().to_series().to_list()
         
-        # Filtrar df_reference para incluir solo los jugadores del día
+        # Filtrar df_reference para incluir solo los jugadores del día (referencias individuales)
         df_reference_players = df_reference_filtered.filter(
             pl.col('Player').is_in(players_in_day)
         )
         
-        if df_reference_players.is_empty():
-            print(f"No se encontraron jugadores coincidentes entre el día {selected_date} y las estadísticas de referencia.")
-            return pl.DataFrame()
+        if not df_reference_players.is_empty():
+            # Seleccionar solo las columnas necesarias del día
+            df_day_selected = df_day.select(['Player'] + session_metric_columns)
+            
+            # Seleccionar solo las columnas necesarias de referencia
+            df_reference_selected = df_reference_players.select(['Player'] + ref_metric_columns)
+            
+            # Realizar join y calcular diferencias porcentuales
+            df_joined = df_day_selected.join(
+                df_reference_selected,
+                on='Player',
+                how='inner'
+            )
+            
+            # Calcular diferencias porcentuales para cada métrica
+            percentage_diff_expressions = [pl.col('Player')]
+            
+            for i, col in enumerate(session_metric_columns):
+                ref_col = ref_metric_columns[i]
+                percentage_diff_expr = (
+                    ((pl.col(col) / pl.col(ref_col)) * 100).round(2)
+                ).alias(f'{col}_diff_pct')
+                percentage_diff_expressions.append(percentage_diff_expr)
+            
+            # Crear DataFrame con diferencias porcentuales individuales
+            df_individual = df_joined.select(percentage_diff_expressions)
+            
+            result_dataframes.append(df_individual)
         
-        # Crear DataFrame base con jugadores y columnas de interés
-        # Seleccionar solo las columnas necesarias del día
-        df_day_selected = df_day.select(['Player'] + session_metric_columns)
+        # 2. COMPARACIONES POR POSICIÓN
+        # Obtener posiciones únicas de los jugadores del día
+        if 'Position' in df_day.columns:
+            positions_in_day = df_day.select('Position').unique().to_series().to_list()
+            
+            # Filtrar df_reference para incluir solo las posiciones del día
+            df_reference_positions = df_reference_filtered.filter(
+                pl.col('Player').is_in(positions_in_day)
+            )
+            
+            if not df_reference_positions.is_empty():
+                # Agrupar datos del día por posición
+                df_day_by_position = df_day.group_by('Position').agg([
+                    pl.col(col).mean().alias(col) for col in session_metric_columns
+                ])
+                
+                # Renomear Position a Player para hacer join
+                df_day_by_position = df_day_by_position.rename({'Position': 'Player'})
+                
+                # Seleccionar columnas de referencia
+                df_reference_pos_selected = df_reference_positions.select(['Player'] + ref_metric_columns)
+                
+                # Realizar join
+                df_joined_pos = df_day_by_position.join(
+                    df_reference_pos_selected,
+                    on='Player',
+                    how='inner'
+                )
+                
+                # Calcular diferencias porcentuales
+                percentage_diff_expressions = [pl.col('Player')]
+                
+                for i, col in enumerate(session_metric_columns):
+                    ref_col = ref_metric_columns[i]
+                    percentage_diff_expr = (
+                        ((pl.col(col) / pl.col(ref_col)) * 100).round(2)
+                    ).alias(f'{col}_diff_pct')
+                    percentage_diff_expressions.append(percentage_diff_expr)
+                
+                # Crear DataFrame com diferencias por posição
+                df_position = df_joined_pos.select(percentage_diff_expressions)
+                
+                result_dataframes.append(df_position)
         
-        # Seleccionar solo las columnas necesarias de referencia
-        df_reference_selected = df_reference_players.select(['Player'] + ref_metric_columns)
-        
-        # Paso 4: Realizar join y calcular diferencias porcentuales
-        df_joined = df_day_selected.join(
-            df_reference_selected,
-            on='Player',
-            how='inner'
+        # 3. COMPARACIÓN POR EQUIPE
+        # Verificar se existe referência para 'Team'
+        df_reference_team = df_reference_filtered.filter(
+            pl.col('Player') == 'Team'
         )
         
-        # Calcular diferencias porcentuales para cada métrica
-        percentage_diff_expressions = [pl.col('Player')]
+        if not df_reference_team.is_empty():
+            # Calcular métricas médias da equipe para o dia
+            df_day_team = df_day.select([
+                pl.col(col).mean().alias(col) for col in session_metric_columns
+            ])
+            
+            # Adicionar coluna Player = 'Team'
+            df_day_team = df_day_team.with_columns(
+                pl.lit('Team').alias('Player')
+            )
+            
+            # Seleccionar columnas de referência da equipe
+            df_reference_team_selected = df_reference_team.select(['Player'] + ref_metric_columns)
+            
+            # Realizar join
+            df_joined_team = df_day_team.join(
+                df_reference_team_selected,
+                on='Player',
+                how='inner'
+            )
+            
+            # Calcular diferencias porcentuales
+            percentage_diff_expressions = [pl.col('Player')]
+            
+            for i, col in enumerate(session_metric_columns):
+                ref_col = ref_metric_columns[i]
+                percentage_diff_expr = (
+                    ((pl.col(col) / pl.col(ref_col)) * 100).round(2)
+                ).alias(f'{col}_diff_pct')
+                percentage_diff_expressions.append(percentage_diff_expr)
+            
+            # Crear DataFrame com diferencias da equipe
+            df_team = df_joined_team.select(percentage_diff_expressions)
+            
+            result_dataframes.append(df_team)
         
-        for i, col in enumerate(session_metric_columns):
-            ref_col = ref_metric_columns[i]
-            # Calcular diferencia porcentual: ((valor_día - valor_referencia) / valor_referencia) * 100
-            percentage_diff_expr = (
-                ((pl.col(col) / pl.col(ref_col)) * 100).round(2)
-
-            ).alias(f'{col}_diff_pct')
-            percentage_diff_expressions.append(percentage_diff_expr)
-        
-        # Crear DataFrame final con diferencias porcentuales
-        df_result = df_joined.select(percentage_diff_expressions)
-        
-        return df_result
+        # Concatenar todos os resultados
+        if result_dataframes:
+            df_final = pl.concat(result_dataframes, how="vertical")
+            
+            # Ordenar por Player
+            df_final = df_final.sort('Player')
+            
+            return df_final
+        else:
+            print("Não foi possível calcular nenhuma diferença porcentual.")
+            return pl.DataFrame()
         
     except Exception as e:
         print(f"Error al calcular diferencias porcentuales: {str(e)}")
         return pl.DataFrame()
         
-        
-        
-

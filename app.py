@@ -42,8 +42,8 @@ sessionReport.register_callbacks(app)
 
 # Para ejecutar localmente
 if __name__ == '__main__':
-    app.run_server(debug=True)
+    app.run(debug=True)
 
 # Para ejecutar en el servidor
 # if __name__ == '__main__':
-#     app.run_server(host='0.0.0.0', port=8050, debug=False)
+#     app.run(host='0.0.0.0', port=8050, debug=False)

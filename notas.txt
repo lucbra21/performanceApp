@@ -1,0 +1,71 @@
+Fazer o menu com as páginas -> cada página é uma linha naquele documento que o cris mandou 
+
+Fazer página de tabela de referencias - Referencias com respeito ao tipo de dia (com dia de jogo incluído)
+                                        Fazer com média, mediana, etc.
+                                        Cris vai mandar uma foto de como quer essa páguina  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Para calcular as métricas ajustadas a 94 minutos, usar valores MD na coluna Match Day e na coluna Selection usar Fútbol_11v11_105x68m. 
+
+Fútbol_11v11_105x68m está dividido em duas partes. Os jogadores que jogaram ambas as partes devem ter duas linhas com esse valor na coluna Selection.
+
+Para calcular as referências fazer apenas para os jogadores que jogaram mais de 50 minutos num jogo. 
+
+O valor Drills na coluna Selection também tem em conta os aquecimentos, por isso não nos interessa.
+
+
+Função 1: Aplicar na página Cargar Datos?
+1º Percorrer todos os dados onde Match Day = MD - FEITO 
+2º Guardar todos as datas diferentes onde houve MD - FEITO 
+3º Fazer um loop para cada data - FEITO 
+    4º Para cada jogador jogador diferente nessa data, somar as duas partes de Fútbol_11v11_105x68m e guardar esse valor- FEITO 
+    5º Verificar se esse valor for superior a 50 min - FEITO 
+    6º Juntar os valores de ambas as partes
+    7º Se for, fazer regra de 3 simples para todas as métricas para 94 min 
+8º Guardar num df novo todos os registos com colunas: Player, Date + métricas.
+
+1º NOTA!!! -> Há algumas colunas que não fazem sentido passar a 94 minutos (como as colunas com Max)
+
+2º NOTA!!! -> Como faço para juntar os valores das métricas de cada parte do jogo?
+
+
+Função 2
+1º Pegar no df dado pela função 1
+2º Agrupar os valores de cada jogador com estatística selecionada (mediana como default)
+3º Guardar num df novo todos os registos com colunas: Player + métricas
+
+Função 3
+1º Pegar no df dado pela função 2
+2º Pegar no df com as métricas do dia selecionado
+3º Para cada jogador, calcular a diferença % entre as métricas do dia selecionado e as métricas de referência
+4º Guardar num df novo todos os registos com colunas: Player + diferença % para cada métrica 
+
+Usar a função 3 dentro da função get_combined_table_with_reference 
+
+

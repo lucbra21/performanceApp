@@ -703,16 +703,28 @@ def calcular_estadisticas_por_matchday():
         df_estadisticas_position = pl.DataFrame(resultados_position)
         df_estadisticas_team = pl.DataFrame(resultados_team)
 
-        # # Guardar resultados en archivos parquet
-        # output_path = os.path.join(DATA_PROCESSED_PATH, 'df_jugadores_estadisticas.parquet')
-        # output_path_position = os.path.join(DATA_PROCESSED_PATH, 'df_position_estadisticas.parquet')
-        # output_path_team = os.path.join(DATA_PROCESSED_PATH, 'df_team_estadisticas.parquet')
-
-        # df_estadisticas.write_parquet(output_path)
-        # df_estadisticas_position.write_parquet(output_path_position)
-        # df_estadisticas_team.write_parquet(output_path_team)
+        # Crear carpeta data/processed si no existe
+        processed_path = os.path.join(BASE_PATH, 'data', 'processed','references')
+        ensure_dir(processed_path)
         
-        print("Estadísticas por Match Day calculadas y guardadas exitosamente")
+        # Combinar todos los DataFrames en uno solo para guardar
+        # Agregar columna de tipo para identificar cada DataFrame
+        df_estadisticas_with_type = df_estadisticas.with_columns(pl.lit("jugador").alias("tipo"))
+        df_position_with_type = df_estadisticas_position.with_columns(pl.lit("posicion").alias("tipo"))
+        df_team_with_type = df_estadisticas_team.with_columns(pl.lit("equipo").alias("tipo"))
+        
+        # Concatenar todos los DataFrames
+        df_combined = pl.concat([
+            df_estadisticas_with_type,
+            df_position_with_type, 
+            df_team_with_type
+        ], how="diagonal")
+        
+        # Guardar el DataFrame combinado
+        output_path = os.path.join(processed_path, 'estadisticas_matchday.parquet')
+        df_combined.write_parquet(output_path)
+        
+        print(f"Estadísticas por Match Day calculadas y guardadas exitosamente en: {output_path}")
         return df_estadisticas, df_estadisticas_position, df_estadisticas_team
 
     except Exception as e:

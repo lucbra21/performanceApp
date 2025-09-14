@@ -4,7 +4,9 @@ from dash import callback_context
 
 # Componente de barra lateral para navegación
 
-# Layout de la barra lateral con logo, título y enlaces a las páginas
+from dash import html
+import dash_bootstrap_components as dbc
+
 def make_sidebar():
     sidebar_style = {
         "position": "fixed",
@@ -19,29 +21,30 @@ def make_sidebar():
         "alignItems": "center",
         "backgroundColor": "#121212",
     }
-    logo_style = {
-        "width": "40%",
-        "marginBottom": "1rem"
-    }
-    title_style = {
-        "fontWeight": "bold",
-        "fontSize": "1.2rem",
-        "marginBottom": "3rem",
-        "color": "#FFFFFF",
-    }
-    link_style = {
-        "margin": "0.4rem 0",
-        "width": "100%",
-        "color": "#FFFFFF",
-    }
-    
+    logo_style = {"width": "40%", "marginBottom": "1rem"}
+    title_style = {"fontWeight": "bold", "fontSize": "1.2rem", "marginBottom": "3rem", "color": "#FFFFFF"}
+    link_style = {"margin": "0.4rem 0", "width": "100%", "color": "#FFFFFF"}
+
     return html.Div([
         html.Img(src="/assets/images/logo.png", style=logo_style),
         html.Div("Performance APP", style=title_style),
         dbc.Nav([
             dbc.NavLink("Summary", href="/summary", active="exact", style=link_style),
-            dbc.NavLink("Session Report", href="/sessionReport", active="exact", style=link_style),
-            dbc.NavLink("Cargar Dados", href="/cargar_datos", active="exact", style=link_style),
+            dbc.NavLink("Cargar Datos", href="/cargar_datos", active="exact", style=link_style),
             dbc.NavLink("Settings", href="/settings", active="exact", style=link_style),
+
+            # Segmento Training
+            html.Div("Training", style={"fontWeight": "bold", "marginTop": "1rem", "color": "#FFFFFF"}),
+            dbc.NavLink("Session Report", href="/training/sessionReport", active="exact", style={**link_style, "marginLeft": "15px"}),
+            dbc.NavLink("Pre-Training", href="/training/preTraining", active="exact", style={**link_style, "marginLeft": "15px"}),
+            dbc.NavLink("Post-Training load", href="/training/postTraining", active="exact", style={**link_style, "marginLeft": "15px"}),
+            dbc.NavLink("Rehab", href="/training/Rehab", active="exact", style={**link_style, "marginLeft": "15px"}),
+            dbc.NavLink("Microcycle Load", href="/training/MicrocycleLoad", active="exact", style={**link_style, "marginLeft": "15px"}),
+            dbc.NavLink("Microcycle Contens", href="/training/MicrocycleContents", active="exact", style={**link_style, "marginLeft": "15px"}),
+            dbc.NavLink("Individual Values", href="/training/IndividualValues", active="exact", style={**link_style, "marginLeft": "15px"}),
+            dbc.NavLink("Drills", href="/training/Drills", active="exact", style={**link_style, "marginLeft": "15px"}),
+            dbc.NavLink("Benchmark MD", href="/training/BenchmarkMD", active="exact", style={**link_style, "marginLeft": "15px"})
+            
+
         ], vertical=True, pills=True, style={"width": "100%"})
     ], style=sidebar_style)

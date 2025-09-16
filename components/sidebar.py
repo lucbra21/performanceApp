@@ -38,7 +38,7 @@ def make_sidebar():
             dbc.NavLink("Session Report", href="/training/sessionReport", active="exact", style={**link_style, "marginLeft": "15px"}),
             dbc.NavLink("Pre-Training", href="/training/preTraining", active="exact", style={**link_style, "marginLeft": "15px"}),
             dbc.NavLink("Post-Training load", href="/training/postTraining", active="exact", style={**link_style, "marginLeft": "15px"}),
-            dbc.NavLink("Rehab", href="/training/Rehab", active="exact", style={**link_style, "marginLeft": "15px"}),
+            dbc.NavLink("References", href="/references", active="exact", style={**link_style, "marginLeft": "15px"}),
             dbc.NavLink("Microcycle Load", href="/training/MicrocycleLoad", active="exact", style={**link_style, "marginLeft": "15px"}),
             dbc.NavLink("Microcycle Contens", href="/training/MicrocycleContents", active="exact", style={**link_style, "marginLeft": "15px"}),
             dbc.NavLink("Individual Values", href="/training/IndividualValues", active="exact", style={**link_style, "marginLeft": "15px"}),

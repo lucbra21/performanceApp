@@ -8,7 +8,7 @@ app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages
 server = app.server
 
 # Importar páginas después de inicializar la app
-from pages import BenchmarkMD, IndividualValues, MicrocycleLoad, MicrocyclesContents, cargar_datos, sessionReport, settings, summary, preTraining, postTraining, Rehab,  Drills, MicrocycleLoad, MicrocyclesContents, IndividualValues, TrainingContents
+from pages import BenchmarkMD, IndividualValues, MicrocycleLoad, MicrocyclesContents, cargar_datos, sessionReport, settings, summary, preTraining, postTraining, Drills, TrainingContents, References
 
 # Layout principal con sidebar y área de contenido
 app.layout = html.Div([
@@ -40,8 +40,8 @@ def display_page(pathname):
         return preTraining.layout
     elif pathname == '/training/postTraining':
         return postTraining.layout
-    elif pathname == '/training/Rehab':
-        return Rehab.layout
+    elif pathname == '/training/References':
+        return References.layout
     elif pathname == '/training/MicrocycleLoad':
         return MicrocycleLoad.layout
     elif pathname == '/training/MicrocycleContents':
@@ -52,10 +52,10 @@ def display_page(pathname):
         return Drills.layout
     elif pathname == '/training/TrainingContents':
         return TrainingContents.layout
-    elif pathname == '/training/TrainingContents':
-        return TrainingContents.layout
     elif pathname == '/training/BenchmarkMD':
         return BenchmarkMD.layout
+    elif pathname == '/references':
+        return References.layout
 
     else:
         return html.H1('Bienvenido a Performance APP')
@@ -63,6 +63,7 @@ def display_page(pathname):
 # Registrar callbacks das páginas
 cargar_datos.register_callbacks(app)
 sessionReport.register_callbacks(app)
+References.register_callbacks(app)
 
 # Para ejecutar localmente
 if __name__ == '__main__':

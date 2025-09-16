@@ -288,6 +288,58 @@ def get_latest_date_for_picker():
     except Exception as e:
         print(f"Error obteniendo fecha más reciente: {e}")
         return None
+
+
+def get_first_date_for_picker():
+    """
+    Obtiene la fecha más antigua disponible en formato compatible con DatePickerRange.
+    
+    Convierte la fecha más antigua del formato dd/mm/aaaa al formato YYYY-MM-DD
+    que requiere el componente DatePickerRange de Dash.
+    
+    Returns:
+        str: Fecha más antigua en formato YYYY-MM-DD o None si no hay fechas
+    """
+    try:
+        fechas_ordenadas = get_sorted_dates()
+        if not fechas_ordenadas:
+            return None
+        
+        # Obtener la primera fecha (más antigua) y convertir a formato YYYY-MM-DD
+        first_date_str = fechas_ordenadas[0]  # Primera fecha en formato dd/mm/aaaa
+        first_date_dt = datetime.strptime(first_date_str, '%d/%m/%Y')
+        return first_date_dt.strftime('%Y-%m-%d')  # Formato para DatePickerRange
+        
+    except Exception as e:
+        print(f"Error obteniendo fecha más antigua: {e}")
+        return None
+
+
+def get_date_range_for_picker():
+    """
+    Obtiene el rango completo de fechas (primera y última) en formato compatible con DatePickerRange.
+    
+    Returns:
+        tuple: (fecha_inicio, fecha_fin) en formato YYYY-MM-DD o (None, None) si no hay fechas
+    """
+    try:
+        fechas_ordenadas = get_sorted_dates()
+        if not fechas_ordenadas:
+            return None, None
+        
+        # Obtener primera y última fecha y convertir a formato YYYY-MM-DD
+        first_date_str = fechas_ordenadas[0]  # Primera fecha en formato dd/mm/aaaa
+        last_date_str = fechas_ordenadas[-1]  # Última fecha en formato dd/mm/aaaa
+        
+        first_date_dt = datetime.strptime(first_date_str, '%d/%m/%Y')
+        last_date_dt = datetime.strptime(last_date_str, '%d/%m/%Y')
+        
+        return (first_date_dt.strftime('%Y-%m-%d'), 
+                last_date_dt.strftime('%Y-%m-%d'))
+        
+    except Exception as e:
+        print(f"Error obteniendo rango de fechas: {e}")
+        return None, None
     
 def format_and_filter_date(selected_date):
     """
@@ -1674,51 +1726,46 @@ def calculate_player_statistics_94min(last_games=None):
         df_metrics_94min = calculate_metrics_for_94min(4)
         
         if not df_metrics_94min.is_empty():
-            # Calcular estadísticas para los últimos 4 partidos
-            df_last_games_stats = df_metrics_94min.group_by('Player').agg([
-                pl.col('Total Distance (m)').mean().alias('Total Distance (m)_mean'),
-                pl.col('Total Distance (m)').median().alias('Total Distance (m)_median'),
-                pl.col('Total Distance (m)').std().alias('Total Distance (m)_std'),
-                pl.col('HSR Distance (m)').mean().alias('HSR Distance (m)_mean'),
-                pl.col('HSR Distance (m)').median().alias('HSR Distance (m)_median'),
-                pl.col('HSR Distance (m)').std().alias('HSR Distance (m)_std'),
-                pl.col('Sprint Distance (m)').mean().alias('Sprint Distance (m)_mean'),
-                pl.col('Sprint Distance (m)').median().alias('Sprint Distance (m)_median'),
-                pl.col('Sprint Distance (m)').std().alias('Sprint Distance (m)_std'),
-                pl.col('Player Load').mean().alias('Player Load_mean'),
-                pl.col('Player Load').median().alias('Player Load_median'),
-                pl.col('Player Load').std().alias('Player Load_std'),
-                pl.col('Max Speed (km/h)').mean().alias('Max Speed (km/h)_mean'),
-                pl.col('Max Speed (km/h)').median().alias('Max Speed (km/h)_median'),
-                pl.col('Max Speed (km/h)').std().alias('Max Speed (km/h)_std'),
-                pl.col('Accelerations').mean().alias('Accelerations_mean'),
-                pl.col('Accelerations').median().alias('Accelerations_median'),
-                pl.col('Accelerations').std().alias('Accelerations_std'),
-                pl.col('Decelerations').mean().alias('Decelerations_mean'),
-                pl.col('Decelerations').median().alias('Decelerations_median'),
-                pl.col('Decelerations').std().alias('Decelerations_std')
-            ])
+            # Usar o mesmo processo de cálculo de estatísticas que foi usado para o histórico
+            # Obter as colunas de métricas disponíveis (que terminam em '_94min')
+            metric_columns_last_games = [col for col in df_metrics_94min.columns if col.endswith('_94min')]
             
-            # Transformar para formato longo similar ao df_final
-            df_last_games_melted = df_last_games_stats.melt(
-                id_vars=['Player'],
-                variable_name='metric_stat',
-                value_name='valor'
-            )
-            
-            # Separar métrica e estatística
-            df_last_games_final = df_last_games_melted.with_columns([
-                pl.col('metric_stat').str.split('_').list.slice(0, -1).list.join('_').alias('metrica'),
-                pl.col('metric_stat').str.split('_').list.get(-1).alias('estadistica')
-            ]).drop('metric_stat')
-            
-            # Guardar DataFrame de los últimos partidos
-            last_games_file = os.path.join(references_path, 'player_statistics_94min_last_4_games.parquet')
-            df_last_games_final.write_parquet(last_games_file)
-            
-            print(f"DataFrames guardados en {references_path}:")
-            print(f"- Histórico completo: player_statistics_94min_historical.parquet ({len(df_final)} registros)")
-            print(f"- Últimos 4 partidos: player_statistics_94min_last_4_games.parquet ({len(df_last_games_final)} registros)")
+            if metric_columns_last_games:
+                # Lista para almacenar los DataFrames de cada estadística
+                result_dataframes_last_games = []
+                
+                # Calcular estadísticas por jugador individual para los últimos 4 partidos
+                for stat_name, agg_function in stat_functions.items():
+                    # Agrupar por jugador y calcular la estadística para cada métrica
+                    df_stat = df_metrics_94min.group_by('Player').agg([
+                        agg_function(col) for col in metric_columns_last_games
+                    ])
+                    
+                    # Agregar columna con el nombre de la estadística
+                    df_stat = df_stat.with_columns(
+                        pl.lit(stat_name).alias('estadistica')
+                    )
+                    
+                    # Reordenar columnas para que 'estadistica' esté después de 'Player'
+                    columns_order = ['Player', 'estadistica'] + [col for col in df_stat.columns if col not in ['Player', 'estadistica']]
+                    df_stat = df_stat.select(columns_order)
+                    
+                    result_dataframes_last_games.append(df_stat)
+                
+                # Concatenar todos los DataFrames de los últimos partidos
+                df_last_games_final = pl.concat(result_dataframes_last_games, how="vertical")
+                
+                # Guardar DataFrame de los últimos partidos
+                last_games_file = os.path.join(references_path, 'player_statistics_94min_last_4_games.parquet')
+                df_last_games_final.write_parquet(last_games_file)
+                
+                print(f"DataFrames guardados en {references_path}:")
+                print(f"- Histórico completo: player_statistics_94min_historical.parquet ({len(df_final)} registros)")
+                print(f"- Últimos 4 partidos: player_statistics_94min_last_4_games.parquet ({len(df_last_games_final)} registros)")
+            else:
+                print(f"DataFrame histórico guardado en {references_path}:")
+                print(f"- Histórico completo: player_statistics_94min_historical.parquet ({len(df_final)} registros)")
+                print("- Aviso: No se encontraron columnas de métricas para los últimos 4 partidos")
         else:
             print(f"DataFrame histórico guardado en {references_path}:")
             print(f"- Histórico completo: player_statistics_94min_historical.parquet ({len(df_final)} registros)")

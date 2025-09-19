@@ -4,7 +4,15 @@ import dash_bootstrap_components as dbc
 from components.sidebar import make_sidebar
 
 # Inicializa la aplicación Dash con Bootstrap
-app = dash.Dash(__name__, external_stylesheets=[dbc.themes.BOOTSTRAP], use_pages=True, suppress_callback_exceptions=True)
+app = dash.Dash(__name__, 
+                external_stylesheets=[
+                    dbc.themes.BOOTSTRAP,
+                    '/assets/style.css',
+                    '/assets/style_sessionReport.css',
+                    '/assets/style_references.css'
+                ], 
+                use_pages=True, 
+                suppress_callback_exceptions=True)
 server = app.server
 
 # Importar páginas después de inicializar la app
@@ -66,9 +74,9 @@ sessionReport.register_callbacks(app)
 References.register_callbacks(app)
 
 # Para ejecutar localmente
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#     app.run(debug=True)
 
 #Para ejecutar en el servidor
-# if __name__ == '__main__':
-#     app.run(host='0.0.0.0', port=8050, debug=False)
+if __name__ == '__main__':
+   app.run(host='0.0.0.0', port=8050, debug=False)

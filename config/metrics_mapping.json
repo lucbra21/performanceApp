@@ -1,0 +1,193 @@
+{
+  "metrics": {
+    "player": {
+      "project_name": "Player",
+      "description": "Nombre del jugador",
+      "unit": "text",
+      "original_column_name": "Player",
+      "calculation_method": "none",
+      "column_type": "filter",
+      "per_minute_calculation": false
+    },
+    "team": {
+      "project_name": "Team",
+      "description": "Equipo al que pertenece el jugador",
+      "unit": "text",
+      "original_column_name": "Team ",
+      "calculation_method": "none",
+      "column_type": "filter",
+      "per_minute_calculation": false
+    },
+    "position": {
+      "project_name": "Position",
+      "description": "Posición del jugador en el campo",
+      "unit": "text",
+      "original_column_name": "Position",
+      "calculation_method": "none",
+      "column_type": "filter",
+      "per_minute_calculation": false
+    },
+    "date": {
+      "project_name": "Date",
+      "description": "Fecha del entrenamiento o partido",
+      "unit": "date",
+      "original_column_name": "Date",
+      "calculation_method": "none",
+      "column_type": "filter",
+      "per_minute_calculation": false
+    },
+    "match_day": {
+      "project_name": "Match Day",
+      "description": "Día específico del partido o entrenamiento",
+      "unit": "text",
+      "original_column_name": "Match Day",
+      "calculation_method": "none",
+      "column_type": "filter",
+      "per_minute_calculation": false
+    },
+    "selection": {
+      "project_name": "Selection",
+      "description": "Tipo de ejercicio realizado",
+      "unit": "text",
+      "original_column_name": "Selection",
+      "calculation_method": "none",
+      "column_type": "filter",
+      "per_minute_calculation": false
+    },
+    "drills_duration": {
+      "project_name": "Drills Duration",
+      "description": "Duración total de los ejercicios realizados",
+      "unit": "minutes",
+      "original_column_name": "Drills Duration",
+      "calculation_method": "none",
+      "column_type": "filter",
+      "per_minute_calculation": false
+    },
+    "distance": {
+      "project_name": "Distance (m)",
+      "description": "Distancia total recorrida en metros",
+      "unit": "meters",
+      "original_column_name": "Distance (m)",
+      "calculation_method": "sum",
+      "column_type": "metric",
+      "per_minute_calculation": true
+    },
+    "high_speed_running": {
+      "project_name": "Abs HSR(m)",
+      "description": "Distancia de carrera de alta velocidad absoluta",
+      "unit": "meters",
+      "original_column_name": "Abs HSR(m)",
+      "calculation_method": "sum",
+      "column_type": "metric",
+      "per_minute_calculation": true
+    },
+    "explosive_distance": {
+      "project_name": "Explosive Dist (m)",
+      "description": "Distancia recorrida en velocidades explosivas",
+      "unit": "meters",
+      "original_column_name": "Explosive Dist (m)",
+      "calculation_method": "sum",
+      "column_type": "metric",
+      "per_minute_calculation": true
+    },
+    "accelerations": {
+      "project_name": "Accelerations",
+      "description": "Número total de aceleraciones",
+      "unit": "count",
+      "original_column_name": "Accelerations",
+      "calculation_method": "sum",
+      "column_type": "metric",
+      "per_minute_calculation": false
+    },
+    "decelerations": {
+      "project_name": "Decelerations",
+      "description": "Número total de desaceleraciones",
+      "unit": "count",
+      "original_column_name": "Decelerations",
+      "calculation_method": "sum",
+      "column_type": "metric",
+      "per_minute_calculation": false
+    },
+    "max_speed": {
+      "project_name": "MAX Speed(km/h)",
+      "description": "Velocidad máxima alcanzada",
+      "unit": "km/h",
+      "original_column_name": "MAX Speed(km/h)",
+      "calculation_method": "max",
+      "column_type": "metric",
+      "per_minute_calculation": false
+    },
+    "hsr_relative": {
+      "project_name": "HSR Rel (m)",
+      "description": "Distancia de carrera de alta velocidad relativa",
+      "unit": "meters",
+      "original_column_name": "HSR Rel (m)",
+      "calculation_method": "sum",
+      "column_type": "metric",
+      "per_minute_calculation": false
+    },
+    "sprint_absolute": {
+      "project_name": "Sprint Abs (m)",
+      "description": "Distancia de sprint absoluta",
+      "unit": "meters",
+      "original_column_name": "Sprint Abs (m)",
+      "calculation_method": "sum",
+      "column_type": "metric",
+      "per_minute_calculation": false
+    },
+    "sprint_relative": {
+      "project_name": "Sprint Rel (m)",
+      "description": "Distancia de sprint relativa",
+      "unit": "meters",
+      "original_column_name": "Sprint Rel (m)",
+      "calculation_method": "sum",
+      "column_type": "metric",
+      "per_minute_calculation": false
+    },
+    "total_impacts": {
+      "project_name": "Total impacts",
+      "description": "Número total de impactos",
+      "unit": "count",
+      "original_column_name": "Total impacts",
+      "calculation_method": "sum",
+      "column_type": "metric",
+      "per_minute_calculation": false
+    },
+    "acc_dec_difference": {
+      "project_name": "Dif. ACC/DEC",
+      "description": "Diferencia entre aceleraciones y desaceleraciones",
+      "unit": "count",
+      "original_column_name": "Dif. ACC/DEC",
+      "calculation_method": "accelerations_minus_decelerations",
+      "column_type": "metric",
+      "per_minute_calculation": false
+    },
+    "max_acceleration": {
+      "project_name": "Max Acceleration",
+      "description": "Aceleración máxima alcanzada",
+      "unit": "m/s²",
+      "original_column_name": "Max Acceleration",
+      "calculation_method": "max",
+      "column_type": "metric",
+      "per_minute_calculation": false
+    },
+    "step_balance": {
+      "project_name": "Step Balance (%)",
+      "description": "Porcentaje de equilibrio de los pasos",
+      "unit": "percentage",
+      "original_column_name": "Step Balance (%)",
+      "calculation_method": "mean",
+      "column_type": "metric",
+      "per_minute_calculation": false
+    },
+    "speed_zones_low": {
+      "project_name": "Speed Zones (m) [0.0, 6.0]km/h (m)",
+      "description": "Distancia recorrida en zona de velocidad baja (0.0-6.0 km/h)",
+      "unit": "meters",
+      "original_column_name": "Speed Zones (m) [0.0, 6.0]km/h (m)",
+      "calculation_method": "sum",
+      "column_type": "metric",
+      "per_minute_calculation": false
+    }
+  }
+}

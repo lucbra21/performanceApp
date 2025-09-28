@@ -1,0 +1,185 @@
+/* ============================================================================ */
+/* ESTILOS ESPECÍFICOS PARA A PÁGINA REFERENCES */
+/* ============================================================================ */
+
+/* Estilos para o date picker moderno */
+.modern-date-picker .DateRangePickerInput {
+    border: none !important;
+    background: transparent !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+}
+
+.modern-date-picker .DateInput {
+    background: #f8fafc !important;
+    border-radius: 8px !important;
+    border: 1px solid #e2e8f0 !important;
+    margin: 0 8px !important;
+    transition: all 0.3s ease !important;
+}
+
+.modern-date-picker .DateInput:hover {
+    border-color: #3498db !important;
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1) !important;
+}
+
+.modern-date-picker .DateInput__input {
+    padding: 12px 16px !important;
+    font-size: 15px !important;
+    font-weight: 500 !important;
+    color: #2d3748 !important;
+    background: transparent !important;
+    border: none !important;
+    text-align: center !important;
+}
+
+.modern-date-picker .DateInput__input::placeholder {
+    color: #a0aec0 !important;
+    font-weight: 400 !important;
+}
+
+.modern-date-picker .DateRangePickerInput__arrow {
+    color: #3498db !important;
+    font-size: 18px !important;
+    font-weight: bold !important;
+}
+
+/* Efeito hover no container do date picker */
+.date-range-container:hover .modern-date-picker .DateInput {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 12px rgba(52, 152, 219, 0.15) !important;
+}
+
+/* Container do date picker range */
+.date-picker-range {
+    border-radius: 8px !important;
+    border: 2px solid #e9ecef !important;
+    min-height: 40px !important;
+    background: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s ease !important;
+    font-size: 14px !important;
+}
+
+.date-picker-range:hover {
+    border-color: #c3b89a !important;
+    box-shadow: 0 4px 12px rgba(195, 184, 154, 0.15) !important;
+}
+
+.date-picker-range:focus-within {
+    border-color: #c3b89a !important;
+    box-shadow: 0 0 0 3px rgba(195, 184, 154, 0.1) !important;
+}
+
+/* Inputs do date picker range */
+.date-picker-range .DateInput_input {
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    border: none !important;
+    background: transparent !important;
+    color: #495057 !important;
+}
+
+.date-picker-range .DateInput_input::placeholder {
+    color: #adb5bd !important;
+}
+
+/* Container dos dropdowns */
+.statistic-dropdown .Select-control {
+    border-radius: 8px !important;
+    border: 2px solid #e9ecef !important;
+    min-height: 40px !important;
+    background: #ffffff !important;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05) !important;
+    transition: all 0.3s ease !important;
+}
+
+.statistic-dropdown .Select-control:hover {
+    border-color: #c3b89a !important;
+    box-shadow: 0 4px 12px rgba(195, 184, 154, 0.15) !important;
+}
+
+.statistic-dropdown .Select.is-focused .Select-control {
+    border-color: #c3b89a !important;
+    box-shadow: 0 0 0 3px rgba(195, 184, 154, 0.1) !important;
+}
+
+/* Menu dropdown */
+.statistic-dropdown .Select-menu-outer {
+    border-radius: 8px !important;
+    border: 2px solid #c3b89a !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+    z-index: 9999 !important;
+    margin-top: 4px !important;
+}
+
+.statistic-dropdown .Select-menu {
+    border-radius: 6px !important;
+    max-height: 200px !important;
+    overflow-y: auto !important;
+}
+
+.statistic-dropdown .Select-option {
+    padding: 10px 12px !important;
+    font-size: 14px !important;
+    color: #495057 !important;
+    background: #ffffff !important;
+    border-bottom: 1px solid #f8f9fa !important;
+}
+
+.statistic-dropdown .Select-option:hover {
+    background: #f8f9fa !important;
+    color: #2c3e50 !important;
+}
+
+.statistic-dropdown .Select-option.is-focused {
+    background: #c3b89a !important;
+    color: #ffffff !important;
+}
+
+.statistic-dropdown .Select-option.is-selected {
+    background: #007bff !important;
+    color: #ffffff !important;
+}
+
+/* Placeholder do dropdown */
+.statistic-dropdown .Select-placeholder {
+    color: #adb5bd !important;
+    font-size: 14px !important;
+}
+
+/* Multi-value (tags selecionadas) */
+.statistic-dropdown .Select-value {
+    background: #e9ecef !important;
+    border-radius: 4px !important;
+    color: #495057 !important;
+    font-size: 13px !important;
+    margin: 2px !important;
+    padding: 2px 6px !important;
+}
+
+.statistic-dropdown .Select-value-icon {
+    color: #6c757d !important;
+    font-weight: bold !important;
+}
+
+.statistic-dropdown .Select-value-icon:hover {
+    color: #dc3545 !important;
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .inputs-row {
+        flex-direction: column !important;
+        gap: 15px !important;
+    }
+    
+    .input-item {
+        min-width: 100% !important;
+    }
+    
+    .date-range-container {
+        margin-bottom: 30px !important;
+    }
+}

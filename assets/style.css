@@ -41,14 +41,52 @@ h2 {
     border-radius: 12px;
     border: none !important;
 }
-
-
 /* Cambiar color de texto y fondo del NavLink activo */
 .nav-pills .nav-link.active {
   background-color: transparent !important;
   color: #c3b89a !important;
   font-weight: bold;
   border-left: 3px solid #c3b89a;
+}
+
+/* Estilos específicos para dropdowns en DataTable */
+.dash-table-container .Select-menu-outer {
+    display: block !important;
+    z-index: 9999 !important;
+    max-height: 300px !important;
+    overflow-y: auto !important;
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    background-color: white !important;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important;
+}
+
+.dash-table-container .Select-option {
+    padding: 8px 12px !important;
+    font-size: 14px !important;
+    color: #333 !important;
+    background-color: white !important;
+    cursor: pointer !important;
+}
+
+.dash-table-container .Select-option:hover {
+    background-color: #f8f9fa !important;
+    color: #333 !important;
+}
+
+.dash-table-container .Select-option.is-selected {
+    background-color: #007bff !important;
+    color: white !important;
+}
+
+.dash-table-container .Select-control {
+    border: 1px solid #ccc !important;
+    border-radius: 4px !important;
+    background-color: white !important;
+}
+
+.dash-table-container .Select-arrow-zone {
+    cursor: pointer !important;
 }
 
 /* Cambiar color al pasar el mouse */

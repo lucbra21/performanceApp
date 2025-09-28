@@ -15,7 +15,6 @@
     box-shadow: 0 8px 32px rgba(0, 123, 255, 0.12), 0 2px 8px rgba(0, 0, 0, 0.08);
     border: 1px solid rgba(0, 123, 255, 0.1);
     position: relative;
-    transition: all 0.3s ease;
 }
 
 .date-selection-container::before {
@@ -149,7 +148,6 @@
     font-size: 18px;
     font-weight: bold;
     cursor: pointer;
-    transition: all 0.3s ease;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -177,7 +175,6 @@
     width: 100%;
     background: #ffffff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
     font-size: 14px;
     flex: 1;
 }
@@ -201,7 +198,6 @@
     width: 100%;
     background: #ffffff;
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-    transition: all 0.3s ease;
     font-size: 14px;
 }
 
@@ -553,8 +549,6 @@
 /* Estilos para tabla de jugadores */
 .players-data-table-style .dash-spreadsheet-container {
     overflow-x: auto;
-    max-height: 800px;
-    overflow-y: auto;
 }
 
 .players-data-table-style .dash-spreadsheet-container .dash-spreadsheet-inner table tbody td,
@@ -598,8 +592,6 @@
 
 .combined-stats-table-style .dash-spreadsheet-container {
     overflow-x: auto;
-    max-height: 600px;
-    overflow-y: auto;
     width: 100% !important;
     min-width: 1400px !important;
 }
@@ -800,6 +792,41 @@
 }
 
 /* ============================================================================ */
+/* TABELA COMPARATIVA - EXIBIÇÃO COMPLETA SEM SCROLL */
+/* ============================================================================ */
+
+/* Regras específicas para a tabela comparativa dinâmica */
+#comparative-dynamic-table .dash-spreadsheet-container,
+#comparative-dynamic-table .dash-table-container .dash-spreadsheet-container {
+    max-height: none !important;
+    height: auto !important;
+    overflow-y: visible !important;
+    position: static !important;
+}
+
+#comparative-dynamic-table .dash-spreadsheet-container .dash-spreadsheet-inner,
+#comparative-dynamic-table .dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner {
+    max-height: none !important;
+    height: auto !important;
+    overflow-y: visible !important;
+    position: static !important;
+}
+
+/* Desabilitar qualquer animação ou transição na tabela comparativa */
+#comparative-dynamic-table,
+#comparative-dynamic-table * {
+    animation: none !important;
+}
+
+/* Sobrescrever estilos das classes gerais para a tabela comparativa */
+.combined-stats-table-style#comparative-dynamic-table .dash-spreadsheet-container,
+.players-data-table-style#comparative-dynamic-table .dash-spreadsheet-container {
+    max-height: none !important;
+    height: auto !important;
+    overflow-y: visible !important;
+}
+
+/* ============================================================================ */
 /* BOTÃO Z-SCORE */
 /* ============================================================================ */
 
@@ -811,7 +838,6 @@
     font-size: 14px;
     font-weight: 600;
     cursor: pointer;
-    transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);

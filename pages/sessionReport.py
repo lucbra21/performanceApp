@@ -1,3 +1,60 @@
+"""
+============================================================================
+MÓDULO: SESSION REPORT - ANÁLISIS DE SESIONES DE ENTRENAMIENTO
+============================================================================
+
+Este módulo implementa la página principal de análisis de sesiones de entrenamiento,
+proporcionando una interfaz completa para visualizar y analizar datos de rendimiento
+de jugadores en sesiones específicas.
+
+FUNCIONALIDADES PRINCIPALES:
+- Navegación temporal entre sesiones de entrenamiento
+- Análisis comparativo de métricas de rendimiento
+- Visualización de datos en múltiples formatos (absolutos, Z-scores, diferencias porcentuales)
+- Sistema de tarjetas para métricas de equipo y posiciones
+- Generación de gráficos de análisis de rendimiento
+
+FUNCIONES DISPONIBLES:
+========================
+
+1. register_callbacks(app)
+   - Propósito: Registra todos los callbacks de la página Session Report
+   - Funcionalidad: Configura la interactividad completa de la página
+   - Dependencias: Todas las funciones callback del módulo
+
+2. manage_date_navigation_and_config(minus_clicks, plus_clicks, selector_id, current_date)
+   - Propósito: Gestiona la navegación de fechas y configuración del calendario
+   - Funcionalidad: Permite navegación secuencial entre fechas con datos disponibles
+   - Dependencias: utils/date.py (get_sorted_dates, get_date_range, format_date)
+
+3. update_session_info(selected_date, selected_statistic)
+   - Propósito: Actualiza la información de la sesión seleccionada
+   - Funcionalidad: Muestra resumen de jugadores, duración y match days
+   - Dependencias: utils/sessionReport_utils.py (get_table_data), utils/date.py (format_date)
+
+4. update_comparative_table(selected_date, selected_statistic, table_mode)
+   - Propósito: Genera tabla comparativa con múltiples modos de visualización
+   - Funcionalidad: Muestra datos en formato absoluto, Z-scores o diferencias porcentuales
+   - Dependencias: utils/sessionReport_utils.py (generate_comparative_table, format_data_for_display_mode, generate_zscore_color_scheme)
+
+5. update_tarjetas_columns_options(selected_date)
+   - Propósito: Actualiza opciones del dropdown de columnas para tarjetas
+   - Funcionalidad: Proporciona lista de métricas disponibles para selección
+   - Dependencias: utils/sessionReport_utils.py (get_table_data), utils/date.py (format_date)
+
+6. update_cards_view_options(selected_date, selected_statistic)
+   - Propósito: Actualiza opciones de vista para tarjetas (equipo/posiciones)
+   - Funcionalidad: Genera opciones basadas en posiciones disponibles en los datos
+   - Dependencias: utils/sessionReport_utils.py (get_table_data), utils/date.py (format_date)
+
+7. update_team_cards(selected_date, selected_statistic, selected_view, selected_columns)
+   - Propósito: Genera tarjetas de métricas para equipos y posiciones
+   - Funcionalidad: Muestra valores absolutos de métricas en formato de tarjetas visuales
+   - Dependencias: utils/sessionReport_utils.py (get_table_data), utils/date.py (format_date)
+
+
+"""
+
 # ============================================================================
 # IMPORTACIONES
 # ============================================================================
@@ -12,7 +69,12 @@ from datetime import datetime
 import polars as pl
 import pandas as pd
 import numpy as np
-from utils.utils import *
+
+# Importaciones específicas de los módulos utils
+from utils.date import *
+from utils.data_access import *
+from utils.pages.sessionReport_utils import *
+
 
 # Importaciones del Plotly para gráficos
 import plotly.graph_objects as go
@@ -22,6 +84,43 @@ import plotly.express as px
 # ============================================================================
 # LAYOUT DE LA PÁGINA
 # ============================================================================
+
+"""
+ESTRUCTURA DEL LAYOUT DE SESSION REPORT:
+========================================
+
+El layout de la página está organizado en secciones jerárquicas que proporcionan
+una interfaz completa para el análisis de sesiones de entrenamiento:
+
+1. ENCABEZADO DE PÁGINA:
+   - Título principal "Session Report"
+   - Separador visual (html.Hr)
+
+2. CONTENEDOR DE PARÁMETROS DE SELECCIÓN:
+   - Sección "Seleccionar Parámetros" con controles principales:
+     * Selector de fecha con navegación (botones -/+ y DatePickerSingle)
+     * Dropdown de estadísticas (mean, median, max, min, percentiles)
+
+3. CONTENEDOR PRINCIPAL DE DATOS:
+   - Información de sesión (número de jugadores, duración, match days)
+   - Controles para tarjetas de métricas:
+     * Selector de vista (Equipo/Posiciones)
+     * Selector múltiple de columnas a mostrar
+   - Área de visualización de tarjetas de métricas
+   - Controles para tabla comparativa:
+     * RadioItems para modo de visualización (Absolutos/Z-Score/Diferencia %)
+   - Área de tabla comparativa dinámica
+
+4. SECCIÓN DE GRÁFICOS (EXCLUIDA DE DOCUMENTACIÓN):
+   - Múltiples gráficos de análisis de rendimiento
+   - Controles específicos para gráficos
+   - Gráfico personalizable con selección de ejes
+
+5. COMPONENTES DE ESTADO:
+   - dcc.Store para controlar estado de Z-Score
+
+
+"""
 
 layout = html.Div([
 
@@ -115,6 +214,29 @@ layout = html.Div([
             ], style={'margin-bottom': '10px', 'margin-top': '20px'}),
             html.Div(id='team-tarjetas-output'),
             
+            # Controles para la tabla comparativa dinâmica
+            html.Div([
+                html.H4('Tabla Comparativa', className="section-title", style={'margin-top': '30px'}),
+                html.Div([
+                    html.Label('Modo de visualización:', className="input-label"),
+                    dcc.RadioItems(
+                        id='table-mode-selector',
+                        options=[
+                            {'label': 'Valores Absolutos', 'value': 'absolutos'},
+                            {'label': 'Absolutos + Z-Score', 'value': 'zscore'},
+                            {'label': 'Absolutos + Diferencia %', 'value': 'diferencia'}
+                        ],
+                        value='diferencia',
+                        inline=True,
+                        inputStyle={'margin-right': '12px', 'margin-left': '6px'},
+                        className="statistic-radioitems"
+                    )
+                ], className="input-item", style={'margin-bottom': '15px'})
+            ], className="table-controls-container"),
+            
+            # Contenedor para la tabla comparativa dinâmica
+            html.Div(id='comparative-table-output'),
+            
             html.Div(id='players-table-output'),
 
             html.Hr(),
@@ -131,7 +253,7 @@ layout = html.Div([
             html.Div([
                 html.Label('Estadística:', className="input-label"),
                 dcc.RadioItems(
-                    id='statistic-selector',
+                    id='graphs-statistic-selector',
                     options=[
                         {'label': 'Media', 'value': 'mean'},
                         {'label': 'Mediana', 'value': 'median'},
@@ -279,6 +401,12 @@ def register_callbacks(app):
         inicial del calendario, asegurando que solo se muestren fechas con datos disponibles
         y permitiendo navegación secuencial entre fechas válidas.
         
+        Utiliza las funciones del módulo utils/date.py para:
+        - get_sorted_dates(): Obtener fechas ordenadas cronológicamente
+        - get_date_range(): Obtener rango de fechas para límites del calendario
+        - get_latest_date_for_picker(): Obtener fecha más reciente para inicialización
+        - format_date(): Convertir entre formatos de fecha
+        
         Args:
             minus_clicks (int): Número de clics en el botón de fecha anterior
             plus_clicks (int): Número de clics en el botón de fecha siguiente  
@@ -293,27 +421,23 @@ def register_callbacks(app):
         """
         ctx = dash.callback_context
         
-        # Obtener fechas ordenadas cronológicamente en formato dd/mm/aaaa
+        # Obtener fechas ordenadas cronológicamente usando función de utils/date.py
         fechas_ordenadas = get_sorted_dates()
         
         if not fechas_ordenadas:
             return dash.no_update, None, None, []
         
-        # Configurar límites del calendario (convertir a datetime.date para el DatePickerSingle)
+        # Configurar límites del calendario usando función de utils/date.py
+        min_date_str, max_date_str = get_date_range()
         try:
-            min_date = datetime.strptime(fechas_ordenadas[0], '%d/%m/%Y').date()
-            max_date = datetime.strptime(fechas_ordenadas[-1], '%d/%m/%Y').date()
+            min_date = datetime.strptime(min_date_str, '%Y-%m-%d').date() if min_date_str else None
+            max_date = datetime.strptime(max_date_str, '%Y-%m-%d').date() if max_date_str else None
         except:
             min_date = max_date = None
         
-        # Si no hay trigger (inicialización de la página), retornar la fecha más reciente
+        # Si no hay trigger (inicialización de la página), usar función de utils/date.py
         if not ctx.triggered:
-            # Convertir la fecha más reciente (última en la lista) a formato YYYY-MM-DD
-            try:
-                latest_date_dt = datetime.strptime(fechas_ordenadas[-1], '%d/%m/%Y')
-                latest_date_formatted = latest_date_dt.strftime('%Y-%m-%d')
-            except:
-                latest_date_formatted = fechas_ordenadas[-1]
+            latest_date_formatted = get_latest_date_for_picker()
             return latest_date_formatted, min_date, max_date, []
         
         # Si es solo inicialización del selector, solo configurar calendario
@@ -322,21 +446,12 @@ def register_callbacks(app):
         
         # Manejar navegación con botones
         if not current_date:
-            # Si no hay fecha actual, retornar la primera fecha disponible
-            return fechas_ordenadas[0], min_date, max_date, []
+            # Si no hay fecha actual, usar función de utils/date.py para obtener la primera fecha
+            first_date_str = get_first_date_for_picker()
+            return first_date_str, min_date, max_date, []
         
-        # Convertir current_date (formato aaaa-mm-dd del DatePickerSingle) a dd/mm/aaaa
-        try:
-            if isinstance(current_date, str):
-                if '-' in current_date:
-                    current_dt = datetime.strptime(current_date, '%Y-%m-%d')
-                    current_date_formatted = current_dt.strftime('%d/%m/%Y')
-                else:
-                    current_date_formatted = current_date
-            else:
-                current_date_formatted = current_date.strftime('%d/%m/%Y')
-        except:
-            current_date_formatted = fechas_ordenadas[0]
+        # Convertir current_date usando función de utils/date.py
+        current_date_formatted = format_date(current_date)
         
         # Encontrar índice de la fecha actual en la lista ordenada
         try:
@@ -391,6 +506,12 @@ def register_callbacks(app):
         número de jugadores, duración total, match days disponibles y la estadística
         actualmente seleccionada para análisis.
         
+        Utiliza las funciones del módulo utils/sessionReport_utils.py para:
+        - get_table_data(): Obtener datos de jugadores filtrados por fecha
+        
+        Y del módulo utils/date.py para:
+        - format_date(): Convertir formato de fecha para visualización
+        
         Args:
             selected_date (str): Fecha seleccionada en formato YYYY-MM-DD
             selected_statistic (str): Código de la estadística seleccionada 
@@ -400,50 +521,61 @@ def register_callbacks(app):
             html.Div: Componente HTML con la información de la sesión formateada,
                      incluyendo título, detalles de la sesión y estadística seleccionada
         
-        Note:
-            Maneja errores de datos faltantes y muestra mensajes informativos apropiados
+
         """
         if not selected_date:
             return html.Div("Selecciona una fecha para ver la información de la sesión.", 
                           className="info-message")
         
         try:
-            path_to_parquet = os.path.join(DATA_GPS_PATH, 'df_gps.parquet')
-            if not os.path.exists(path_to_parquet):
-                return html.Div("No se encontró el archivo de datos.", 
-                              className="error-message")
+            # Convertir fecha de YYYY-MM-DD a dd/mm/aaaa usando función de utils/date.py
+            formatted_date_internal = format_date(selected_date)
             
-            df = pl.read_parquet(path_to_parquet)
+            # Obtener datos de jugadores usando función de utils/sessionReport_utils.py
+            df_players = get_table_data(
+                selected_date=formatted_date_internal,
+                selected_statistic=selected_statistic or 'mean'  # Usar 'mean' como valor por defecto
+            )
             
-            result = format_and_filter_date(selected_date)
-            if result is None or result[0] is None:
+            if df_players is None or df_players.height == 0:
                 return html.Div(f"No se encontraron datos para la fecha {selected_date}.", 
                               className="warning-message")
-            
-            df_fecha, formatted_date = result
-            
-            if df_fecha.height == 0:
-                return html.Div(f"No se encontraron datos para la fecha {selected_date}.", 
-                              className="warning-message")
-            
             
             # Obtener información básica de la sesión
-            num_jugadores = df_fecha.select('Player').n_unique()
+            num_jugadores = df_players.select('Player').n_unique()
             
             # Calcular duración total de drills si la columna existe
-            if 'Drills Duration' in df_fecha.columns:
-                duration = df_fecha.select('Drills Duration').row(0)[0]
+            duration = "N/A"
+            if 'Drills Duration' in df_players.columns:
+                duration_value = df_players.select('Total Minutes').row(0)[0]
+                if duration_value:
+                    duration = str(duration_value)
             
-            # Filtrar Match Days excluyendo 'Rehab'
-            match_days_filtered = df_fecha.filter(pl.col('Match Day') != 'Rehab').select('Match Day').unique().to_series().to_list()
+            # Filtrar Match Days excluyendo 'Rehab' si la columna existe
+            match_days_filtered = []
+            if 'Match Day' in df_players.columns:
+                match_days_filtered = (df_players
+                                     .filter(pl.col('Match Day') != 'Rehab')
+                                     .select('Match Day')
+                                     .unique()
+                                     .to_series()
+                                     .to_list())
+            
+            # Formatear fecha para visualización usando función de utils/date.py
+            formatted_date_display = format_date(selected_date)
             
             # Crear información base
             session_info = [
-                html.H5(f"Información de la Sesión - {formatted_date}", className="session-title"),
+                html.H5(f"Información de la Sesión - {formatted_date_display}", className="session-title"),
                 html.P(f"Número de jugadores: {num_jugadores}", className="session-detail"),
                 html.P(f"Duración total: {duration}", className="session-detail"),
-                html.P(f"Match Days: {', '.join(match_days_filtered)}", className="session-detail")
             ]
+            
+            # Agregar información de Match Days si está disponible
+            if match_days_filtered:
+                session_info.append(
+                    html.P(f"Match Days: {', '.join(match_days_filtered)}", className="session-detail")
+                )
             
             # Agregar información de estadística si está seleccionada
             if selected_statistic:
@@ -468,169 +600,111 @@ def register_callbacks(app):
             return html.Div(f"Error al cargar información de la sesión: {str(e)}", 
                           className="error-message")
             
+    
     # ============================================================================
-    # CALLBACKS - Tabla
+    # CALLBACK - Tabla Comparativa Dinâmica
     # ============================================================================
-
     
     @app.callback(
-        Output('players-table-output', 'children'),
+        Output('comparative-table-output', 'children'),
         [Input('date-selector', 'date'),
          Input('statistic-selector', 'value'),
-         Input('zscore-state-store', 'data')
-        ]
+         Input('table-mode-selector', 'value')]
     )
-    def update_players_table(selected_date, selected_statistic, zscore_state):
+    def update_comparative_table(selected_date, selected_statistic, table_mode):
         """
-        Actualiza la tabla de jugadores usando la función get_combined_table_with_reference
-        con gradiente de cores baseado nos z-scores.
+        Actualiza la tabla comparativa dinâmica con tres modos de visualización.
         
-        Esta función callback utiliza get_combined_table_with_reference para
-        generar una tabla que combina valores absolutos con z-scores para jugadores,
-        equipos y posiciones, aplicando un gradiente de cores baseado nos valores z-score.
+        Esta función callback genera una tabla que muestra datos de jugadores en tres formatos:
+        - Valores absolutos únicamente
+        - Valores absolutos con Z-scores en formato: valor_absoluto (Z = zscore)
+        - Valores absolutos con diferencias porcentuales en formato: valor_absoluto (diferencia%)
+        
+        El sistema de colores se basa siempre en los Z-scores correspondientes, aplicando
+        un gradiente de azul oscuro (valores bajos) a rojo oscuro (valores altos) con
+        blanco para valores neutros (Z-score ≈ 0).
         
         Args:
             selected_date (str): Fecha seleccionada en formato YYYY-MM-DD
             selected_statistic (str): Estadística seleccionada para el análisis
+            table_mode (str): Modo de visualización ('absolutos', 'zscore', 'diferencia')
         
         Returns:
-            html.Div: Componente HTML con la tabla de datos formateada que incluye
-                     valores absolutos y z-scores para jugadores, equipos y posiciones
-                     con gradiente de cores baseado nos z-scores
+            html.Div: Componente HTML con la tabla comparativa formateada según el modo seleccionado
         """
-        
-        if not selected_date:
-            return html.Div("Selecciona una fecha para ver los datos de los jugadores.", 
-                          className="info-message")
-        
-        if not selected_statistic:
-            return html.Div("Selecciona una estadística para ver los datos.", 
+        if not selected_date or not selected_statistic or not table_mode:
+            return html.Div("Selecciona todos los parámetros para ver la tabla comparativa.", 
                           className="info-message")
         
         try:
-            # Convertir fecha al formato correcto (dd/mm/aaaa)
-            result = format_and_filter_date(selected_date)
-            if result is None or result[0] is None:
-                return html.Div(f"No se encontraron datos para la fecha {selected_date}.", 
-                              className="warning-message")
+            # Convertir formato de fecha de YYYY-MM-DD a dd/mm/aaaa
+            from datetime import datetime
+            date_obj = datetime.strptime(selected_date, '%Y-%m-%d')
+            formatted_date = date_obj.strftime('%d/%m/%Y')
             
-            df_fecha, formatted_date = result
-            
-            # Determinar o tipo de referência baseado no estado do Z-Score
-            if zscore_state is None:
-                zscore_state = {'active': True}
-            
-            is_zscore_active = zscore_state.get('active', True)
-            valor_referencia = "zscore" if is_zscore_active else "diferencia"
-            
-            # Usar la función get_combined_table_with_reference
-            tabla_combinada = get_combined_table_with_reference(
-                fecha=formatted_date, 
-                valor_referencia=valor_referencia, 
-                estadistica=selected_statistic
+            # Obtener datos usando la función generate_comparative_table
+            comparative_data = generate_comparative_table(
+                selected_date=formatted_date,
+                selected_statistic=selected_statistic
             )
             
-            if tabla_combinada is None:
-                return html.Div("No se pudieron obtener los datos combinados para la fecha seleccionada.", 
+            if comparative_data is None:
+                return html.Div(f"No se pudieron obtener los datos comparativos para la fecha {formatted_date}.", 
                               className="warning-message")
             
-            # Obter matriz de z-scores para estilização
-            zscore_matrix = get_zscore_matrix_for_styling(
-                fecha=formatted_date
+            # Filtrar datos según el tipo de entidad (solo jugadores para la tabla comparativa)
+            players_data = comparative_data.filter(
+                ~pl.col('Player').str.starts_with('TEAM') & 
+                ~pl.col('Player').str.starts_with('POS_')
             )
             
-            # Convertir el DataFrame de Polars a formato compatible con Dash DataTable
-            data_for_table = tabla_combinada.to_dicts()
+            if players_data.height == 0:
+                return html.Div("No se encontraron datos de jugadores para la fecha seleccionada.", 
+                              className="warning-message")
             
-            # Obtener las columnas
-            columns = tabla_combinada.columns
+            # Separar los tres tipos de datos
+            absolutos_data = players_data.filter(pl.col('Tipo') == 'Absoluto')
+            zscore_data = players_data.filter(pl.col('Tipo') == 'Z-Score')
+            diferencia_data = players_data.filter(pl.col('Tipo') == 'Diferencia %')
             
-            # Renombrar la columna Player a Player/Team/Position para mayor claridad
-            columns_renamed = []
-            for col in columns:
-                if col == 'Player':
-                    columns_renamed.append('Player/Team/Position')
-                else:
-                    columns_renamed.append(col)
+            # Obtener columnas de métricas (excluyendo Player y Tipo)
+            metric_columns = [col for col in players_data.columns if col not in ['Player', 'Tipo']]
             
-            # Actualizar los datos con el nuevo nombre de columna y agregar tipo de entidad
-            for record in data_for_table:
-                if 'Player' in record:
-                    player_name = record['Player']
-                    record['Player/Team/Position'] = player_name
-                    record.pop('Player')
-                    
-                    # Identificar tipo de entidad para estilos condicionais
-                    if player_name.startswith('TEAM'):
-                        record['_entity_type'] = 'team'
-                    elif player_name.startswith('POS_'):
-                        record['_entity_type'] = 'position'
-                    else:
-                        record['_entity_type'] = 'player'
+            # Formatear datos usando la función auxiliar
+            display_data, zscore_data_for_colors = format_data_for_display_mode(
+                players_data, table_mode
+            )
             
-            # Gerar estilos condicionais baseados nos z-scores (sempre aplicar gradiente)
-            zscore_styles = []
-            if zscore_matrix is not None:
-                zscore_styles = generate_color_styles_from_zscore(zscore_matrix)
+            # Convertir a formato compatible con DataTable
+            data_for_table = display_data.to_dicts()
             
-            # Estilos condicionais para diferentes tipos de entidades na coluna Player/Team/Position
-            entity_styles = [
-                # Jogadores - Amarelo claro
-                {
-                    'if': {
-                        'filter_query': '{_entity_type} = player',
-                        'column_id': 'Player/Team/Position'
-                    },
-                    'backgroundColor': '#fff9c4',  # Amarelo claro
-                    'color': '#856404',  # Texto amarelo escuro
-                    'fontWeight': 'bold'
-                },
-                # Equipos - Azul claro
-                {
-                    'if': {
-                        'filter_query': '{_entity_type} = team',
-                        'column_id': 'Player/Team/Position'
-                    },
-                    'backgroundColor': '#cce7ff',  # Azul claro
-                    'color': '#004085',  # Texto azul escuro
-                    'fontWeight': 'bold'
-                },
-                # Posições - Verde claro
-                {
-                    'if': {
-                        'filter_query': '{_entity_type} = position',
-                        'column_id': 'Player/Team/Position'
-                    },
-                    'backgroundColor': '#d4edda',  # Verde claro
-                    'color': '#155724',  # Texto verde escuro
-                    'fontWeight': 'bold'
-                }
-            ]
+            # Generar esquema de colores usando la función auxiliar
+            color_styles = generate_zscore_color_scheme(zscore_data_for_colors, metric_columns, display_data)
             
-            # Combinar estilos de entidades com estilos de z-score
-            all_styles = entity_styles + zscore_styles
-            
-            # Crear la tabla con estilos básicos, cabeçalho fixo e cores condicionais
-            combined_table = dash_table.DataTable(
-                id='combined-table-with-zscore',
+            # Crear la tabla con estilos responsivos y transiciones suaves
+            comparative_table = dash_table.DataTable(
+                id='comparative-dynamic-table',
                 data=data_for_table,
                 columns=[
                     {"name": col, "id": col, "type": "text"}
-                    for col in columns_renamed if col != '_entity_type'  # Excluir coluna auxiliar
+                    for col in display_data.columns
                 ],
                 style_table={
                     'overflowX': 'auto',
-                    'maxHeight': '800px',
-                    'overflowY': 'auto'
+                    'height': 'auto',
+                    'overflowY': 'visible',
+                    'minWidth': '100%'
                 },
                 style_cell={
                     'textAlign': 'left',
-                    'padding': '8px',
+                    'padding': '10px',
                     'fontFamily': 'Arial, sans-serif',
                     'fontSize': '13px',
                     'border': '1px solid #ddd',
                     'whiteSpace': 'normal',
-                    'height': 'auto'
+                    'height': 'auto',
+                    'minWidth': '120px',
+                    'maxWidth': '200px'
                 },
                 style_header={
                     'backgroundColor': '#e8f4fd',
@@ -639,102 +713,60 @@ def register_callbacks(app):
                     'border': '1px solid #ddd',
                     'position': 'sticky',
                     'top': '0',
-                    'zIndex': '1'
+                    'zIndex': '1',
+                    'color': '#2c3e50'
                 },
                 style_data={
                     'backgroundColor': 'white',
-                    'border': '1px solid #ddd'
+                    'border': '1px solid #ddd',
+                    'color': '#2c3e50'
                 },
-                # Aplicar todos os estilos condicionais (entidades + gradiente z-score)
-                style_data_conditional=all_styles,
+                style_data_conditional=color_styles,
                 sort_action="native",
                 filter_action="native",
                 page_action="none",
                 export_format="xlsx",
                 export_headers="display",
-                fixed_rows={'headers': True}
+                fixed_rows={'headers': True},
+                css=[{
+                    'selector': '.dash-table-container',
+                    'rule': 'border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);'
+                }]
             )
             
-            # Contar registros por tipo
-            num_jugadores = len([d for d in data_for_table if not d['Player/Team/Position'].startswith(('TEAM', 'POS_'))])
-            num_equipos = len([d for d in data_for_table if d['Player/Team/Position'].startswith('TEAM')])
-            num_posiciones = len([d for d in data_for_table if d['Player/Team/Position'].startswith('POS_')])
             
-            info_text = f"Jugadores: {num_jugadores} | Equipos: {num_equipos} | Posiciones: {num_posiciones}"
+            # Determinar título según el modo
+            title_map = {
+                'absolutos': 'Valores Absolutos',
+                'zscore': 'Valores Absolutos con Z-Scores',
+                'diferencia': 'Valores Absolutos con Diferencias Porcentuales'
+            }
+            table_title = title_map.get(table_mode, 'Tabla Comparativa')
             
-            # Definir título baseado no estado do Z-Score
-            if is_zscore_active:
-                table_title = 'Tabla Combinada - Valores Absolutos con Z-Scores'
-            else:
-                table_title = 'Tabla Combinada - Valores Absolutos con Diferencias %'
-            
-            # Legenda sempre mostra o gradiente de z-scores
-            legend_content = html.Div([
-                html.P("Gradiente de cores baseado nos Z-Scores:", style={'margin-bottom': '5px', 'font-weight': 'bold'}),
-                html.Div([
-                    html.Span("Z-Score baixo", style={'color': '#1a365d', 'font-weight': 'bold', 'margin-right': '10px'}),
-                    html.Div(style={
-                        'display': 'inline-block',
-                        'width': '200px',
-                        'height': '20px',
-                        'background': 'linear-gradient(to right, #1a365d, #ffffff, #8b0000)',
-                        'border': '1px solid #ccc',
-                        'margin': '0 10px',
-                        'vertical-align': 'middle'
-                    }),
-                    html.Span("Z-Score alto", style={'color': '#8b0000', 'font-weight': 'bold', 'margin-left': '10px'})
-                ], style={'display': 'flex', 'align-items': 'center', 'justify-content': 'center'})
-            ], style={'text-align': 'center', 'margin': '10px 0', 'padding': '10px', 'background-color': '#f8f9fa', 'border-radius': '5px'})
-            
-            # Adicionar informação sobre o tipo de dados mostrados
-            if not is_zscore_active:
-                additional_info = html.Div([
-                    html.P("Mostrando diferencias porcentuales respecto a la media del equipo", 
-                           style={'margin': '5px 0', 'padding': '5px', 'background-color': '#e9ecef', 
-                                  'border-radius': '3px', 'text-align': 'center', 'font-style': 'italic'})
-                ])
-            else:
-                additional_info = html.Div()
+            num_players = len(data_for_table)
+            info_text = f"Jugadores: {num_players} | Estadística: {selected_statistic}"
             
             return html.Div([
-                html.H5(table_title, className="section-subtitle"),
-                html.P(f"Mostrando {info_text} | Estadística: {selected_statistic}", className="table-info"),
-                # Legenda baseada no estado
-                legend_content,
-                # Informação adicional sobre o tipo de dados
-                additional_info,
-                # Container para tabela com botões alinhados
+                html.H5(table_title, className="section-subtitle", style={'margin-bottom': '10px'}),
+                html.P(info_text, className="table-info", style={'margin-bottom': '15px', 'color': '#666'}),
                 html.Div([
-                    # Container para botões na parte superior direita
-                    html.Div([
-                        html.Button(
-                            "Z Score",
-                            id="zscore-toggle-btn",
-                            className="zscore-toggle-btn-gray",
-                            style={
-                                'background-color': '#6c757d',
-                                'color': 'white',
-                                'border': '1px solid #6c757d',
-                                'border-radius': '4px',
-                                'padding': '8px 16px',
-                                'cursor': 'pointer',
-                                'font-size': '14px',
-                                'margin-bottom': '2px'
-                            }
-                        )
-                    ], style={
-                        'display': 'flex', 
-                        'justify-content': 'flex-end', 
-                        'margin-bottom': '1px'
-                    }),
-                    # Tabela (com botão Export nativo que aparecerá próximo ao Z-Score)
-                    combined_table
-                ], style={'width': '100%'})
-            ], className="combined-stats-table-container")
+                    comparative_table
+                ], style={
+                    'border-radius': '8px',
+                    'box-shadow': '0 2px 8px rgba(0,0,0,0.1)',
+                    'margin-top': '10px'
+                })
+            ], className="comparative-table-container", style={
+                'padding': '20px',
+                'background-color': '#fafafa',
+                'border-radius': '10px',
+                'margin': '10px 0'
+            })
             
         except Exception as e:
-            return html.Div(f"Error al cargar tabla de jugadores: {str(e)}", 
+            return html.Div(f"Error al cargar tabla comparativa: {str(e)}", 
                           className="error-message")
+    
     
     # ============================================================================
     # CALLBACKS - Tarjetas
@@ -743,36 +775,66 @@ def register_callbacks(app):
     # Callback para popular as opções do dropdown tarjetas-columns-selector
     @app.callback(
         Output('tarjetas-columns-selector', 'options'),
-        [Input('date-selector', 'date')]
+        [Input('date-selector', 'date'),
+         Input('statistic-selector', 'value')]
     )
-    def update_tarjetas_columns_options(selected_date):
+    def update_tarjetas_columns_options(selected_date, selected_statistic):
         """
-        Atualiza as opções do dropdown tarjetas-columns-selector com todas as colunas disponíveis.
+        Actualiza las opciones del dropdown tarjetas-columns-selector con todas las columnas disponibles.
+        
+        Esta función callback obtiene todas las columnas de métricas disponibles para la fecha
+        seleccionada y las presenta como opciones en el dropdown para que el usuario pueda
+        seleccionar qué métricas mostrar en las tarjetas.
+        
+        Utiliza las funciones del módulo utils/sessionReport_utils.py para:
+        - get_table_data(): Obtener datos de jugadores con todas las columnas disponibles
+        
+        Y del módulo utils/date.py para:
+        - format_date(): Convertir formato de fecha
         
         Args:
-            selected_date (str): Data selecionada em formato YYYY-MM-DD
+            selected_date (str): Fecha seleccionada en formato YYYY-MM-DD
+            selected_statistic (str): Estadística seleccionada para obtener los datos correctos
             
         Returns:
-            list: Lista de opções para o dropdown com todas as colunas de métricas disponíveis
+            list: Lista de opciones para el dropdown con todas las columnas de métricas disponibles,
+                 ordenadas alfabéticamente. Cada opción tiene formato {'label': nombre_columna, 'value': nombre_columna}
         """
         if not selected_date:
             return []
         
         try:
-            # Obter dados de jogadores para a data selecionada
-            df_players = get_players_data(selected_date)
-                      
+            # Convertir fecha usando función de utils/date.py
+            formatted_date_internal = format_date(selected_date)
+            
+            # Obtener datos de jugadores usando función de utils/sessionReport_utils.py
+            df_players = get_table_data(
+                selected_date=formatted_date_internal,
+                selected_statistic=selected_statistic or 'mean'  # Usar 'mean' como valor por defecto
+            )
+            
+            if df_players is None or df_players.height == 0:
+                # Fallback para columnas básicas si no hay datos
+                basic_columns = [
+                    'Distance (m)',
+                    'Speed Zones (m) [0.0, 6.0]km/h (m)',
+                    'Abs HSR(m)',
+                    'Rel HSR(m)',
+                ]
+                return [{'label': col, 'value': col} for col in sorted(basic_columns)]
+            
+            # Excluir columnas de identificación y metadatos
             exclude_cols = ['Player', 'Position', 'Team', 'Match Day', 'Estadistica', 'Date']
             all_columns = [col for col in df_players.columns if col not in exclude_cols]
             
-            # Criar opções para o dropdown ordenadas alfabeticamente
+            # Crear opciones para el dropdown ordenadas alfabéticamente
             options = [{'label': col, 'value': col} for col in sorted(all_columns)]
             
             return options
             
         except Exception as e:
-            print(f"Erro ao atualizar opções do dropdown de colunas: {e}")
-            # Fallback para colunas básicas
+            print(f"Error al actualizar opciones del dropdown de columnas: {e}")
+            # Fallback para columnas básicas en caso de error
             basic_columns = [
                 'Distance (m)',
                 'Speed Zones (m) [0.0, 6.0]km/h (m)',
@@ -784,40 +846,61 @@ def register_callbacks(app):
     # Callback para popular as opções do dropdown cards-view-selector
     @app.callback(
         Output('cards-view-selector', 'options'),
-        [Input('date-selector', 'date')]
+        [Input('date-selector', 'date'),
+         Input('statistic-selector', 'value')]
     )
-    def update_cards_view_options(selected_date):
+    def update_cards_view_options(selected_date, selected_statistic):
         """
-        Atualiza as opções do dropdown cards-view-selector com base na data selecionada.
+        Actualiza las opciones del dropdown cards-view-selector con base en la fecha y estadística seleccionadas.
+        
+        Esta función callback genera opciones de visualización que incluyen vista de equipo
+        y vistas por posición específica, basándose en las posiciones disponibles en los
+        datos para la fecha y estadística seleccionadas.
+        
+        Utiliza las funciones del módulo utils/sessionReport_utils.py para:
+        - get_table_data(): Obtener datos de jugadores para identificar posiciones disponibles
+        
+        Y del módulo utils/date.py para:
+        - format_date(): Convertir formato de fecha
         
         Args:
             selected_date (str): Fecha seleccionada en formato YYYY-MM-DD
+            selected_statistic (str): Estadística seleccionada para el análisis
         
         Returns:
-            list: Lista de opções para o dropdown (Equipo e posições disponíveis)
+            list: Lista de opciones para el dropdown que incluye:
+                 - Opción 'Equipo' para vista general del equipo
+                 - Opciones 'Posición: X' para cada posición disponible en los datos
+                 Formato: [{'label': texto_mostrar, 'value': valor_interno}, ...]
         """
-        if not selected_date:
+        if not selected_date or not selected_statistic:
             return [{'label': 'Equipo', 'value': 'Equipo'}]
         
         try:
+            # Convertir fecha usando función de utils/date.py
+            formatted_date_internal = format_date(selected_date)
             
-            # Obtener datos de jugadores para la fecha seleccionada
-            df_players = get_players_data(selected_date)
+            # Obtener datos de jugadores usando función de utils/sessionReport_utils.py
+            df_players = get_table_data(
+                selected_date=formatted_date_internal,
+                selected_statistic=selected_statistic  # Usar la estadística seleccionada
+            )
             
-            if df_players is None:
+            if df_players is None or df_players.height == 0:
                 return [{'label': 'Equipo', 'value': 'Equipo'}]
             
-            # Criar opções básicas
+            # Crear opciones básicas
             options = [{'label': 'Equipo', 'value': 'Equipo'}]
             
-            # Adicionar posições únicas disponíveis
-            if 'Position' in df_players.columns:
-                positions = df_players['Position'].unique().to_list()
+            # Agregar posiciones únicas disponibles si la columna existe
+            if 'Player' in df_players.columns:
+                positions = df_players['Player'].unique().to_list()
                 for position in sorted(positions):
-                    if position and str(position) != 'null':
+                    if position and str(position).startswith('POS_'):
+                        position_name = position.replace('POS_', '')
                         options.append({
-                            'label': f'Posición: {position}',
-                            'value': f'Position_{position}'
+                            'label': f'Posición: {position_name}',
+                            'value': f'Position_{position_name}'
                         })
             
             return options
@@ -839,11 +922,21 @@ def register_callbacks(app):
         Crea tarjetas mostrando los valores absolutos de métricas para equipos y posiciones.
         
         Esta función callback genera tarjetas visuales que muestran los valores absolutos
-        de las métricas para el equipo completo o por posición específica.
+        de las métricas para el equipo completo o por posición específica, calculando
+        estadísticas agregadas según la vista seleccionada.
+        
+        Utiliza las funciones del módulo utils/sessionReport_utils.py para:
+        - get_table_data(): Obtener datos de jugadores para la fecha seleccionada
+        
+        Y del módulo utils/date.py para:
+        - format_date(): Convertir formato de fecha
+        
+        Y del módulo utils/metrics.py para:
+        - calcular_metricas(): Calcular estadísticas agregadas (mean, sum, etc.)
         
         Args:
             selected_date (str): Fecha seleccionada en formato YYYY-MM-DD
-            selected_statistic (str): Estadística seleccionada para el análisis
+            selected_statistic (str): Estadística seleccionada para el análisis ('mean', 'sum', etc.)
             selected_view (str): Vista seleccionada ('Equipo' o 'Position_X')
             selected_columns (list): Lista de columnas de métricas a mostrar en las tarjetas
         
@@ -851,57 +944,48 @@ def register_callbacks(app):
             html.Div: Componente HTML con tarjetas de métricas que incluyen:
                      - Título descriptivo de la vista
                      - Tarjetas individuales para cada métrica seleccionada
-                     - Valores absolutos de las métricas
+                     - Valores absolutos de las métricas formateados apropiadamente
         """
         
         if not selected_date or not selected_statistic:
             return html.Div()
         
         try:
-            # Obtener datos de jugadores para la fecha seleccionada
-            df_players = get_players_data(selected_date)
+            # Convertir fecha usando función de utils/date.py
+            formatted_date_internal = format_date(selected_date)
             
-            if df_players is None:
+            # Obtener datos completos (jugadores + equipo + posiciones) usando función de utils/sessionReport_utils.py
+            df_complete = get_table_data(
+                selected_date=formatted_date_internal,
+                selected_statistic=selected_statistic,
+            )
+            
+            if df_complete is None or df_complete.height == 0:
                 return html.Div("No se encontraron datos para la fecha seleccionada.", 
                               className="info-message")
             
             # Determinar qué datos usar basado en selected_view
             if selected_view == 'Equipo':
-                # Calcular estadísticas del equipo usando calcular_metricas
-                columnas_numericas = [col for col in df_players.columns if col not in ['Player', 'Position']]
-                team_stats = calcular_metricas(df_players, columnas_numericas, selected_statistic)
-                # Crear DataFrame para el equipo
-                team_stats['Player'] = "TEAM"
-                df_to_use = pl.DataFrame([team_stats])
+                # Filtrar solo la fila del equipo (Player = "TEAM")
+                df_to_use = df_complete.filter(pl.col('Player') == "TEAM")
                 title_prefix = f'Métricas del Equipo - {selected_statistic}'
                 
             elif selected_view and selected_view.startswith('Position_'):
                 # Extraer la posición del valor selected_view
                 position = selected_view.replace('Position_', '')
                 
-                # Filtrar jugadores por posición
-                df_position_players = df_players.filter(pl.col('Position') == position)
+                # Filtrar solo la fila de la posición específica (Player = "POS_posición")
+                df_to_use = df_complete.filter(pl.col('Player') == f"POS_{position}")
                 
-                if df_position_players.height == 0:
+                if df_to_use.height == 0:
                     return html.Div(f"No se encontraron jugadores para la posición {position}.", 
                                   className="info-message")
                 
-                # Calcular estadísticas de la posición usando calcular_metricas
-                columnas_numericas = [col for col in df_position_players.columns if col not in ['Player', 'Position']]
-                position_stats = calcular_metricas(df_position_players, columnas_numericas, selected_statistic)
-                
-                # Crear DataFrame para la posición
-                position_stats['Player'] = f"POS_{position}"
-                df_to_use = pl.DataFrame([position_stats])
                 title_prefix = f'Métricas de la Posición {position} - {selected_statistic}'
                 
             else:
-                # Fallback a equipo
-                columnas_numericas = [col for col in df_players.columns if col not in ['Player', 'Position']]
-                team_stats = calcular_metricas(df_players, columnas_numericas, selected_statistic)
-                # Crear DataFrame para el equipo
-                team_stats['Player'] = "TEAM"
-                df_to_use = pl.DataFrame([team_stats])
+                # Fallback a equipo - filtrar solo la fila del equipo
+                df_to_use = df_complete.filter(pl.col('Player') == "TEAM")
                 title_prefix = f'Métricas del Equipo - {selected_statistic}'
             
             if df_to_use.height == 0:
@@ -912,7 +996,7 @@ def register_callbacks(app):
             df_pandas = df_to_use.to_pandas()
             
             # Obtener columnas de métricas (excluyendo columnas de identificación)
-            exclude_cols = ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']
+            exclude_cols = ['Player', 'Position', 'Team', 'Match Day', 'Estadistica', 'Date']
             all_metric_columns = [col for col in df_pandas.columns if col not in exclude_cols]
             
             # Filtrar por las columnas seleccionadas por el usuario
@@ -952,12 +1036,12 @@ def register_callbacks(app):
                         try:
                             metric_value_num = float(metric_value)
                             # Formatear según el tipo de métrica
-                            if 'percentage' in col.lower() or '%' in col:
+                            if '%' in col:
                                 formatted_value = f'{metric_value_num:.2f}%'
-                            elif 'speed' in col.lower() or 'km/h' in col:
-                                formatted_value = f'{metric_value_num:.2f} km/h'
-                            elif 'distance' in col.lower() or '(m)' in col:
+                            elif '(m)' in col:
                                 formatted_value = f'{metric_value_num:.0f} m'
+                            elif 'km/h' in col:
+                                formatted_value = f'{metric_value_num:.2f} km/h'
                             elif 'cnt' in col.lower() or 'count' in col.lower():
                                 formatted_value = f'{metric_value_num:.0f}'
                             else:
@@ -967,10 +1051,10 @@ def register_callbacks(app):
                      
                     # Crear tarjeta usando estilos CSS definidos
                     card_content = [
-                         # Título da métrica usando classe card-title
+                         # Título de la métrica usando clase card-title
                          html.H6(col, className="card-title"),
                          
-                         # Container de valores usando classe card-values-container
+                         # Container de valores usando clase card-values-container
                          html.Div([
                              html.Span("Valor absoluto", className="session-label"),
                              html.Span(formatted_value, className="stat-value")
@@ -1025,7 +1109,7 @@ def register_callbacks(app):
             if not selected_date or not selected_statistic:
                 return [empty_fig, empty_fig, empty_fig, empty_fig]
 
-            df_fecha, formatted_date = format_and_filter_date(selected_date)
+            df_fecha, formatted_date = format_and_filter_date_graphs(selected_date)
             if df_fecha is None or df_fecha.height == 0:
                 return [empty_fig, empty_fig, empty_fig, empty_fig]
 
@@ -1589,7 +1673,7 @@ def register_callbacks(app):
         if not selected_date:
             return [[], []]
 
-        df_fecha, formatted_date = format_and_filter_date(selected_date)
+        df_fecha, formatted_date = format_and_filter_date_graphs(selected_date)
         if df_fecha is None or df_fecha.height == 0:
             return [[], []]
 
@@ -1642,7 +1726,7 @@ def register_callbacks(app):
         if not col_x or not col_y or not selected_date:
             return empty_fig
 
-        df_fecha, formatted_date = format_and_filter_date(selected_date)
+        df_fecha, formatted_date = format_and_filter_date_graphs(selected_date)
         if df_fecha is None or df_fecha.height == 0:
             return empty_fig
 
@@ -1796,7 +1880,7 @@ def register_callbacks(app):
         
             df = pl.read_parquet(path_to_parquet)
             
-            result = format_and_filter_date(selected_date)
+            result = format_and_filter_date_graphs(selected_date)
             if result is None or result[0] is None:
                 return [empty_fig] * 6
             
@@ -2363,64 +2447,4 @@ def register_callbacks(app):
             import traceback
             traceback.print_exc()
             return [empty_fig] * 6
-
-    # ============================================================================
-    # CALLBACK - Z-Score Toggle Button
-    # ============================================================================
-    
-    @app.callback(
-        [Output('zscore-toggle-btn', 'children'),
-         Output('zscore-toggle-btn', 'style'),
-         Output('zscore-state-store', 'data')],
-        [Input('zscore-toggle-btn', 'n_clicks')],
-        [State('zscore-state-store', 'data')]
-    )
-    def toggle_zscore_button(n_clicks, current_state):
-        """
-        Controla o estado do botão Z-Score, alternando entre ativo e inativo.
-        
-        Args:
-            n_clicks (int): Número de cliques no botão
-            current_state (dict): Estado atual do Z-Score
-            
-        Returns:
-            tuple: (texto do botão, estilo do botão, novo estado)
-        """
-        if n_clicks is None:
-            n_clicks = 0
-        
-        # Determinar o novo estado
-        if current_state is None:
-            current_state = {'active': True}
-        
-        # Alternar estado a cada clique
-        new_active = not current_state.get('active', True) if n_clicks > 0 else current_state.get('active', True)
-        
-        # Definir texto e estilo baseado no estado
-        if new_active:
-            button_text = "Z Score"
-            button_style = {
-                'background-color': '#6c757d',
-                'color': 'white',
-                'border': '1px solid #6c757d',
-                'border-radius': '4px',
-                'padding': '8px 16px',
-                'cursor': 'pointer',
-                'font-size': '14px'
-            }
-        else:
-            button_text = "Diferencia %"
-            button_style = {
-                'background-color': '#6c757d',
-                'color': 'white',
-                'border': '1px solid #6c757d',
-                'border-radius': '4px',
-                'padding': '8px 16px',
-                'cursor': 'pointer',
-                'font-size': '14px'
-            }
-        
-        return button_text, button_style, {'active': new_active}
-    
-
 

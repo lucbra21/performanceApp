@@ -2,73 +2,215 @@
 # IMPORTACIONES
 # ============================================================================
 
-# Importaciones de Dash
-from dash import html, dcc, Output, Input, State, callback_context, dash_table
 import dash
-
-# Importaciones del sistema y utilidades
-import os
-from datetime import datetime
-import polars as pl
+from dash import dcc, html, Input, Output, callback, dash_table
 import pandas as pd
-import numpy as np
-from utils.utils import *
-
-# Importaciones del Plotly para gráficos
-import plotly.graph_objects as go
+import polars as pl
 import plotly.express as px
+import plotly.graph_objects as go
+from datetime import datetime, date
+import os
+
+# Registrar a página
+dash.register_page(__name__, path='/training/References', name='Referencias')
+
+# Importaciones específicas de los módulos utils
+from utils.data_access import load_gps_data
 
 # ============================================================================
 # CONSTANTES Y CONFIGURACIÓN
 # ============================================================================
 
 # Ruta al archivo de estadísticas de match day
-ESTADISTICAS_MATCHDAY_PATH = os.path.join('data', 'processed', 'references', 'estadisticas_matchday.parquet')
+ESTADISTICAS_MATCHDAY_PATH = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
+                                    'data', 'processed', 'references', 'estadisticas_matchday.parquet')
 
 # ============================================================================
 # FUNCIONES AUXILIARES
 # ============================================================================
 
-def load_estadisticas_matchday():
+def get_first_date_for_picker():
     """
-    Carga y procesa los datos de estadísticas de match day.
-    
-    Aplica los filtros solicitados:
-    - Reemplaza valores nulos en Position por 'Team'
-    - Reemplaza valores '0' en Position por 'Team'
-    - Mantiene todos los Match Days (incluyendo 'MD')
+    Obtiene la primera fecha disponible para el date picker.
     
     Returns:
-        pl.DataFrame: DataFrame procesado con las estadísticas de match day
+        date: Primera fecha disponible o fecha actual si no hay datos
     """
     try:
-        if not os.path.exists(ESTADISTICAS_MATCHDAY_PATH):
-            print(f"No se encontró el archivo: {ESTADISTICAS_MATCHDAY_PATH}")
-            return None
+        df = load_gps_data()
+        if df is not None and df.height > 0:
+            # Obtener la fecha más antigua
+            fechas = df.select('Date').unique().sort('Date')
+            primera_fecha_str = fechas.row(0)[0]
+            # Convertir de formato dd/mm/yyyy a date object
+            return datetime.strptime(primera_fecha_str, '%d/%m/%Y').date()
+        else:
+            return date.today()
+    except Exception as e:
+        print(f"Error al obtener primera fecha: {e}")
+        return date.today()
+
+def get_latest_date_for_picker():
+    """
+    Obtiene la última fecha disponible para el date picker.
+    
+    Returns:
+        date: Última fecha disponible o fecha actual si no hay datos
+    """
+    try:
+        df = load_gps_data()
+        if df is not None and df.height > 0:
+            # Obtener la fecha más reciente
+            fechas = df.select('Date').unique().sort('Date', descending=True)
+            ultima_fecha_str = fechas.row(0)[0]
+            # Convertir de formato dd/mm/yyyy a date object
+            return datetime.strptime(ultima_fecha_str, '%d/%m/%Y').date()
+        else:
+            return date.today()
+    except Exception as e:
+        print(f"Error al obtener última fecha: {e}")
+        return date.today()
+
+def load_estadisticas_matchday():
+    """
+    Loads and concatenates statistics data from two sources:
+    - estadisticas_matchday.parquet: for Match Day values different from "MD"
+    - metrics_94min_historical.parquet: for Match Day values equal to "MD"
+    
+    Returns:
+        pl.DataFrame: Concatenated DataFrame with statistics or None if error
+    """
+    try:
+        # Path to metrics_94min_historical.parquet
+        metrics_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 
+                                   'data', 'processed', 'references', 'metrics_94min_historical.parquet')
         
-        # Cargar datos
-        df = pl.read_parquet(ESTADISTICAS_MATCHDAY_PATH)
+        df_final = None
         
-        # Reemplazar valores nulos y '0' en Position por 'Team'
-        df_processed = df.with_columns([
-            pl.when(pl.col('Position').is_null() | (pl.col('Position') == '0'))
-            .then(pl.lit('Team'))
-            .otherwise(pl.col('Position'))
-            .alias('Position')
-        ])
+        # Load estadisticas_matchday.parquet and filter Match Day != "MD"
+        if os.path.exists(ESTADISTICAS_MATCHDAY_PATH):
+            df_estadisticas = pl.read_parquet(ESTADISTICAS_MATCHDAY_PATH)
+            # Filter out records where Match Day = "MD"
+            df_estadisticas_filtered = df_estadisticas.filter(pl.col('Match Day') != 'MD')
+            # Replace null and '0' values in Position with 'Team'
+            df_estadisticas_processed = df_estadisticas_filtered.with_columns([
+                pl.when(pl.col('Position').is_null() | (pl.col('Position') == '0'))
+                .then(pl.lit('Team'))
+                .otherwise(pl.col('Position'))
+                .alias('Position')
+            ])
+            df_final = df_estadisticas_processed
         
-        return df_processed
+        # Load metrics_94min_historical.parquet and add Match Day = "MD"
+        if os.path.exists(metrics_path):
+            df_metrics = pl.read_parquet(metrics_path)
+            
+            # Create a mapping from metrics columns to estadisticas columns
+            # We need to transform the metrics data to match the estadisticas structure
+            if df_final is not None:
+                # Get the columns from estadisticas to match the structure
+                target_columns = df_final.columns
+                
+                # Create a base DataFrame with Match Day = "MD" and required columns
+                df_metrics_transformed = df_metrics.with_columns([
+                    pl.lit('MD').alias('Match Day'),
+                    pl.lit('mean').alias('Estadistica'),  # Default statistic type
+                    pl.lit('Match').alias('tipo'),  # Default type for match data
+                    pl.lit('Team').alias('Team')  # Default team value
+                ])
+                
+                # Map metrics columns to estadisticas columns where possible
+                column_mapping = {
+                    'Distance (m)_94min': 'Distance (m)',
+                    'Abs HSR(m)_94min': 'Abs HSR(m)',
+                    'HSR Rel (m)_94min': 'HSR Rel (m)',
+                    'Sprint Abs (m)_94min': 'Sprint Abs (m)',
+                    'Sprint Rel (m)_94min': 'Sprint Rel (m)',
+                    'Explosive Dist (m)_94min': 'Explosive Dist (m)',
+                    'MAX Speed(km/h)_94min': 'MAX Speed(km/h)',
+                    'Max Acceleration_94min': 'Max Acceleration',
+                    'Accelerations_94min': 'Accelerations',
+                    'Decelerations_94min': 'Decelerations',
+                    'Dif. ACC/DEC_94min': 'Dif. ACC/DEC',
+                    'Step Balance (%)_94min': 'Step Balance (%)',
+                    'Total impacts_94min': 'Total impacts',
+                    'Speed Zones (m) [0.0, 6.0]km/h (m)_94min': 'Speed Zones (m) [0.0, 6.0]km/h (m)'
+                }
+                
+                # Rename columns in metrics DataFrame
+                for old_col, new_col in column_mapping.items():
+                    if old_col in df_metrics_transformed.columns:
+                        df_metrics_transformed = df_metrics_transformed.rename({old_col: new_col})
+                
+                # Add missing columns with null values
+                for col in target_columns:
+                    if col not in df_metrics_transformed.columns:
+                        if col in ['Abs HSR(m)/Min', 'Distance (m)/min', 'Explosive Dist (m)/min']:
+                            # Calculate per-minute metrics if possible
+                            base_col = col.replace('/Min', '').replace('/min', '')
+                            if base_col in df_metrics_transformed.columns and 'Total Minutes en Partido' in df_metrics_transformed.columns:
+                                df_metrics_transformed = df_metrics_transformed.with_columns([
+                                    (pl.col(base_col) / pl.col('Total Minutes en Partido')).alias(col)
+                                ])
+                            else:
+                                df_metrics_transformed = df_metrics_transformed.with_columns([
+                                    pl.lit(None).alias(col)
+                                ])
+                        else:
+                            df_metrics_transformed = df_metrics_transformed.with_columns([
+                                pl.lit(None).alias(col)
+                            ])
+                
+                # Select only the columns that exist in the target structure
+                df_metrics_final = df_metrics_transformed.select(target_columns)
+                
+                # Concatenate both DataFrames
+                df_final = pl.concat([df_final, df_metrics_final], how="vertical")
+            else:
+                # If no estadisticas data, just return metrics with MD
+                df_final = df_metrics.with_columns([
+                    pl.lit('MD').alias('Match Day'),
+                    pl.lit('mean').alias('Estadistica'),
+                    pl.lit('Match').alias('tipo'),
+                    pl.lit('Team').alias('Team')
+                ])
+        
+        # If we have data, ensure Position column is properly handled
+        if df_final is not None:
+            df_final = df_final.with_columns([
+                pl.when(pl.col('Position').is_null() | (pl.col('Position') == '0'))
+                .then(pl.lit('Team'))
+                .otherwise(pl.col('Position'))
+                .alias('Position')
+            ])
+        
+        return df_final
         
     except Exception as e:
-        print(f"Error al cargar estadísticas de match day: {e}")
-        return None
+        print(f"Error loading and concatenating statistics: {e}")
+        # Fallback to original estadisticas only
+        try:
+            if os.path.exists(ESTADISTICAS_MATCHDAY_PATH):
+                df = pl.read_parquet(ESTADISTICAS_MATCHDAY_PATH)
+                df_processed = df.with_columns([
+                    pl.when(pl.col('Position').is_null() | (pl.col('Position') == '0'))
+                    .then(pl.lit('Team'))
+                    .otherwise(pl.col('Position'))
+                    .alias('Position')
+                ])
+                return df_processed
+            else:
+                return None
+        except Exception as fallback_error:
+            print(f"Fallback error: {fallback_error}")
+            return None
 
 def get_unique_values_from_estadisticas():
     """
-    Obtiene todos los valores únicos de las columnas principales para los dropdowns.
+    Obtiene valores únicos para los dropdowns desde los datos.
     
     Returns:
-        dict: Diccionario con listas de valores únicos para cada columna
+        dict: Diccionario con listas de valores únicos para cada campo
     """
     df = load_estadisticas_matchday()
     if df is None:
@@ -81,10 +223,10 @@ def get_unique_values_from_estadisticas():
     
     try:
         # Obtener valores únicos filtrando nulos
-        match_days = df.filter(pl.col('Match Day').is_not_null())['Match Day'].unique().sort().to_list()
-        estadisticas = df.filter(pl.col('Estadistica').is_not_null())['Estadistica'].unique().sort().to_list()
-        players = df.filter(pl.col('Player').is_not_null())['Player'].unique().sort().to_list()
-        positions = df.filter(pl.col('Position').is_not_null())['Position'].unique().sort().to_list()
+        match_days = df.filter(pl.col('Match Day').is_not_null())['Match Day'].unique().sort().to_list() if 'Match Day' in df.columns else []
+        estadisticas = df.filter(pl.col('Estadistica').is_not_null())['Estadistica'].unique().sort().to_list() if 'Estadistica' in df.columns else []
+        players = df.filter(pl.col('Player').is_not_null())['Player'].unique().sort().to_list() if 'Player' in df.columns else []
+        positions = df.filter(pl.col('Position').is_not_null())['Position'].unique().sort().to_list() if 'Position' in df.columns else []
         
         return {
             'match_days': match_days,
@@ -103,15 +245,18 @@ def get_unique_values_from_estadisticas():
 
 def get_available_dates_from_estadisticas():
     """
-    Obtiene las fechas disponibles en los datos de estadísticas.
+    Obtiene las fechas disponibles desde los datos de estadísticas.
     
     Returns:
-        list: Lista de fechas ordenadas cronológicamente
+        list: Lista de fechas ordenadas en formato dd/mm/yyyy
     """
     try:
-        # Usar la función existente de utils para obtener fechas del GPS
-        # ya que las fechas deben coincidir entre ambos datasets
-        return get_sorted_dates()
+        df = load_gps_data()
+        if df is not None and df.height > 0:
+            fechas = df.select('Date').unique().sort('Date')
+            return fechas.get_column('Date').to_list()
+        else:
+            return []
     except Exception as e:
         print(f"Error al obtener fechas disponibles: {e}")
         return []
@@ -128,70 +273,147 @@ layout = html.Div([
     
     # Contenedor principal
     html.Div([
-        # Container para selección de parámetros
+        # Container para rango de fechas (design melhorado)
+        html.Div([
+            html.Div([
+                # Ícone e título
+                html.Div([
+                    html.I(className="fas fa-calendar-alt", style={
+                        'font-size': '24px',
+                        'color': '#3498db',
+                        'margin-right': '12px'
+                    }),
+                    html.Span('RANGO DE FECHAS', style={
+                        'font-weight': '700',
+                        'font-size': '18px',
+                        'color': '#2c3e50',
+                        'letter-spacing': '0.5px'
+                    })
+                ], style={
+                    'display': 'flex',
+                    'align-items': 'center',
+                    'justify-content': 'center',
+                    'margin-bottom': '25px'
+                }),
+                
+                # Container do date picker com design moderno
+                html.Div([
+                    html.Div([
+                        dcc.DatePickerRange(
+                            id='ref-date-range-selector',
+                            start_date=get_first_date_for_picker(),
+                            end_date=get_latest_date_for_picker(),
+                            display_format='DD/MM/YYYY',
+                            start_date_placeholder_text='📅 Fecha inicio',
+                            end_date_placeholder_text='📅 Fecha fin',
+                            style={
+                                'width': '100%',
+                                'font-size': '15px',
+                                'font-weight': '500'
+                            },
+                            calendar_orientation='horizontal',
+                            number_of_months_shown=2,
+                            with_portal=True,
+                            clearable=True,
+                            className='modern-date-picker'
+                        )
+                    ], style={
+                        'background': '#ffffff',
+                        'border-radius': '12px',
+                        'padding': '15px',
+                        'box-shadow': '0 2px 10px rgba(0, 0, 0, 0.08)',
+                        'border': '2px solid #e8f4fd',
+                        'transition': 'all 0.3s ease'
+                    })
+                ], style={
+                    'max-width': '550px', 
+                    'margin': '0 auto',
+                    'display': 'flex',
+                    'justify-content': 'center'
+                })
+            ], style={
+                'text-align': 'center', 
+                'margin-bottom': '45px', 
+                'padding': '35px 30px', 
+                'background': 'linear-gradient(135deg, #f8fbff 0%, #e8f4fd 50%, #dbeafe 100%)', 
+                'border-radius': '20px', 
+                'border': '1px solid #bfdbfe',
+                'box-shadow': '0 8px 25px rgba(59, 130, 246, 0.08), 0 3px 10px rgba(0, 0, 0, 0.05)',
+                'position': 'relative',
+                'overflow': 'hidden'
+            })
+        ], className="date-range-container"),
+        
+        # Container para selección de otros parámetros
         html.Div([
             html.H4('Seleccionar Parámetros', className="section-title"),
             html.Div([
-                # Input para rango de fechas (primer campo)
-                html.Div([
-                    html.Label('Rango de Fechas:', className="input-label"),
-                    dcc.DatePickerRange(
-                        id='ref-date-range-selector',
-                        start_date=get_first_date_for_picker(),
-                        end_date=get_latest_date_for_picker(),
-                        display_format='DD/MM/YYYY',
-                        start_date_placeholder_text='Fecha inicio',
-                        end_date_placeholder_text='Fecha fin',
-                        className="date-picker-range"
-                    )
-                ], className="input-item"),
-                
                 # Input para estadística
                 html.Div([
-                    html.Label('Estadística:', className="input-label"),
+                    html.Label('ESTADÍSTICA:', className="input-label"),
                     dcc.Dropdown(
                         id='ref-estadistica-selector',
                         placeholder='Selecciona una o más estadísticas...',
                         className="statistic-dropdown",
-                        multi=True
+                        multi=True,
+                        style={
+                            'font-size': '14px'
+                        },
+                        optionHeight=40,
+                        maxHeight=300
                     )
                 ], className="input-item"),
                 
                 # Input para Match Day
                 html.Div([
-                    html.Label('Match Day:', className="input-label"),
+                    html.Label('MATCH DAY:', className="input-label"),
                     dcc.Dropdown(
                         id='ref-matchday-selector',
                         placeholder='Selecciona uno o más Match Days...',
                         className="statistic-dropdown",
-                        multi=True
+                        multi=True,
+                        style={
+                            'font-size': '14px'
+                        },
+                        optionHeight=40,
+                        maxHeight=300
                     )
                 ], className="input-item"),
                 
                 # Input para Player
                 html.Div([
-                    html.Label('Jugador:', className="input-label"),
+                    html.Label('JUGADOR:', className="input-label"),
                     dcc.Dropdown(
                         id='ref-player-selector',
                         placeholder='Selecciona uno o más jugadores...',
                         className="statistic-dropdown",
-                        multi=True
+                        multi=True,
+                        style={
+                            'font-size': '14px'
+                        },
+                        optionHeight=40,
+                        maxHeight=300
                     )
                 ], className="input-item"),
                 
                 # Input para Position
                 html.Div([
-                    html.Label('Posición:', className="input-label"),
+                    html.Label('POSICIÓN:', className="input-label"),
                     dcc.Dropdown(
                         id='ref-position-selector',
                         placeholder='Selecciona una o más posiciones...',
                         className="statistic-dropdown",
-                        multi=True
+                        multi=True,
+                        style={
+                            'font-size': '14px'
+                        },
+                        optionHeight=40,
+                        maxHeight=300
                     )
                 ], className="input-item")
                 
             ], className="inputs-row", style={'display': 'flex', 'flex-wrap': 'wrap', 'gap': '20px'})
-        ], className="date-selection-container"),
+        ], className="parameters-selection-container"),
         
         # Container para mostrar los datos filtrados
         html.Div([
@@ -376,6 +598,11 @@ def register_callbacks(app):
             
             # Convertir a pandas para mostrar en tabla
             df_pandas = df_filtered.to_pandas()
+            
+            # Round numeric columns to 2 decimal places
+            numeric_columns = df_pandas.select_dtypes(include=['float64', 'float32', 'int64', 'int32']).columns
+            for col in numeric_columns:
+                df_pandas[col] = df_pandas[col].round(2)
             
             # Crear tabla con los datos filtrados
             return html.Div([

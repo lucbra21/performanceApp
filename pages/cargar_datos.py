@@ -1,3 +1,42 @@
+"""
+============================================================================
+PÁGINA DE CARGA DE DATOS - cargar_datos.py
+============================================================================
+
+DESCRIPCIÓN GENERAL:
+Esta página permite la gestión completa de archivos GPS en formato Excel (.xlsx) para el 
+sistema de análisis de rendimiento deportivo. Proporciona funcionalidades para cargar, 
+visualizar, editar y eliminar archivos de datos GPS, así como actualizar las referencias 
+del sistema y mantener un historial de todas las operaciones realizadas.
+
+FUNCIONES DISPONIBLES:
+
+FUNCIONES DE UTILIDAD PARA EL HISTORIAL:
+- load_file_history(): Carga el historial de archivos desde el archivo JSON
+- add_history_entry(): Añade una nueva entrada al historial con timestamp
+- clear_processed_files(): Elimina todos los archivos de la carpeta processed
+
+FUNCIONES DE INTERFAZ:
+- generate_history_component(): Genera el componente HTML del historial de archivos
+- update_references(): Ejecuta el recálculo completo de referencias y datasets
+
+CALLBACKS PRINCIPALES:
+- save_file(): Procesa la subida de archivos y actualiza el Parquet consolidado
+- toggle_edit_modal(): Controla la visibilidad del modal de edición de archivos
+- confirm_edit(): Procesa la confirmación de eliminación de archivos seleccionados
+- handle_update_references(): Maneja la actualización de referencias del sistema
+
+FUNCIONALIDADES PRINCIPALES:
+- Carga de archivos Excel GPS con validación de formato
+- Consolidación automática en formato Parquet para mejor rendimiento
+- Historial completo de operaciones (carga/eliminación) con timestamps
+- Modal de edición para selección y eliminación de archivos
+- Sistema de copias de seguridad automáticas
+- Actualización completa de datasets y referencias del sistema
+- Interfaz intuitiva con mensajes de estado en tiempo real
+
+"""
+
 # ============================================================================
 # IMPORTACIONES
 # ============================================================================
@@ -14,8 +53,9 @@ import polars as pl
 import datetime
 import json
 
-# Importación de funciones desde utils
-from utils.utils import calcular_estadisticas_por_matchday
+# Importaciones específicas de los módulos utils
+from utils.metrics import *
+from utils.data_access import *
 
 
 # ============================================================================
@@ -24,7 +64,23 @@ from utils.utils import calcular_estadisticas_por_matchday
 
 # Función para cargar el historial de archivos
 def load_file_history():
-    """Carga el historial de archivos desde el archivo JSON"""
+    """
+    PROPÓSITO:
+    Carga el historial completo de operaciones de archivos desde el sistema de almacenamiento JSON.
+    
+    FUNCIONALIDAD:
+    - Crea automáticamente la carpeta 'data' si no existe
+    - Busca y lee el archivo 'file_history.json' que contiene el registro de operaciones
+    - Maneja errores de lectura devolviendo una lista vacía como fallback
+    - Proporciona un historial persistente de todas las cargas y eliminaciones de archivos
+    
+    IMPLEMENTACIÓN:
+    - Utiliza os.path.join() para construir rutas de manera compatible con el sistema operativo
+    - Emplea os.makedirs() con exist_ok=True para crear directorios de forma segura
+    - Implementa manejo de excepciones robusto para archivos corruptos o inexistentes
+    - Lee el archivo JSON completo en memoria y lo convierte a lista de Python
+    
+    """
     # Define la carpeta donde se guardará el historial
     data_folder = os.path.join(os.path.dirname(__file__), '..', 'data')
     os.makedirs(data_folder, exist_ok=True)
@@ -40,12 +96,30 @@ def load_file_history():
 
 # Función para añadir una entrada al historial
 def add_history_entry(action, filename):
-    """Añade una nueva entrada al historial con la acción, nombre de archivo y timestamp"""
+    """
+    PROPÓSITO:
+    Registra una nueva operación en el historial de archivos con timestamp automático.
+    
+    FUNCIONALIDAD:
+    - Carga el historial existente utilizando load_file_history()
+    - Crea una nueva entrada con la acción realizada, nombre del archivo y timestamp
+    - Añade la nueva entrada al final del historial (orden cronológico)
+    - Guarda el historial actualizado de vuelta al archivo JSON
+    - Mantiene un registro completo y persistente de todas las operaciones
+    
+    IMPLEMENTACIÓN:
+    - Utiliza datetime.datetime.now() para generar timestamps precisos
+    - Formatea la fecha en formato "YYYY-MM-DD HH:MM:SS" para legibilidad
+    - Construye un diccionario con la estructura estándar del historial
+    - Emplea json.dump() para serializar y guardar los datos actualizados
+    - Reutiliza la lógica de load_file_history() para mantener consistencia
+    
+    """
     history = load_file_history()
     entry = {
         'action': action,
         'filename': filename,
-        'timestamp': datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        'timestamp': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     }
     history.append(entry)
     
@@ -55,9 +129,28 @@ def add_history_entry(action, filename):
     with open(history_path, 'w') as f:
         json.dump(history, f)
 
-# Función para limpar os arquivos da pasta processed
+# Función para limpiar los archivos de la carpeta processed
 def clear_processed_files():
-    """Elimina todos los archivos de la carpeta processed antes de recalcular estadísticas"""
+    """
+    PROPÓSITO:
+    Elimina todos los archivos de la carpeta 'processed' para limpiar datos pre-calculados.
+    
+    FUNCIONALIDAD:
+    - Localiza la carpeta 'data/processed' del proyecto
+    - Lista todos los archivos contenidos en la carpeta
+    - Elimina cada archivo individualmente con manejo de errores
+    - Proporciona retroalimentación detallada sobre el proceso de eliminación
+    - Prepara el sistema para recálculos completos de estadísticas y referencias
+    
+    IMPLEMENTACIÓN:
+    - Utiliza os.path.exists() para verificar la existencia de la carpeta
+    - Emplea os.listdir() para obtener la lista completa de archivos
+    - Aplica os.path.isfile() para filtrar solo archivos (no directorios)
+    - Usa os.remove() para eliminar cada archivo de forma segura
+    - Implementa manejo de excepciones individual para cada archivo
+    - Genera mensajes informativos en consola para seguimiento del proceso
+    
+    """
     processed_folder = os.path.join(os.path.dirname(__file__), '..', 'data', 'processed')
     
     if os.path.exists(processed_folder):
@@ -93,7 +186,26 @@ def clear_processed_files():
 
 # Función para generar el componente de historial de archivos
 def generate_history_component(history=None):
-    """Genera el componente HTML que muestra el historial de archivos"""
+    """
+    PROPÓSITO:
+    Genera el componente HTML visual que muestra el historial de operaciones de archivos.
+    
+    FUNCIONALIDAD:
+    - Carga automáticamente el historial si no se proporciona como parámetro
+    - Crea elementos HTML estructurados para mostrar cada entrada del historial
+    - Ordena las entradas cronológicamente (más recientes primero)
+    - Añade iconos visuales para diferenciar tipos de operaciones (✅ para carga, ❌ para eliminación)
+    - Formatea la información de manera legible con nombres de archivo y timestamps
+    - Maneja el caso de historial vacío con mensaje informativo
+    
+    IMPLEMENTACIÓN:
+    - Utiliza reversed() para mostrar las entradas más recientes al principio
+    - Construye elementos html.Div() anidados para estructura jerárquica
+    - Aplica clases CSS específicas para estilizado consistente
+    - Emplea html.Span() para elementos de texto con estilos diferenciados
+    - Crea una estructura de componente reutilizable y modular
+    
+    """
     if history is None:
         history = load_file_history()
     
@@ -118,9 +230,125 @@ def generate_history_component(history=None):
         html.Div(history_items, id="files-history")
     ], className="history-component")
 
+
+
+def update_references():
+    """
+    PROPÓSITO:
+    Ejecuta secuencialmente todas las funciones de cálculo de referencias para pre-calcular 
+    y almacenar las tablas de referencia del sistema, además de crear el dataset principal del proyecto.
+    
+    FUNCIONALIDAD:
+    - Crea los datasets principales de partidos y entrenamiento como base del sistema
+    - Ejecuta en orden específico las funciones de cálculo de métricas y estadísticas
+    - Calcula métricas para períodos de 94 minutos con diferentes configuraciones
+    - Genera estadísticas de jugadores individuales para análisis comparativo
+    - Calcula estadísticas agrupadas por jornada (matchday) para seguimiento temporal
+    - Genera tablas comparativas consolidadas para la interfaz de usuario
+    - Valida cada paso del proceso para asegurar integridad de datos
+    - Proporciona retroalimentación detallada sobre el progreso y posibles errores
+    
+    IMPLEMENTACIÓN:
+    - Utiliza bloques try-catch para manejo robusto de errores
+    - Ejecuta funciones en secuencia específica respetando dependencias de datos
+    - Valida que cada dataset generado no esté vacío antes de continuar
+    - Emplea print() para logging detallado del progreso en consola
+    - Retorna tupla con estado de éxito y mensaje descriptivo
+    - Maneja excepciones con mensajes de error informativos
+
+    """
+    try:
+        # 0. Crear el dataset principal del proyecto primero
+        print("=== CREANDO DATASET DE PARTIDOS ===")
+        dataset_partidos = create_dataset_partidos()
+        if dataset_partidos is None or dataset_partidos.is_empty():
+            return False, "Error al crear el dataset de los partidos"
+        
+        print("=== CREANDO DATASET DE ENTRENAMIENTO ===")
+        dataset_entrenamiento = create_dataset_entrenamiento()
+        if dataset_entrenamiento is None or dataset_entrenamiento.is_empty():
+            return False, "Error al crear el dataset de entrenamiento"
+        
+        print("Dataset principal creado exitosamente. Procediendo con las referencias...")
+        
+          # 1. calculate_metrics_for_94min(4)
+        result3 = calculate_metrics_for_94min(save=True)
+        if result3 is None or result3.is_empty():
+            return False, "Error en calculate_metrics_for_94min(4)"
+        
+        # 2. calculate_metrics_for_94min()
+        result4 = calculate_metrics_for_94min(save=True)
+        if result4 is None or result4.is_empty():
+            return False, "Error en calculate_metrics_for_94min()"
+       
+       
+        # 3. calculate_player_statistics_94min(4)
+        result1 = calculate_player_statistics_94min(4)
+        if result1 is None or result1.is_empty():
+            return False, "Error en calculate_player_statistics_94min(4)"
+        
+        # 4. calculate_player_statistics_94min()
+        result2 = calculate_player_statistics_94min()
+        if result2 is None or result2.is_empty():
+            return False, "Error en calculate_player_statistics_94min()"
+        
+     
+        # 5. calcular_estadisticas_por_matchday()
+        result5 = calcular_estadisticas_por_matchday(save=True)
+        if result5 is None:
+            return False, "Error en calcular_estadisticas_por_matchday()"
+        
+        
+        print("=== ACTUALIZACIÓN DE REFERENCIAS COMPLETADA ===")
+        return True, "Dataset principal creado y referencias actualizadas correctamente. Todas las tablas de referencia han sido pre-calculadas y almacenadas."
+        
+    except Exception as e:
+        error_msg = f"Error durante la actualización de referencias: {str(e)}"
+        print(error_msg)
+        return False, error_msg
+
 # ============================================================================
 # LAYOUT DE LA PÁGINA
 # ============================================================================
+"""
+ESTRUCTURA DEL LAYOUT DE LA PÁGINA CARGAR DATOS:
+
+PROPÓSITO:
+Define la estructura visual completa de la página de carga de datos, organizando todos los 
+componentes de interfaz de usuario de manera jerárquica y funcional.
+
+COMPONENTES PRINCIPALES:
+
+1. ENCABEZADO DE PÁGINA:
+   - Título principal "Cargar Datos" con estilo page-title
+   - Línea divisoria horizontal para separación visual
+
+2. CONTENEDOR PRINCIPAL (cargar-datos-container):
+   - Cabecera de acciones (cargar-datos-header):
+     * Etiqueta "GPS" identificativa del tipo de datos
+     * Grupo de botones de acción alineados a la derecha:
+       - Upload: Componente dcc.Upload para subir archivos XLSX
+       - EDIT: Botón para abrir modal de edición/eliminación de archivos
+       - DOWNLOAD: Botón para descargar datos procesados
+       - ATUALIZAR REFERÊNCIAS: Botón para ejecutar cálculos de referencias
+
+3. ÁREA DE MENSAJES DE ESTADO:
+   - Contenedor dinámico para mostrar mensajes informativos, de éxito o error
+   - Mensaje inicial por defecto sobre instrucciones de uso
+
+4. MODAL DE EDICIÓN (edit-modal):
+   - Overlay modal inicialmente oculto para gestión de archivos
+   - Estructura completa con header, body y footer
+   - Botones de confirmación y cancelación de acciones
+   - Sistema de cierre con botón X y botones de acción
+
+5. ÁREA DE CONTENIDO PRINCIPAL:
+   - Línea divisoria para separación visual
+   - Contenedor del historial de archivos que muestra dinámicamente
+     las operaciones realizadas (carga/eliminación) con timestamps
+
+
+"""
 
 layout = html.Div([
     # Título de la página
@@ -151,8 +379,10 @@ layout = html.Div([
                     n_clicks=0, 
                     className='btn-edit'
                 ),
-                # Botón para descargar archivos
-                html.Button('DOWNLOAD', id='btn-download', className='btn-download')
+                # Botão para descargar archivos
+                html.Button('DOWNLOAD', id='btn-download', className='btn-download'),
+                # Botão para atualizar referências
+                html.Button('ATUALIZAR REFERÊNCIAS', id='update-references-btn', className='btn-update-references')
             ],  className="buttons-right"),
         ], className="cargar-datos-header"),
         
@@ -194,7 +424,33 @@ layout = html.Div([
 # ============================================================================
 
 def register_callbacks(app):
-    """Registra todos los callbacks de la página"""
+    """
+    PROPÓSITO:
+    Registra todos los callbacks de la página cargar_datos.py en la aplicación Dash,
+    estableciendo la interactividad completa de la interfaz de usuario.
+    
+    FUNCIONALIDAD:
+    - Define y registra múltiples callbacks para diferentes componentes de la página
+    - Gestiona la subida y procesamiento de archivos XLSX
+    - Controla la visibilidad y contenido del modal de edición
+    - Maneja la eliminación de archivos del dataset consolidado
+    - Gestiona la actualización de referencias y cálculos del sistema
+    - Proporciona retroalimentación visual mediante mensajes de estado
+    
+    IMPLEMENTACIÓN:
+    - Utiliza decoradores @app.callback para definir cada callback
+    - Emplea Input, Output y State de Dash para manejar interacciones
+    - Implementa manejo robusto de errores con try-catch
+    - Utiliza callback_context para identificar qué elemento disparó el callback
+    - Actualiza múltiples componentes de la interfaz simultáneamente
+    
+   
+    CALLBACKS INCLUIDOS:
+    1. save_file: Procesa subida de archivos y actualiza dataset consolidado
+    2. toggle_edit_modal: Controla visibilidad del modal de edición
+    3. confirm_edit: Procesa eliminación de archivos seleccionados
+    4. handle_update_references: Ejecuta actualización de referencias del sistema
+    """
     
     # ========================================================================
     # Callback para subir archivos y actualizar el Parquet consolidado
@@ -207,7 +463,31 @@ def register_callbacks(app):
         prevent_initial_call=True
     )
     def save_file(contents, filename):
-        """Procesa la subida de archivos, actualiza el Parquet consolidado y el historial sin guardar archivos Excel"""
+        """
+        PROPÓSITO:
+        Procesa la subida de archivos XLSX, los integra al dataset consolidado Parquet
+        y actualiza el historial de operaciones sin guardar archivos Excel individuales.
+        
+        FUNCIONALIDAD:
+        - Valida que el archivo subido sea de formato XLSX válido
+        - Decodifica el contenido del archivo desde base64 y lo procesa en memoria
+        - Normaliza el nombre del archivo según el patrón de fechas del sistema
+        - Verifica que el archivo no exista previamente en el dataset consolidado
+        - Crea copias de seguridad automáticas antes de modificar datos existentes
+        - Concatena los nuevos datos con el dataset existente manejando tipos de datos
+        - Registra la operación en el historial de archivos con timestamp
+        - Proporciona retroalimentación visual sobre el éxito o fallo de la operación
+        - Implementa recuperación automática desde copias de seguridad en caso de error
+        
+        IMPLEMENTACIÓN:
+        - Utiliza regex para extraer y reformatear fechas del nombre del archivo
+        - Emplea polars para lectura eficiente de Excel y manipulación de dataframes
+        - Maneja la concatenación diagonal para datasets con esquemas ligeramente diferentes
+        - Convierte tipos de datos numéricos a float64 para consistencia
+        - Utiliza shutil para operaciones de copia de seguridad y restauración
+        - Implementa validación de integridad de archivos Parquet existentes
+        
+        """
         
         # Si no hay archivo subido, no hacer nada
         if contents is None or filename is None:
@@ -286,19 +566,6 @@ def register_callbacks(app):
             # Registra la acción en el historial
             add_history_entry("upload", filename)
             
-            # Eliminar archivos de la carpeta processed antes de recalcular estadísticas
-            clear_processed_files()
-            
-            # Ejecuta la función calcular_estadisticas_por_matchday para actualizar las estadísticas
-            try:
-                resultado = calcular_estadisticas_por_matchday()
-                if resultado is not None and len(resultado) > 0 and resultado[0] is not None:
-                    print("Estadísticas calculadas correctamente después de añadir archivo.")
-                else:
-                    print("No hay suficientes datos para calcular estadísticas.")
-            except Exception as e:
-                print(f"Error al calcular estadísticas: {str(e)}")
-            
             # Actualiza el componente de historial
             updated_history = generate_history_component()
             
@@ -329,7 +596,29 @@ def register_callbacks(app):
         prevent_initial_call=True
     )
     def toggle_edit_modal(edit_clicks, close_clicks, cancel_clicks):
-        """Controla la visibilidad del modal de edición y carga el contenido"""
+        """
+        PROPÓSITO:
+        Controla la visibilidad del modal de edición de archivos y genera dinámicamente
+        su contenido con la lista de archivos disponibles para eliminación.
+        
+        FUNCIONALIDAD:
+        - Detecta qué botón fue presionado usando callback_context para determinar la acción
+        - Muestra u oculta el modal según el botón activado (abrir, cerrar, cancelar)
+        - Carga dinámicamente la lista de archivos desde el dataset consolidado Parquet
+        - Genera una checklist interactiva con todos los archivos disponibles
+        - Valida la existencia y integridad del dataset antes de mostrar opciones
+        - Proporciona mensajes informativos cuando no hay datos disponibles
+        - Maneja errores de lectura de datos con retroalimentación específica
+        
+        IMPLEMENTACIÓN:
+        - Utiliza callback_context para identificar el elemento que disparó el callback
+        - Emplea polars para lectura eficiente del dataset consolidado
+        - Genera componentes Dash dinámicamente según el estado de los datos
+        - Implementa validación de archivos y manejo de casos edge
+        - Retorna tuplas con estilos CSS y contenido HTML para actualizar la interfaz
+        - Usa try-catch para manejo robusto de errores de lectura de datos
+        
+        """
         ctx = callback_context
         if not ctx.triggered:
             return {"display": "none"}, []
@@ -406,7 +695,45 @@ def register_callbacks(app):
         prevent_initial_call=True
     )
     def confirm_edit(confirm_clicks, selected_files):
-        """Procesa la confirmación de la edición de archivos en el dataframe consolidado"""
+        """
+        PROPÓSITO:
+        Procesa la confirmación de eliminación de archivos seleccionados del dataset
+        consolidado, actualizando el dataframe Parquet y el historial de archivos.
+        
+        FUNCIONALIDAD:
+        - Valida que se haya hecho clic en el botón de confirmación
+        - Crea una copia de seguridad automática del dataset antes de modificaciones
+        - Filtra el dataframe consolidado para eliminar los archivos seleccionados
+        - Actualiza el archivo Parquet con los datos filtrados
+        - Registra cada eliminación en el historial de operaciones
+        - Maneja el caso especial cuando se eliminan todos los archivos
+        - Limpia archivos procesados cuando el dataset queda vacío
+        - Proporciona retroalimentación detallada sobre las operaciones realizadas
+        - Implementa recuperación automática desde backup en caso de errores
+        
+        IMPLEMENTACIÓN:
+        - Utiliza polars para operaciones eficientes de filtrado de datos
+        - Crea backup automático usando shutil.copy2 antes de modificaciones
+        - Emplea filtros de polars (~pl.col().is_in()) para eliminar archivos
+        - Actualiza el historial usando add_history_entry para cada eliminación
+        - Elimina completamente el Parquet si no quedan datos
+        - Llama a clear_processed_files() cuando se vacía el dataset
+        - Implementa try-catch con restauración automática desde backup
+        - Actualiza la interfaz cerrando el modal y mostrando mensajes de estado
+        
+       
+        
+        PARÁMETROS:
+        - confirm_clicks (int): Número de clics en el botón de confirmar eliminación
+        - selected_files (list): Lista de nombres de archivos seleccionados para eliminar
+        
+        RETORNA:
+        - tuple: (mensaje_estado, historial_actualizado, estilo_modal) donde:
+          * mensaje_estado: Componente HTML con el resultado de la operación
+          * historial_actualizado: Componente actualizado del historial de archivos
+          * estilo_modal: Dict para ocultar el modal después de la operación
+        
+        """
         if not confirm_clicks:
             return dash.no_update, dash.no_update, dash.no_update
             
@@ -484,30 +811,71 @@ def register_callbacks(app):
         if not selected_files:
             msg = "No se seleccionó ningún archivo para eliminar."
         
-        #Ejecuta la función calcular_estadisticas_por_matchday para actualizar las estadísticas
-        try:
-            # Verificar si aún hay datos en el dataframe después de eliminar archivos
-            if os.path.exists(merge_path) and os.path.getsize(merge_path) > 0:
-                df_check = pl.read_parquet(merge_path)
-                if df_check.height > 0:
-                    # Eliminar archivos de la carpeta processed antes de recalcular estadísticas
-                    clear_processed_files()
-                    
-                    resultado = calcular_estadisticas_por_matchday()
-                    if resultado is not None and len(resultado) > 0 and resultado[0] is not None:
-                        print("Estadísticas calculadas correctamente después de editar archivos.")
-                    else:
-                        print("No hay suficientes datos para calcular estadísticas.")
-                else:
-                    print("No hay datos en el dataframe para calcular estadísticas.")
-            else:
-                print("No existe el archivo de datos para calcular estadísticas.")
-        except Exception as e:
-            print(f"Error al calcular estadísticas: {str(e)}")
-        
         # Actualiza el componente de historial
         updated_history = generate_history_component()
         
         # Oculta el modal y muestra el mensaje de confirmación
         return [html.Div(msg, className="success-msg")], updated_history, {"display": "none"}
+    
+    # ========================================================================
+    # Callback para actualizar referencias y crear dataset principal
+    # ========================================================================
+    @app.callback(
+        Output('status-messages', 'children', allow_duplicate=True),
+        Input('update-references-btn', 'n_clicks'),
+        prevent_initial_call=True
+    )
+    def handle_update_references(n_clicks):
+        """
+        PROPÓSITO:
+        Maneja el proceso de actualización de referencias y creación del dataset principal
+        del proyecto, ejecutando todas las funciones de cálculo estadístico secuencialmente.
+        
+        FUNCIONALIDAD:
+        - Valida que se haya hecho clic en el botón de actualización
+        - Proporciona retroalimentación inmediata al usuario sobre el inicio del proceso
+        - Ejecuta la función principal update_references() que coordina todos los cálculos
+        - Procesa el resultado de la operación (éxito o fallo)
+        - Maneja errores inesperados durante la ejecución
+        - Proporciona mensajes de estado detallados sobre el resultado
+        - Actualiza la interfaz con el estado final de la operación
+        
+        IMPLEMENTACIÓN:
+        - Utiliza dash.no_update para evitar actualizaciones innecesarias
+        - Llama directamente a update_references() que contiene toda la lógica de procesamiento
+        - Implementa try-catch para capturar errores inesperados del sistema
+        - Retorna mensajes HTML con clases CSS apropiadas para el estado
+        - Distingue entre errores controlados (de update_references) y errores inesperados
+        - Proporciona retroalimentación visual mediante clases de estilo (success-msg, error-msg, info-msg)
+        
+       
+        PARÁMETROS:
+        - n_clicks (int): Número de clics en el botón de actualizar referencias
+        
+        RETORNA:
+        - html.Div: Componente HTML con mensaje de estado de la operación, que puede ser:
+          * Mensaje de éxito con clase "success-msg" si la operación fue exitosa
+          * Mensaje de error con clase "error-msg" si hubo fallo controlado
+          * Mensaje de error inesperado con clase "error-msg" si hubo excepción no controlada
+          * dash.no_update si no se hizo clic en el botón
+        
+        """
+        if not n_clicks:
+            return dash.no_update
+        
+        # Mostrar mensaje de inicio
+        initial_msg = html.Div("Iniciando creación del dataset y actualización de referencias... Esto puede tomar varios minutos.", className="info-msg")
+        
+        try:
+            # Ejecutar la función de actualización de referencias
+            success, message = update_references()
+            
+            if success:
+                return html.Div(message, className="success-msg")
+            else:
+                return html.Div(f"Error: {message}", className="error-msg")
+                
+        except Exception as e:
+            error_msg = f"Error inesperado durante la actualización: {str(e)}"
+            return html.Div(error_msg, className="error-msg")
     

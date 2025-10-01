@@ -1108,7 +1108,6 @@ def get_table_data(selected_date, selected_statistic):
     
     return result_df
 
-
 def get_combined_table_with_reference(fecha, valor_referencia="zscore", estadistica="median"):
     """
     Retorna una tabla combinada donde cada celda contiene el valor absoluto 

@@ -830,128 +830,161 @@ def register_callbacks(app):
     @app.callback(
         Output('team-tarjetas-output', 'children'),
         [Input('date-selector', 'date'),
-         Input('statistic-selector', 'value'),
-         Input('cards-view-selector', 'value'),
-         Input('tarjetas-columns-selector', 'value')]
+        Input('statistic-selector', 'value'),
+        Input('cards-view-selector', 'value'),
+        Input('tarjetas-columns-selector', 'value')]
     )
     def update_team_cards(selected_date, selected_statistic, selected_view, selected_columns):
         """
-        Crea tarjetas mostrando los valores absolutos de métricas para equipos y posiciones.
-        
-        Esta función callback genera tarjetas visuales que muestran los valores absolutos
-        de las métricas para el equipo completo o por posición específica.
-        
-        Args:
-            selected_date (str): Fecha seleccionada en formato YYYY-MM-DD
-            selected_statistic (str): Estadística seleccionada para el análisis
-            selected_view (str): Vista seleccionada ('Equipo' o 'Position_X')
-            selected_columns (list): Lista de columnas de métricas a mostrar en las tarjetas
-        
-        Returns:
-            html.Div: Componente HTML con tarjetas de métricas que incluyen:
-                     - Título descriptivo de la vista
-                     - Tarjetas individuales para cada métrica seleccionada
-                     - Valores absolutos de las métricas
+        Crea tarjetas con gauges mostrando valores absolutos vs referencia MD.
         """
         
         if not selected_date or not selected_statistic:
             return html.Div()
         
         try:
+            # OBTENER formatted_date y match_day_actual AL INICIO
+            result = format_and_filter_date(selected_date)
+            if result is None or result[0] is None:
+                return html.Div("No se encontraron datos para la fecha seleccionada.", 
+                            className="warning-message")
+            
+            df_fecha_actual, formatted_date = result
+            
+            # Obtener el Match Day del día seleccionado
+            # ← CORRECCIÓN: verificar None primero, luego height
+            if df_fecha_actual is not None and df_fecha_actual.height > 0:
+                match_day_actual = df_fecha_actual['Match Day'][0]
+            else:
+                match_day_actual = None
+            
             # Obtener datos de jugadores para la fecha seleccionada
             df_players = get_players_data(selected_date)
             
             if df_players is None:
                 return html.Div("No se encontraron datos para la fecha seleccionada.", 
-                              className="info-message")
+                            className="info-message")
             
             # Determinar qué datos usar basado en selected_view
             if selected_view == 'Equipo':
-                # Calcular estadísticas del equipo usando calcular_metricas
                 columnas_numericas = [col for col in df_players.columns if col not in ['Player', 'Position']]
                 team_stats = calcular_metricas(df_players, columnas_numericas, selected_statistic)
-                # Crear DataFrame para el equipo
                 team_stats['Player'] = "TEAM"
                 df_to_use = pl.DataFrame([team_stats])
                 title_prefix = f'Métricas del Equipo - {selected_statistic}'
                 
             elif selected_view and selected_view.startswith('Position_'):
-                # Extraer la posición del valor selected_view
                 position = selected_view.replace('Position_', '')
-                
-                # Filtrar jugadores por posición
                 df_position_players = df_players.filter(pl.col('Position') == position)
                 
                 if df_position_players.height == 0:
                     return html.Div(f"No se encontraron jugadores para la posición {position}.", 
-                                  className="info-message")
+                                className="info-message")
                 
-                # Calcular estadísticas de la posición usando calcular_metricas
                 columnas_numericas = [col for col in df_position_players.columns if col not in ['Player', 'Position']]
                 position_stats = calcular_metricas(df_position_players, columnas_numericas, selected_statistic)
-                
-                # Crear DataFrame para la posición
                 position_stats['Player'] = f"POS_{position}"
                 df_to_use = pl.DataFrame([position_stats])
                 title_prefix = f'Métricas de la Posición {position} - {selected_statistic}'
                 
             else:
-                # Fallback a equipo
                 columnas_numericas = [col for col in df_players.columns if col not in ['Player', 'Position']]
                 team_stats = calcular_metricas(df_players, columnas_numericas, selected_statistic)
-                # Crear DataFrame para el equipo
                 team_stats['Player'] = "TEAM"
                 df_to_use = pl.DataFrame([team_stats])
                 title_prefix = f'Métricas del Equipo - {selected_statistic}'
             
             if df_to_use.height == 0:
                 return html.Div("No hay datos disponibles para esta selección.", 
-                              className="info-message")
+                            className="info-message")
             
-            # Convertir a pandas para facilitar el manejo
+            # Convertir a pandas
             df_pandas = df_to_use.to_pandas()
             
-            # Obtener columnas de métricas (excluyendo columnas de identificación)
+            # Obtener columnas de métricas
             exclude_cols = ['Player', 'Position', 'Team', 'Match Day', 'Estadistica']
             all_metric_columns = [col for col in df_pandas.columns if col not in exclude_cols]
             
-            # Filtrar por las columnas seleccionadas por el usuario
+            # Filtrar por las columnas seleccionadas
             if selected_columns:
-                # Si hay columnas seleccionadas, usar solo esas
                 metric_columns = [col for col in selected_columns if col in all_metric_columns]
             else:
-                # Si no hay columnas seleccionadas, mostrar todas
                 metric_columns = all_metric_columns
             
             if not metric_columns:
                 return html.Div("Selecciona al menos una métrica para mostrar.", 
-                              className="info-message")
+                            className="info-message")
             
-            # Crear tarjetas para cada métrica
+            # CALCULAR REFERENCIAS MD CON LA MISMA LÓGICA
+            df_gps_full = load_gps_data()
+            if df_gps_full is None:
+                return html.Div("Error al cargar datos GPS completos.", className="error-message")
+            
+            # Aplicar filtros estándar
+            df_gps_filtered = apply_standard_filters(df_gps_full)
+            
+            # Filtrar solo Match Day = "MD"
+            df_md = df_gps_filtered.filter(pl.col('Match Day') == 'MD')
+            
+            # Obtener fechas únicas de MD para calcular métricas por minuto
+            fechas_md = df_md['Date'].unique().to_list()
+            df_md_list = []
+            
+            for fecha_md in fechas_md:
+                df_fecha_md = df_md.filter(pl.col('Date') == fecha_md)
+                if df_fecha_md.height > 0:
+                    session_minutes = df_fecha_md.select('Drills Duration').row(0)[0]
+                    df_fecha_md_con_metricas, _ = add_per_minute_metrics(df_fecha_md, session_minutes)
+                    df_md_list.append(df_fecha_md_con_metricas)
+            
+            if df_md_list:
+                df_md_processed = pl.concat(df_md_list)
+            else:
+                return html.Div("No se encontraron datos de MD para referencia.", className="warning-message")
+            
+            # Calcular referencias según la vista
+            if selected_view == 'Equipo':
+                columnas_ref = [col for col in df_md_processed.columns if col not in ['Player', 'Position', 'Date', 'Match Day', 'Team ']]
+                md_stats = calcular_metricas(df_md_processed, columnas_ref, selected_statistic)
+                md_refs = {col: md_stats.get(col) for col in metric_columns if col in md_stats}
+                
+            elif selected_view and selected_view.startswith('Position_'):
+                position = selected_view.replace('Position_', '')
+                df_md_position = df_md_processed.filter(pl.col('Position') == position)
+                
+                if df_md_position.height == 0:
+                    md_refs = {}
+                else:
+                    columnas_ref = [col for col in df_md_position.columns if col not in ['Player', 'Position', 'Date', 'Match Day', 'Team ']]
+                    md_stats = calcular_metricas(df_md_position, columnas_ref, selected_statistic)
+                    md_refs = {col: md_stats.get(col) for col in metric_columns if col in md_stats}
+            else:
+                # Fallback
+                columnas_ref = [col for col in df_md_processed.columns if col not in ['Player', 'Position', 'Date', 'Match Day', 'Team ']]
+                md_stats = calcular_metricas(df_md_processed, columnas_ref, selected_statistic)
+                md_refs = {col: md_stats.get(col) for col in metric_columns if col in md_stats}
+            
+            # Crear tarjetas
             cards = []
-            
-            # Título de la sección
             cards.append(
                 html.H5(title_prefix, 
                         className="section-subtitle", 
                         style={'margin-top': '10px', 'margin-bottom': '20px'})
             )
             
-            # Contenedor para las tarjetas
             cards_container = []
             
             for col in metric_columns:
-                # Obtener el valor absoluto de la métrica
                 if len(df_pandas) > 0:
                     metric_value = df_pandas[col].iloc[0]
                     
-                    # Formatear valor de la métrica
+                    # Formatear valor
                     if pd.isna(metric_value):
                         formatted_value = 'N/A'
+                        metric_value = 0
                     else:
                         try:
                             metric_value_num = float(metric_value)
-                            # Formatear según el tipo de métrica
                             if 'percentage' in col.lower() or '%' in col:
                                 formatted_value = f'{metric_value_num:.2f}%'
                             elif 'speed' in col.lower() or 'km/h' in col:
@@ -962,45 +995,290 @@ def register_callbacks(app):
                                 formatted_value = f'{metric_value_num:.0f}'
                             else:
                                 formatted_value = f'{metric_value_num:.2f}'
+                            metric_value = metric_value_num
                         except (ValueError, TypeError):
                             formatted_value = str(metric_value)
-                     
-                    # Crear tarjeta usando estilos CSS definidos
-                    card_content = [
-                         # Título da métrica usando classe card-title
-                         html.H6(col, className="card-title"),
-                         
-                         # Container de valores usando classe card-values-container
-                         html.Div([
-                             html.Span("Valor absoluto", className="session-label"),
-                             html.Span(formatted_value, className="stat-value")
-                         ], className="card-values-container")
-                     ]
-                     
-                    card = html.Div(card_content, className="metric-card")
+                            metric_value = 0
                     
-                    cards_container.append(card)
-            
-            # Contenedor usando estilos CSS definidos
-            if cards_container:
-                 cards.append(
-                     html.Div(cards_container, className="metrics-cards-container")
-                 )
-            
-            return html.Div(cards)
+                    # Obtener referencia MD
+                    md_ref = md_refs.get(col, None)
+                    
+
+                    # Calcular porcentaje
+                    # Calcular porcentaje respecto a MD (100%)
+                    if md_ref and md_ref > 0:
+                        percentage = (metric_value / md_ref) * 100
+                        ref_text = f"{md_ref:.1f}"
+                    else:
+                        percentage = 0
+                        ref_text = "N/A"
+
+                    # CALCULAR REFERENCIA DEL MATCH DAY ESPECÍFICO (promedio histórico)
+                    if match_day_actual and match_day_actual != 'MD':
+                        # Filtrar por el mismo Match Day, excluyendo la fecha actual
+                        df_md_especifico = df_gps_filtered.filter(
+                            (pl.col('Match Day') == match_day_actual) & 
+                            (pl.col('Date') != formatted_date)
+                        )
+                        
+                        # Procesar métricas por minuto
+                        fechas_md_esp = df_md_especifico['Date'].unique().to_list()
+                        df_md_esp_list = []
+                        
+                        for fecha_md in fechas_md_esp:
+                            df_fecha_md = df_md_especifico.filter(pl.col('Date') == fecha_md)
+                            if df_fecha_md.height > 0:
+                                session_minutes = df_fecha_md.select('Drills Duration').row(0)[0]
+                                df_fecha_md_con_metricas, _ = add_per_minute_metrics(df_fecha_md, session_minutes)
+                                df_md_esp_list.append(df_fecha_md_con_metricas)
+                        
+                        if df_md_esp_list:
+                            df_md_esp_processed = pl.concat(df_md_esp_list)
+                            
+                            # Calcular referencia según vista
+                            if selected_view == 'Equipo':
+                                columnas_ref = [c for c in df_md_esp_processed.columns 
+                                            if c not in ['Player', 'Position', 'Date', 'Match Day', 'Team ']]
+                                md_esp_stats = calcular_metricas(df_md_esp_processed, columnas_ref, selected_statistic)
+                                md_esp_value = md_esp_stats.get(col, None)
+                                
+                            elif selected_view and selected_view.startswith('Position_'):
+                                position = selected_view.replace('Position_', '')
+                                df_md_esp_position = df_md_esp_processed.filter(pl.col('Position') == position)
+                                
+                                if df_md_esp_position.height > 0:
+                                    columnas_ref = [c for c in df_md_esp_position.columns 
+                                                if c not in ['Player', 'Position', 'Date', 'Match Day', 'Team ']]
+                                    md_esp_stats = calcular_metricas(df_md_esp_position, columnas_ref, selected_statistic)
+                                    md_esp_value = md_esp_stats.get(col, None)
+                                else:
+                                    md_esp_value = None
+                            else:
+                                columnas_ref = [c for c in df_md_esp_processed.columns 
+                                            if c not in ['Player', 'Position', 'Date', 'Match Day', 'Team ']]
+                                md_esp_stats = calcular_metricas(df_md_esp_processed, columnas_ref, selected_statistic)
+                                md_esp_value = md_esp_stats.get(col, None)
+                        else:
+                            md_esp_value = None
+                    else:
+                        # Si el día seleccionado es MD, no mostramos línea de comparación
+                        md_esp_value = None
+                        match_day_actual = 'MD'
+
+                    # Calcular porcentaje de la línea threshold respecto a MD
+                    if md_esp_value and md_ref and md_ref > 0:
+                        threshold_percentage = (md_esp_value / md_ref) * 100
+                        threshold_text = f"{match_day_actual}: {md_esp_value:.1f}"
+                    else:
+                        threshold_percentage = None
+                        threshold_text = None
+
+                    # CALCULAR Z-SCORES UNA SOLA VEZ FUERA DEL LOOP
+                    zscore_data = calcular_zscore_fecha_vs_matchday_acumulado(formatted_date)
+
+                    # Determinar entity_type y entity_key UNA VEZ
+                    if selected_view == 'Equipo':
+                        entity_type = 'equipos'
+                        entity_key = 'TEAM'
+                    elif selected_view.startswith('Position_'):
+                        entity_type = 'posiciones'
+                        entity_key = selected_view.replace('Position_', '')
+                    else:
+                        entity_type = 'equipos'
+                        entity_key = 'TEAM'
+
+                    for col in metric_columns:
+                        if len(df_pandas) > 0:
+                            metric_value = df_pandas[col].iloc[0]
+                            
+                            # Formatear valor
+                            if pd.isna(metric_value):
+                                formatted_value = 'N/A'
+                                metric_value = 0
+                            else:
+                                try:
+                                    metric_value_num = float(metric_value)
+                                    if 'percentage' in col.lower() or '%' in col:
+                                        formatted_value = f'{metric_value_num:.2f}%'
+                                    elif 'speed' in col.lower() or 'km/h' in col:
+                                        formatted_value = f'{metric_value_num:.2f} km/h'
+                                    elif 'distance' in col.lower() or '(m)' in col:
+                                        formatted_value = f'{metric_value_num:.0f} m'
+                                    elif 'cnt' in col.lower() or 'count' in col.lower():
+                                        formatted_value = f'{metric_value_num:.0f}'
+                                    else:
+                                        formatted_value = f'{metric_value_num:.2f}'
+                                    metric_value = metric_value_num
+                                except (ValueError, TypeError):
+                                    formatted_value = str(metric_value)
+                                    metric_value = 0
+                            
+                            # Obtener referencia MD
+                            md_ref = md_refs.get(col, None)
+                            
+                            # Calcular porcentaje respecto a MD (100%)
+                            if md_ref and md_ref > 0:
+                                percentage = (metric_value / md_ref) * 100
+                                ref_text = f"{md_ref:.1f}"
+                            else:
+                                percentage = 0
+                                ref_text = "N/A"
+
+                            # CALCULAR REFERENCIA DEL MATCH DAY ESPECÍFICO (promedio histórico)
+                            md_esp_value = None
+                            threshold_percentage = None
+                            threshold_text = None
+                            
+                            if match_day_actual is not None and match_day_actual != 'MD':
+                                # Filtrar por el mismo Match Day, excluyendo la fecha actual
+                                df_md_especifico = df_gps_filtered.filter(
+                                    (pl.col('Match Day') == match_day_actual) & 
+                                    (pl.col('Date') != formatted_date)
+                                )
+                                
+                                # Procesar métricas por minuto
+                                fechas_md_esp = df_md_especifico['Date'].unique().to_list()
+                                df_md_esp_list = []
+                                
+                                for fecha_md in fechas_md_esp:
+                                    df_fecha_md = df_md_especifico.filter(pl.col('Date') == fecha_md)
+                                    if df_fecha_md.height > 0:
+                                        session_minutes = df_fecha_md.select('Drills Duration').row(0)[0]
+                                        df_fecha_md_con_metricas, _ = add_per_minute_metrics(df_fecha_md, session_minutes)
+                                        df_md_esp_list.append(df_fecha_md_con_metricas)
+                                
+                                if df_md_esp_list:
+                                    df_md_esp_processed = pl.concat(df_md_esp_list)
+                                    
+                                    # Calcular referencia según vista
+                                    if selected_view == 'Equipo':
+                                        columnas_ref = [c for c in df_md_esp_processed.columns 
+                                                    if c not in ['Player', 'Position', 'Date', 'Match Day', 'Team ']]
+                                        md_esp_stats = calcular_metricas(df_md_esp_processed, columnas_ref, selected_statistic)
+                                        md_esp_value = md_esp_stats.get(col, None)
+                                        
+                                    elif selected_view and selected_view.startswith('Position_'):
+                                        position = selected_view.replace('Position_', '')
+                                        df_md_esp_position = df_md_esp_processed.filter(pl.col('Position') == position)
+                                        
+                                        if df_md_esp_position.height > 0:
+                                            columnas_ref = [c for c in df_md_esp_position.columns 
+                                                        if c not in ['Player', 'Position', 'Date', 'Match Day', 'Team ']]
+                                            md_esp_stats = calcular_metricas(df_md_esp_position, columnas_ref, selected_statistic)
+                                            md_esp_value = md_esp_stats.get(col, None)
+                                    else:
+                                        columnas_ref = [c for c in df_md_esp_processed.columns 
+                                                    if c not in ['Player', 'Position', 'Date', 'Match Day', 'Team ']]
+                                        md_esp_stats = calcular_metricas(df_md_esp_processed, columnas_ref, selected_statistic)
+                                        md_esp_value = md_esp_stats.get(col, None)
+                                
+                                # Calcular porcentaje de la línea threshold respecto a MD
+                                if md_esp_value and md_ref and md_ref > 0:
+                                    threshold_percentage = (md_esp_value / md_ref) * 100
+                                    threshold_text = f"{match_day_actual}: {md_esp_value:.1f}"
+
+                            # Color de barra basado en z-score (YA CALCULADO FUERA DEL LOOP)
+                            bar_color = 'darkblue'  # Color por defecto
+                            
+                            if zscore_data:
+                                if (entity_type in zscore_data and 
+                                    entity_key in zscore_data[entity_type] and
+                                    col in zscore_data[entity_type][entity_key]['z_scores']):
+                                    
+                                    zscore = zscore_data[entity_type][entity_key]['z_scores'][col]
+                                    
+                                    if zscore is not None:
+                                        normalized_score = max(-3, min(3, zscore)) / 3
+                                        
+                                        if normalized_score < 0:
+                                            intensity = abs(normalized_score)
+                                            red_green = int(255 * (1 - intensity))
+                                            bar_color = f'rgb({red_green}, {red_green}, 255)'
+                                        elif normalized_score > 0:
+                                            intensity = normalized_score
+                                            red = 255
+                                            green_blue = int(255 * (1 - intensity))
+                                            bar_color = f'rgb({red}, {green_blue}, {green_blue})'
+                                        else:
+                                            bar_color = 'rgb(200, 200, 200)'
+
+                            # Crear gauge
+                            gauge_config = {
+                                'axis': {
+                                    'range': [0, 120],
+                                    'tickwidth': 1,
+                                    'tickcolor': "darkblue"
+                                },
+                                'bar': {'color': bar_color},
+                                'bgcolor': "lightgray",
+                                'borderwidth': 2,
+                                'bordercolor': "gray"
+                            }
+
+                            # Agregar threshold solo si existe valor de comparación
+                            if threshold_percentage is not None:
+                                gauge_config['threshold'] = {
+                                    'line': {'color': "red", 'width': 4},
+                                    'thickness': 0.75,
+                                    'value': threshold_percentage
+                                }
+
+                            # Construir texto del título
+                            title_lines = [f"<b>{formatted_value}</b>"]
+                            title_lines.append(f"<span style='font-size:12px'>MD (100%): {ref_text}</span>")
+                            if threshold_text:
+                                title_lines.append(f"<span style='font-size:10px; color:red'>{threshold_text}</span>")
+
+                            fig = go.Figure(go.Indicator(
+                                mode="gauge+number",
+                                value=percentage,
+                                domain={'x': [0, 1], 'y': [0, 1]},
+                                number={
+                                    'suffix': '%',
+                                    'font': {'size': 40}
+                                },
+                                gauge=gauge_config,
+                                title={
+                                    'text': '<br>'.join(title_lines),
+                                    'font': {'size': 16}
+                                }
+                            ))
+
+                            fig.update_layout(
+                                height=300,
+                                margin=dict(t=30, b=30, l=30, r=30),
+                                paper_bgcolor='white'
+                            )
+                                                
+                            card_content = [
+                                html.H6(col, className="card-title"),
+                                dcc.Graph(
+                                    figure=fig,
+                                    config={'displayModeBar': False},
+                                    style={'height': '300px', 'width': '300px', 'margin': '0 auto'}
+                                )
+                            ]
+                            
+                            card = html.Div(card_content, className="metric-card")
+                            cards_container.append(card)
+
+                    if cards_container:
+                        cards.append(
+                            html.Div(cards_container, className="metrics-cards-container")
+                        )
+
+                    return html.Div(cards)
             
         except Exception as e:
+            print(f"Error al cargar tarjetas: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return html.Div(f"Error al cargar tarjetas de métricas: {str(e)}", 
-                          className="error-message")
-        
+                        className="error-message")
 
 # ============================================================================
 # GRÁFICOS: Nuevos Gráficos
 # ============================================================================
-
-        # ...existing code...
-    
-   # ...existing code...
 
     @app.callback(
     [Output('grafico-nuevo1', 'figure'),

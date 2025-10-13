@@ -1,0 +1,1175 @@
+Traceback (most recent call last):
+  File "/home/ec2-user/performanceApp/app.py", line 43, in <module>
+    if _name_ == '_main_':
+NameError: name '_name_' is not defined
+Dash is running on http://0.0.0.0:8050/
+
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8050
+ * Running on http://172.31.44.240:8050
+Press CTRL+C to quit
+188.80.5.182 - - [16/Jul/2025 14:35:51] "GET / HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:51] "GET /assets/style.css?m=1752675847.927767 HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:51] "GET /_dash-component-suites/dash/deps/polyfill@7.v2_14_1m1752675922.12.1.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:51] "GET /assets/style_sessionReport.css?m=1752675847.927767 HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:51] "GET /assets/style_cargar_datos.css?m=1752675847.927767 HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:51] "GET /_dash-component-suites/dash/deps/react@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:51] "GET /_dash-component-suites/dash/deps/react-dom@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:51] "GET /_dash-component-suites/dash/deps/prop-types@15.v2_14_1m1752675922.8.1.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:51] "GET /_dash-component-suites/dash_bootstrap_components/_components/dash_bootstrap_components.v1_5_0m1752675929.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:51] "GET /_dash-component-suites/dash/dash-renderer/build/dash_renderer.v2_14_1m1752675922.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:52] "GET /_dash-component-suites/dash/dcc/dash_core_components.v2_12_1m1752675922.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:52] "GET /_dash-component-suites/dash/dcc/dash_core_components-shared.v2_12_1m1752675922.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:52] "GET /_dash-component-suites/dash/html/dash_html_components.v2_0_15m1752675922.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:52] "GET /_dash-component-suites/dash/dash_table/bundle.v5_2_8m1752675922.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:52] "GET /_dash-layout HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:52] "GET /_dash-dependencies HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:52] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:52] "GET /assets/images/logo.png HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:58] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:58] "GET /_dash-component-suites/dash/dcc/async-datepicker.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:58] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:59] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:35:59] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:00] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:00] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:00] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:01] "GET /_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:01] "GET /_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:01] "GET /_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:01] "GET /_dash-component-suites/dash/dash_table/async-highlight.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:01] "GET /_dash-component-suites/dash/dash_table/async-table.js HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:01] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:10] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:10] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:11] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:11] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:11] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:11] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:11] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [16/Jul/2025 14:36:12] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:36:52] "GET / HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:36:52] "GET /assets/style.css?m=1752675847.927767 HTTP/1.1" 304 -
+186.158.144.195 - - [16/Jul/2025 14:36:53] "GET /assets/style_sessionReport.css?m=1752675847.927767 HTTP/1.1" 304 -
+186.158.144.195 - - [16/Jul/2025 14:36:53] "GET /assets/style_cargar_datos.css?m=1752675847.927767 HTTP/1.1" 304 -
+186.158.144.195 - - [16/Jul/2025 14:36:53] "GET /_dash-dependencies HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:36:53] "GET /_dash-layout HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:36:53] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:36:54] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:36:54] "GET /assets/images/logo.png HTTP/1.1" 304 -
+186.158.144.195 - - [16/Jul/2025 14:37:22] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:37:22] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:37:26] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:37:26] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:25] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:25] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:26] "GET /_dash-component-suites/dash/dcc/async-datepicker.js HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:26] "GET /_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:26] "GET /_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:26] "GET /_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:26] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:27] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:27] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:27] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:28] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:28] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:28] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:29] "GET /_dash-component-suites/dash/dash_table/async-table.js HTTP/1.1" 200 -
+186.158.144.195 - - [16/Jul/2025 14:38:29] "GET /_dash-component-suites/dash/dash_table/async-highlight.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:45] "GET / HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:46] "GET /assets/style_cargar_datos.css?m=1752675847.927767 HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:46] "GET /assets/style.css?m=1752675847.927767 HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:46] "GET /_dash-component-suites/dash/deps/polyfill@7.v2_14_1m1752675922.12.1.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:46] "GET /_dash-component-suites/dash/deps/react@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:46] "GET /assets/style_sessionReport.css?m=1752675847.927767 HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:46] "GET /_dash-component-suites/dash/deps/react-dom@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:46] "GET /_dash-component-suites/dash/deps/prop-types@15.v2_14_1m1752675922.8.1.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:46] "GET /_dash-component-suites/dash_bootstrap_components/_components/dash_bootstrap_components.v1_5_0m1752675929.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:46] "GET /_dash-component-suites/dash/dash-renderer/build/dash_renderer.v2_14_1m1752675922.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:47] "GET /_dash-component-suites/dash/dcc/dash_core_components.v2_12_1m1752675922.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:47] "GET /_dash-component-suites/dash/dcc/dash_core_components-shared.v2_12_1m1752675922.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:47] "GET /_dash-component-suites/dash/html/dash_html_components.v2_0_15m1752675922.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:47] "GET /_dash-component-suites/dash/dash_table/bundle.v5_2_8m1752675922.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:49] "GET /_dash-layout HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:49] "GET /_dash-dependencies HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:49] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:49] "GET /assets/images/logo.png HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:49] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:53] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:54] "GET /_dash-component-suites/dash/dcc/async-datepicker.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:54] "GET /_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:54] "GET /_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:54] "GET /_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:54] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:55] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:55] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:55] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:56] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:56] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:56] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:57] "GET /_dash-component-suites/dash/dash_table/async-highlight.js HTTP/1.1" 200 -
+186.158.170.226 - - [16/Jul/2025 14:41:57] "GET /_dash-component-suites/dash/dash_table/async-table.js HTTP/1.1" 200 -
+3.130.96.91 - - [16/Jul/2025 16:28:42] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [16/Jul/2025 16:30:32] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [16/Jul/2025 16:35:21] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [16/Jul/2025 16:35:21] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [16/Jul/2025 16:37:08] code 400, message Bad request syntax ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03¤½R\x9d\x03J¦Ã£')
+3.130.96.91 - - [16/Jul/2025 16:37:08] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03¤½R\x9d\x03J¦Ã£" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [17/Jul/2025 16:50:14] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [17/Jul/2025 16:52:05] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [17/Jul/2025 16:52:52] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03')
+3.130.96.91 - - [17/Jul/2025 16:52:52] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03 ÿ@;@0¸\x8dÁ" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [17/Jul/2025 16:54:10] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [17/Jul/2025 16:54:10] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [17/Jul/2025 16:54:39] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [17/Jul/2025 16:54:39] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ia SQì\x96#Åý¿jR|\x18x¯x\x1b\x1a%ÈJûvP#gXÅAà\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+Dash is running on http://0.0.0.0:8050/
+
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.
+ * Running on all addresses (0.0.0.0)
+ * Running on http://127.0.0.1:8050
+ * Running on http://172.31.44.240:8050
+Press CTRL+C to quit
+186.158.144.195 - - [18/Jul/2025 14:03:27] "GET / HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:27] "GET /assets/style.css?m=1752675847.927767 HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:28] "GET /assets/style_cargar_datos.css?m=1752675847.927767 HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:28] "GET /assets/style_sessionReport.css?m=1752675847.927767 HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:28] "GET /_dash-component-suites/dash/deps/polyfill@7.v2_14_1m1752675922.12.1.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:28] "GET /_dash-component-suites/dash/deps/react@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:28] "GET /_dash-component-suites/dash/deps/react-dom@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:28] "GET /_dash-component-suites/dash/deps/prop-types@15.v2_14_1m1752675922.8.1.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:28] "GET /_dash-component-suites/dash_bootstrap_components/_components/dash_bootstrap_components.v1_5_0m1752675929.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:28] "GET /_dash-component-suites/dash/dash-renderer/build/dash_renderer.v2_14_1m1752675922.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:28] "GET /_dash-component-suites/dash/dcc/dash_core_components.v2_12_1m1752675922.js HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:28] "GET /_dash-component-suites/dash/dcc/dash_core_components-shared.v2_12_1m1752675922.js HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:29] "GET /_dash-component-suites/dash/html/dash_html_components.v2_0_15m1752675922.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:29] "GET /_dash-component-suites/dash/dash_table/bundle.v5_2_8m1752675922.js HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:30] "GET /_dash-layout HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:30] "GET /_dash-dependencies HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:30] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:31] "GET /assets/images/logo.png HTTP/1.1" 200 -
+186.158.144.195 - - [18/Jul/2025 14:03:31] "POST /_dash-update-component HTTP/1.1" 200 -
+3.143.33.63 - - [18/Jul/2025 16:42:28] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [18/Jul/2025 16:44:53] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [18/Jul/2025 16:46:22] code 400, message Bad request version ('À\x14À')
+3.143.33.63 - - [18/Jul/2025 16:46:22] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x033ñÄ\x87ö³\x80AK¿CV\x81ée\x1eÖé\x05Þô5)ÀpvçA¨Î\x9eÌ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [18/Jul/2025 16:48:02] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.143.33.63 - - [18/Jul/2025 16:48:02] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [18/Jul/2025 16:49:30] code 400, message Bad request syntax ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ùÇrB×\x18ÏöÈ\x95\x9fjpI')
+3.143.33.63 - - [18/Jul/2025 16:49:30] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ùÇrB×\x18ÏöÈ\x95\x9fjpI" HTTPStatus.BAD_REQUEST -
+104.234.115.131 - - [19/Jul/2025 02:37:59] code 400, message Bad request syntax ('\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03Ó\x01ÓÚAý\x8d3Â0þ')
+104.234.115.131 - - [19/Jul/2025 02:37:59] "\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03Ó\x01ÓÚAý\x8d3Â0þ" HTTPStatus.BAD_REQUEST -
+104.234.115.131 - - [19/Jul/2025 02:38:23] "GET / HTTP/1.1" 200 -
+104.234.115.131 - - [19/Jul/2025 02:38:34] code 400, message Bad request version ('À\x14À')
+104.234.115.131 - - [19/Jul/2025 02:38:34] "\x16\x03\x01\x00ú\x01\x00\x00ö\x03\x03ûW¹hó\x01½UþFú\x9d&@¶ïÝ\x05Lg}S\\´Øa»Ô,\x9fe\x05 Ó\x02â«£/ÏÔÎ¸\x87c@À­ï¯\x19ÚÍzp_1\x93P÷\x06H\x01hí\x002À/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+104.234.115.131 - - [19/Jul/2025 02:38:44] "GET /favicon.ico HTTP/1.1" 200 -
+47.250.80.213 - - [19/Jul/2025 13:26:36] code 400, message Bad request version ('À\x13À')
+47.250.80.213 - - [19/Jul/2025 13:26:36] "\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03I\x06²ù¼\x99iÀYûøºe-\x83Ud]\x0e\x8d·b8´gÆÝ9dZ8f gÁ\x81i³öòË°©\x19NÖ½\x95g|püé<Z¡\x90T·é¥8'O;\x00&À+À/À,À0Ì©Ì¨À\x09À\x13À" HTTPStatus.BAD_REQUEST -
+47.250.80.213 - - [19/Jul/2025 13:26:46] "GET / HTTP/1.1" 200 -
+111.7.106.105 - - [19/Jul/2025 13:27:25] "GET / HTTP/1.1" 200 -
+111.7.106.105 - - [19/Jul/2025 13:27:27] "GET / HTTP/1.1" 200 -
+111.7.106.104 - - [19/Jul/2025 13:27:27] "GET /_dash-component-suites/dash/deps/react-dom@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+111.7.106.105 - - [19/Jul/2025 13:27:27] "GET /_dash-component-suites/dash/dash-renderer/build/dash_renderer.v2_14_1m1752675922.min.js HTTP/1.1" 200 -
+111.7.106.105 - - [19/Jul/2025 13:27:27] "GET /_dash-component-suites/dash/deps/prop-types@15.v2_14_1m1752675922.8.1.min.js HTTP/1.1" 200 -
+111.7.106.105 - - [19/Jul/2025 13:27:27] "GET /_dash-component-suites/dash/deps/polyfill@7.v2_14_1m1752675922.12.1.min.js HTTP/1.1" 200 -
+111.7.106.105 - - [19/Jul/2025 13:27:27] "GET /_dash-component-suites/dash/dcc/dash_core_components-shared.v2_12_1m1752675922.js HTTP/1.1" 200 -
+111.7.106.104 - - [19/Jul/2025 13:27:27] "GET /_dash-component-suites/dash_bootstrap_components/_components/dash_bootstrap_components.v1_5_0m1752675929.min.js HTTP/1.1" 200 -
+111.7.106.104 - - [19/Jul/2025 13:27:27] "GET /_dash-component-suites/dash/dcc/dash_core_components.v2_12_1m1752675922.js HTTP/1.1" 200 -
+111.7.106.104 - - [19/Jul/2025 13:27:27] "GET /_dash-component-suites/dash/deps/react@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+111.7.106.104 - - [19/Jul/2025 13:27:27] "GET /_dash-component-suites/dash/dash_table/bundle.v5_2_8m1752675922.js HTTP/1.1" 200 -
+111.7.106.105 - - [19/Jul/2025 13:27:27] "GET /_dash-component-suites/dash/html/dash_html_components.v2_0_15m1752675922.min.js HTTP/1.1" 200 -
+111.7.106.105 - - [19/Jul/2025 13:27:31] "GET /_dash-dependencies HTTP/1.1" 200 -
+111.7.106.104 - - [19/Jul/2025 13:27:31] "GET /_dash-layout HTTP/1.1" 200 -
+111.7.106.105 - - [19/Jul/2025 13:27:31] "POST /_dash-update-component HTTP/1.1" 200 -
+111.7.106.104 - - [19/Jul/2025 13:27:33] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+3.149.59.26 - - [19/Jul/2025 16:42:14] "GET / HTTP/1.1" 200 -
+3.149.59.26 - - [19/Jul/2025 16:42:14] "GET / HTTP/1.1" 200 -
+3.149.59.26 - - [19/Jul/2025 16:44:30] code 400, message Bad request version ('À\x14À')
+3.149.59.26 - - [19/Jul/2025 16:44:30] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03yÙ~\x1ewñ\x1d3+RüTö~¶©æ\x849]Æê\x9bÍ\x12\x88Z+'\x10-\x8c\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.149.59.26 - - [19/Jul/2025 16:45:13] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.149.59.26 - - [19/Jul/2025 16:45:13] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.149.59.26 - - [19/Jul/2025 16:46:30] code 400, message Bad request version ('À\x14À')
+3.149.59.26 - - [19/Jul/2025 16:46:30] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x8aã4yÓþÇÞ\x1eY}%Ãu \x9e\x9cd\x8aFi\x96>öûÛ¢zqFÓ\x03\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [20/Jul/2025 16:39:02] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [20/Jul/2025 16:40:23] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [20/Jul/2025 16:41:31] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03¹sk\x17¹bA\x03\x9d{@_þIÉær_cO»K\x8am¸îËx\x13y%_\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.131.215.38 - - [20/Jul/2025 16:41:31] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03¹sk\x17¹bA\x03\x9d{@_þIÉær_cO»K\x8am¸îËx\x13y%_\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [20/Jul/2025 16:43:01] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [20/Jul/2025 16:43:01] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [20/Jul/2025 16:44:00] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [20/Jul/2025 16:44:00] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x1c¨,Ï\x84,\x80\x874é\x13K©\x15¡ÂVU%öÒ\x9bT#\x08æ¸ÿ}ýrF\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+45.79.207.111 - - [21/Jul/2025 11:32:53] "GET / HTTP/1.1" 200 -
+45.79.128.205 - - [21/Jul/2025 11:33:06] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [21/Jul/2025 17:22:32] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [21/Jul/2025 17:24:35] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [21/Jul/2025 17:26:32] code 400, message Bad request syntax ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x0ey-+)ôp\x05à¶àó{ÝæTZ')
+3.130.96.91 - - [21/Jul/2025 17:26:32] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x0ey-+)ôp\x05à¶àó{ÝæTZ" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [21/Jul/2025 17:27:32] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [21/Jul/2025 17:27:32] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [21/Jul/2025 17:29:10] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [21/Jul/2025 17:29:10] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03®×\x94\x85MåçÓZëÓ$ ÕAèUÝ=\x15Rì\x7f pó\x94§\x10§ßì\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+195.184.76.150 - - [22/Jul/2025 06:40:46] code 400, message Bad request version ('À#À¬À®À+À')
+195.184.76.150 - - [22/Jul/2025 06:40:46] "\x16\x03\x03\x01§\x01\x00\x01£\x03\x03õ)ËòÓ`¢¨r \x12\x01mÙ\x91sÁ\x81¸ËÆÌ\x16/Ûº\x8aÞ!-#b Â62Òô?ú\x9f¯?ø\x12?\x02:8ÔC¸À®#s\x04\x8fiâáä\x01\x8eÀ\x00\x8a\x00\x16\x003\x00gÀ\x9eÀ¢\x00\x9e\x009\x00kÀ\x9fÀ£\x00\x9f\x00E\x00¾\x00\x88\x00Ä\x00\x9aÀ\x08À\x09À#À¬À®À+À" HTTPStatus.BAD_REQUEST -
+195.184.76.148 - - [22/Jul/2025 06:40:49] "GET / HTTP/1.1" 200 -
+91.230.168.196 - - [22/Jul/2025 06:49:37] "GET /_favicon.ico HTTP/1.1" 200 -
+91.196.152.161 - - [22/Jul/2025 10:48:43] code 400, message Bad request syntax ('\x16\x03\x03\x01§\x01\x00\x01£\x03\x03â=')
+91.196.152.161 - - [22/Jul/2025 10:48:43] "\x16\x03\x03\x01§\x01\x00\x01£\x03\x03â=" HTTPStatus.BAD_REQUEST -
+91.196.152.165 - - [22/Jul/2025 10:48:51] "GET / HTTP/1.1" 200 -
+91.196.152.64 - - [22/Jul/2025 10:56:34] "GET /_favicon.ico HTTP/1.1" 200 -
+3.143.33.63 - - [22/Jul/2025 18:19:31] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [22/Jul/2025 18:19:32] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [22/Jul/2025 18:21:46] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03y@û\x9eýnÚM²ûß\x92úóRÊ«%KÌkH\x8c\x12ï½t<aý-·\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.143.33.63 - - [22/Jul/2025 18:21:46] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03y@û\x9eýnÚM²ûß\x92úóRÊ«%KÌkH\x8c\x12ï½t<aý-·\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [22/Jul/2025 18:23:29] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.143.33.63 - - [22/Jul/2025 18:23:29] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [22/Jul/2025 18:23:41] code 400, message Bad request syntax ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03')
+3.143.33.63 - - [22/Jul/2025 18:23:41] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03" HTTPStatus.BAD_REQUEST -
+186.158.170.226 - - [22/Jul/2025 22:14:35] "GET / HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:35] "GET /assets/style.css?m=1752675847.927767 HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:35] "GET /assets/style_cargar_datos.css?m=1752675847.927767 HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:36] "GET /assets/style_sessionReport.css?m=1752675847.927767 HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:36] "GET /_dash-component-suites/dash/deps/react@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:36] "GET /_dash-component-suites/dash/deps/polyfill@7.v2_14_1m1752675922.12.1.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:36] "GET /_dash-component-suites/dash/deps/react-dom@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:36] "GET /_dash-component-suites/dash/deps/prop-types@15.v2_14_1m1752675922.8.1.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:36] "GET /_dash-component-suites/dash_bootstrap_components/_components/dash_bootstrap_components.v1_5_0m1752675929.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:36] "GET /_dash-component-suites/dash/dash-renderer/build/dash_renderer.v2_14_1m1752675922.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:37] "GET /_dash-component-suites/dash/dcc/dash_core_components.v2_12_1m1752675922.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:37] "GET /_dash-component-suites/dash/dcc/dash_core_components-shared.v2_12_1m1752675922.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:37] "GET /_dash-component-suites/dash/html/dash_html_components.v2_0_15m1752675922.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:37] "GET /_dash-component-suites/dash/dash_table/bundle.v5_2_8m1752675922.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:39] "GET /_dash-layout HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:39] "GET /_dash-dependencies HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:40] "GET /assets/images/logo.png HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:40] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:42] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:43] "GET /_dash-component-suites/dash/dcc/async-datepicker.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:43] "GET /_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:43] "GET /_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:43] "GET /_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:43] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:45] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:45] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:45] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:45] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:45] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:46] "GET /_dash-component-suites/dash/dash_table/async-highlight.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:46] "GET /_dash-component-suites/dash/dash_table/async-table.js HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:14:47] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:21] "GET / HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:21] "GET /assets/style.css?m=1752675847.927767 HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:31:21] "GET /assets/style_cargar_datos.css?m=1752675847.927767 HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:31:21] "GET /assets/style_sessionReport.css?m=1752675847.927767 HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:31:22] "GET /_dash-layout HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:22] "GET /_dash-dependencies HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:22] "GET /assets/images/logo.png HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:31:22] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:24] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:24] "GET /_dash-component-suites/dash/dcc/async-datepicker.js HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:31:24] "GET /_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:31:24] "GET /_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:31:24] "GET /_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:31:24] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:25] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:25] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:26] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:26] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:26] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:26] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:31:27] "GET /_dash-component-suites/dash/dash_table/async-highlight.js HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:31:27] "GET /_dash-component-suites/dash/dash_table/async-table.js HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:32:54] "GET /sessionReport HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:54] "GET /assets/style.css?m=1752675847.927767 HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:32:54] "GET /assets/style_cargar_datos.css?m=1752675847.927767 HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:32:55] "GET /assets/style_sessionReport.css?m=1752675847.927767 HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:32:55] "GET /_dash-dependencies HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:55] "GET /_dash-layout HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:55] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:56] "GET /assets/images/logo.png HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:32:56] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:56] "GET /_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:32:56] "GET /_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:32:56] "GET /_dash-component-suites/dash/dcc/async-datepicker.js HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:32:56] "GET /_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:32:56] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:57] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:57] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:58] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:58] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:58] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:58] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.170.226 - - [22/Jul/2025 22:32:59] "GET /_dash-component-suites/dash/dash_table/async-highlight.js HTTP/1.1" 304 -
+186.158.170.226 - - [22/Jul/2025 22:32:59] "GET /_dash-component-suites/dash/dash_table/async-table.js HTTP/1.1" 304 -
+91.196.152.180 - - [23/Jul/2025 07:45:08] code 400, message Bad request version ('À#À¬À®À+À')
+91.196.152.180 - - [23/Jul/2025 07:45:08] "\x16\x03\x03\x01§\x01\x00\x01£\x03\x03\x93@I\x1a\x1a\x0e\x83p«qA\x88ýq"¢ë>\x16+\x18\x1b×½\x0d-èÃÀÆï: ¬"ÿÏ$î\x1a÷\x12~1³âVÛ\x0dt×\x0c/\x0b>ºsØ>\x8dÝB§@Á\x00\x8a\x00\x16\x003\x00gÀ\x9eÀ¢\x00\x9e\x009\x00kÀ\x9fÀ£\x00\x9f\x00E\x00¾\x00\x88\x00Ä\x00\x9aÀ\x08À\x09À#À¬À®À+À" HTTPStatus.BAD_REQUEST -
+91.196.152.177 - - [23/Jul/2025 07:45:17] "GET / HTTP/1.1" 200 -
+91.196.152.114 - - [23/Jul/2025 07:54:51] "GET /_favicon.ico HTTP/1.1" 200 -
+3.137.73.221 - - [23/Jul/2025 18:44:29] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [23/Jul/2025 18:45:16] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [23/Jul/2025 18:47:03] code 400, message Bad request version ('À\x14À')
+3.137.73.221 - - [23/Jul/2025 18:47:03] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03[#\x80JRF\x921\x10K\x1f\x04Þx Ên\x83°ÉVxÔIÃ¸ü\x8da\x8cÑó\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [23/Jul/2025 18:48:35] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.137.73.221 - - [23/Jul/2025 18:48:35] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [23/Jul/2025 18:50:15] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x81©£f>úøÖ\x82È\x80\x14çÔ¨\x9a¨$Ý=µ&ªE]\x805e¨ÕGö\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.137.73.221 - - [23/Jul/2025 18:50:15] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x81©£f>úøÖ\x82È\x80\x14çÔ¨\x9a¨$Ý=µ&ªE]\x805e¨ÕGö\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+141.98.80.155 - - [24/Jul/2025 04:38:49] code 400, message Bad HTTP/0.9 request type ('\x03\x00\x00/*à\x00\x00\x00\x00\x00Cookie:')
+141.98.80.155 - - [24/Jul/2025 04:38:49] "\x03\x00\x00/*à\x00\x00\x00\x00\x00Cookie: mstshash=Administr" HTTPStatus.BAD_REQUEST -
+103.183.114.200 - - [24/Jul/2025 07:42:37] "CONNECT ipaddress.vanhoang.id.vn:443 HTTP/1.1" 405 -
+3.137.73.221 - - [24/Jul/2025 18:57:17] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [24/Jul/2025 18:57:47] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [24/Jul/2025 18:59:18] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ã\x827ÓW\x8a\x987IQ\x12\x14±"òø\x19\x98µ\x7f%Ò\x00ýZÛ\x0e\x16R\x9dß½\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.137.73.221 - - [24/Jul/2025 18:59:18] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ã\x827ÓW\x8a\x987IQ\x12\x14±"òø\x19\x98µ\x7f%Ò\x00ýZÛ\x0e\x16R\x9dß½\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [24/Jul/2025 19:01:03] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.137.73.221 - - [24/Jul/2025 19:01:03] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [24/Jul/2025 19:01:37] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03-\\\x16\x9eKÿÃªñ\x15mKÛ²,àg<Ý\x94)\\÷bå¯\x07K\x14]«ù\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.137.73.221 - - [24/Jul/2025 19:01:37] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03-\\\x16\x9eKÿÃªñ\x15mKÛ²,àg<Ý\x94)\\÷bå¯\x07K\x14]«ù\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [24/Jul/2025 19:41:30] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [24/Jul/2025 19:43:42] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [24/Jul/2025 19:45:25] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [24/Jul/2025 19:45:25] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03=\x164\x96\x0e\x9cq\x9e\x93\x0b³.À¤°0\x95\x03zeYE;ÂÿöM\x17X=´¥\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [24/Jul/2025 19:47:07] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.132.23.201 - - [24/Jul/2025 19:47:07] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [24/Jul/2025 19:48:56] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [24/Jul/2025 19:48:56] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03:ÝrPË\x1faiðB¹\x98µ[~G¾×\x0eG»buæÉ9\x1b\x7fz#à2\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+65.49.1.80 - - [25/Jul/2025 04:14:18] "GET / HTTP/1.1" 200 -
+65.49.1.81 - - [25/Jul/2025 04:14:32] "GET /favicon.ico HTTP/1.1" 200 -
+3.134.148.59 - - [25/Jul/2025 19:57:04] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [25/Jul/2025 19:58:49] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [25/Jul/2025 19:59:23] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [25/Jul/2025 19:59:23] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x01\x1f¯iµ?«\x96H\x11*m\x11£o\x0bEá m\x862TYæ&edÄ3\x81Z\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [25/Jul/2025 20:01:04] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [25/Jul/2025 20:01:04] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [25/Jul/2025 20:01:52] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [25/Jul/2025 20:01:52] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03aÔäËô®\x1fäÂ$\x99É\x07y(í"mæ\x1fÙ>géhc*\x87Q\x1a3Á\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [26/Jul/2025 20:17:39] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [26/Jul/2025 20:19:22] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [26/Jul/2025 20:20:50] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [26/Jul/2025 20:20:50] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x1cu\x81-çË\x98õ>¹'û\x9a+\x00\x9eçÚS6\x90J¦Fgý0\x1eaövÓ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [26/Jul/2025 20:22:38] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [26/Jul/2025 20:22:38] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [26/Jul/2025 20:24:21] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [26/Jul/2025 20:24:21] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x15\x09+\x0e²Uêi¼ò^ìÈ\x90ÉJ\x95\x03p3ø­ZE\x14\x05¼±Î×h·\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+184.105.139.68 - - [27/Jul/2025 02:22:47] "GET / HTTP/1.1" 200 -
+184.105.139.72 - - [27/Jul/2025 02:23:01] "GET /favicon.ico HTTP/1.1" 200 -
+3.130.96.91 - - [27/Jul/2025 20:18:19] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [27/Jul/2025 20:19:20] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [27/Jul/2025 20:20:28] code 400, message Bad request syntax ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x9eç¦ð®ºX')
+3.130.96.91 - - [27/Jul/2025 20:20:28] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x9eç¦ð®ºX" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [27/Jul/2025 20:21:31] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [27/Jul/2025 20:21:31] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [27/Jul/2025 20:23:04] code 400, message Bad HTTP/0.9 request type ("\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x96'{rÖ=þ=4!ßuW\x0eþÎaÌSÀ¦Êc\x87;eÉ\x96òËÁ\x0f\x00\x00\x1aÀ/À+À\x11À\x07À\x13À")
+3.130.96.91 - - [27/Jul/2025 20:23:04] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x96'{rÖ=þ=4!ßuW\x0eþÎaÌSÀ¦Êc\x87;eÉ\x96òËÁ\x0f\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+35.203.211.184 - - [28/Jul/2025 18:24:05] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [28/Jul/2025 23:19:02] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [28/Jul/2025 23:21:15] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [28/Jul/2025 23:21:56] code 400, message Bad request syntax ("\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x86\x9a,ãÙ£ÚªW7@\xad\x88ü\x18ÍL_'\x99")
+3.134.148.59 - - [28/Jul/2025 23:21:56] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x86\x9a,ãÙ£ÚªW7@­\x88ü\x18ÍL_'\x99" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [28/Jul/2025 23:23:53] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [28/Jul/2025 23:23:53] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [28/Jul/2025 23:24:25] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [28/Jul/2025 23:24:25] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ã¨ñ\x06Ë"\x8a½\x9eÓYa@\x18\x0fb\x1asÂe@s\x1dUfGéåTùLg\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [29/Jul/2025 23:48:05] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [29/Jul/2025 23:49:47] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [29/Jul/2025 23:51:10] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03k\x91\x10<<¦rXÉÄª\x84úz3YwpCÑ$!n\x05\x0f\x17º\x95üàÄt\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.130.96.91 - - [29/Jul/2025 23:51:10] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03k\x91\x10<<¦rXÉÄª\x84úz3YwpCÑ$!n\x05\x0f\x17º\x95üàÄt\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [29/Jul/2025 23:52:42] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [29/Jul/2025 23:52:42] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [29/Jul/2025 23:54:10] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [29/Jul/2025 23:54:10] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03¯ÆrëÔi¡4¦\x01.\x0cA©,\x97Ï8þ1\x97\x98\x8eI\x08Ù\x09kï×v\x99\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+147.185.132.181 - - [30/Jul/2025 17:32:26] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [30/Jul/2025 21:45:00] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [30/Jul/2025 21:46:54] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [30/Jul/2025 21:48:08] code 400, message Bad request version ('À\x14À')
+3.137.73.221 - - [30/Jul/2025 21:48:08] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03_r¤\x8b¤d¥o³]¨¬º0oúCg\x95ýd\x8fG¥=y²\x09øç\x14\x1a\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [30/Jul/2025 21:48:47] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.137.73.221 - - [30/Jul/2025 21:48:47] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [30/Jul/2025 21:50:36] code 400, message Bad request version ('À\x14À')
+3.137.73.221 - - [30/Jul/2025 21:50:36] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x93\x9d\x82W\x92&Ükß`1\x02nÝ\x1e\x81\x8392ÕBj\x13\x05Ëò?\x92\x18äµ\x13\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+45.79.8.221 - - [31/Jul/2025 11:36:55] "GET / HTTP/1.1" 200 -
+66.175.213.4 - - [31/Jul/2025 11:37:07] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [01/Aug/2025 00:29:49] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [01/Aug/2025 00:31:13] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [01/Aug/2025 00:32:05] code 400, message Bad HTTP/0.9 request type ("\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ãÌ\x9abõ\x93'\x0eÑ\x9cN\x81!\x04ÓIÀ\x06\x02>¹]÷\x8fE\x03»T:\\!1\x00\x00\x1aÀ/À+À\x11À\x07À\x13À")
+3.134.148.59 - - [01/Aug/2025 00:32:05] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ãÌ\x9abõ\x93'\x0eÑ\x9cN\x81!\x04ÓIÀ\x06\x02>¹]÷\x8fE\x03»T:\\!1\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [01/Aug/2025 00:33:39] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [01/Aug/2025 00:33:39] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [01/Aug/2025 00:34:47] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [01/Aug/2025 00:34:47] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x86\x0d*Üµk°w#Z\x06Ûîð\x83\x0eÍçÓ-\x16+\x8c7MÙ\x9cp\x03QHV\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [01/Aug/2025 23:59:28] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [02/Aug/2025 00:01:26] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [02/Aug/2025 00:03:12] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [02/Aug/2025 00:03:12] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03$\x07\x08 \x88\x8e63\x0fÐÁVÉ.X\x14G×\x96YEºá!&X\x0c\x9b\x9e¢þÕ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [02/Aug/2025 00:04:57] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [02/Aug/2025 00:04:57] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [02/Aug/2025 00:06:14] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [02/Aug/2025 00:06:14] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03of¹Nw£¼åTô\\5cí9\x100\x13ÜÖ_>´,ä\x9eU-\x01\x1cË­\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [02/Aug/2025 01:00:15] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [02/Aug/2025 01:01:03] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [02/Aug/2025 01:02:06] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [02/Aug/2025 01:02:06] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03}eÐ¬@\x9b\x8a=ÝÇOMÁæÏ>D X°;Ñ.ÿ/¹\x92\x9dù3»ë\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [02/Aug/2025 01:03:54] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [02/Aug/2025 01:03:54] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [02/Aug/2025 01:05:18] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [02/Aug/2025 01:05:18] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03~\x19=|ú\x91\x9càa\x838í4\x00\x87\x8c(\x14x\x0dgÙµ\x16\x1f6\x91\x01}\x01ÐÁ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+45.82.78.102 - - [02/Aug/2025 09:09:17] code 400, message Bad request version ('À\x13À')
+45.82.78.102 - - [02/Aug/2025 09:09:17] "\x16\x03\x01\x05¨\x01\x00\x05¤\x03\x03ª\x91\x89®×kò\x7f¯ÛIÃ\x99ä\\Ø)åO^¿úôk\x81º/\x9c7Ðè) %FÌÚ\x8ehÿ®xK´\x0c:ë\x16¿\x16\x17Rn&Mó>\x12&®\x18I\x0fzD\x00\x1aÀ+À/À,À0Ì©Ì¨À\x09À\x13À" HTTPStatus.BAD_REQUEST -
+45.82.78.102 - - [02/Aug/2025 09:09:22] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x05¨\x01\x00\x05¤\x03\x03ß®*º"På\x95»ñV¯Z\x90¯CUÏ\x07{7z[ê\x86,£\x12Å\x07:\x87')
+45.82.78.102 - - [02/Aug/2025 09:09:22] "\x16\x03\x01\x05¨\x01\x00\x05¤\x03\x03ß®*º"På\x95»ñV¯Z\x90¯CUÏ\x07{7z[ê\x86,£\x12Å\x07:\x87 æ§©\x9dÿËOøø\x131fÊ" HTTPStatus.BAD_REQUEST -
+45.82.78.102 - - [02/Aug/2025 09:09:23] "GET / HTTP/1.1" 200 -
+66.228.40.139 - - [02/Aug/2025 09:58:02] code 400, message Bad request syntax ('JRMI\x00\x02K')
+66.228.40.139 - - [02/Aug/2025 09:58:02] "JRMI\x00\x02K" HTTPStatus.BAD_REQUEST -
+66.228.40.139 - - [02/Aug/2025 09:58:02] "GET / HTTP/1.0" 200 -
+3.149.59.26 - - [03/Aug/2025 00:55:03] "GET / HTTP/1.1" 200 -
+3.149.59.26 - - [03/Aug/2025 00:56:42] "GET / HTTP/1.1" 200 -
+3.149.59.26 - - [03/Aug/2025 00:56:52] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03*\x04%ï7à?Á¾÷\x16ËpÂí³`ÙÁ\x8f<åóàÁÊ2b¡«Ý\x1a\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.149.59.26 - - [03/Aug/2025 00:56:52] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03*\x04%ï7à?Á¾÷\x16ËpÂí³`ÙÁ\x8f<åóàÁÊ2b¡«Ý\x1a\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.149.59.26 - - [03/Aug/2025 00:58:33] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.149.59.26 - - [03/Aug/2025 00:58:33] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.149.59.26 - - [03/Aug/2025 00:58:50] code 400, message Bad request version ('À\x14À')
+3.149.59.26 - - [03/Aug/2025 00:58:50] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03<\x981ôI\x86r \x89\x89ªã¼ù\x8fBà\\c\x86\x15Tq\x83áùí\x96\x0d\x82\x0b\x93\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+157.230.162.186 - - [03/Aug/2025 03:16:21] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [04/Aug/2025 00:42:42] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [04/Aug/2025 00:43:26] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [04/Aug/2025 00:44:43] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [04/Aug/2025 00:44:43] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x92ä|\x10¸ô\x1c<s´>2ì\x80Ó²ö\x85\x8c°QuÈM\x96ã¤v\x8cü\x0e¥\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [04/Aug/2025 00:46:12] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.132.23.201 - - [04/Aug/2025 00:46:12] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [04/Aug/2025 00:47:03] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [04/Aug/2025 00:47:03] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Cõ'\x81ÂÇKà\x05¤Ó­Úi\x0eèïì¯( \x1d[a¸\x12ß¡\x1aÙZ\x1c\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+162.216.150.6 - - [04/Aug/2025 14:57:28] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [05/Aug/2025 02:48:17] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [05/Aug/2025 02:49:45] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [05/Aug/2025 02:52:26] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [05/Aug/2025 02:52:26] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x9e\x7fY\x09Õò\x18\x92L$§Ïu»\x8b\x86öpi\x18îëÿ\x94Äµw\x03\x00Ù¢m\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [05/Aug/2025 02:53:58] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.132.23.201 - - [05/Aug/2025 02:53:58] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [05/Aug/2025 02:55:12] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ðÇ\x040\x18\x08øù¬\x02%ì\x92ø[ã$ä`ÓËP«\x984ËrlË\xad\x83\x8e\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.132.23.201 - - [05/Aug/2025 02:55:12] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ðÇ\x040\x18\x08øù¬\x02%ì\x92ø[ã$ä`ÓËP«\x984ËrlË­\x83\x8e\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+8.222.160.62 - - [05/Aug/2025 08:45:36] code 400, message Bad request version ('À\x13À')
+8.222.160.62 - - [05/Aug/2025 08:45:36] "\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03I\x06²ù¼\x99iÀYûøºe-\x83Ud]\x0e\x8d·b8´gÆÝ9dZ8f gÁ\x81i³öòË°©\x19NÖ½\x95g|püé<Z¡\x90T·é¥8'O;\x00&À+À/À,À0Ì©Ì¨À\x09À\x13À" HTTPStatus.BAD_REQUEST -
+8.222.160.62 - - [05/Aug/2025 08:45:46] "GET / HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:31] "GET / HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:33] "GET / HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:35] "GET /_dash-component-suites/dash/deps/react-dom@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:35] "GET /_dash-component-suites/dash/dcc/dash_core_components-shared.v2_12_1m1752675922.js HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:35] "GET /_dash-component-suites/dash/deps/polyfill@7.v2_14_1m1752675922.12.1.min.js HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:35] "GET /_dash-component-suites/dash/deps/prop-types@15.v2_14_1m1752675922.8.1.min.js HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:35] "GET /_dash-component-suites/dash_bootstrap_components/_components/dash_bootstrap_components.v1_5_0m1752675929.min.js HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:35] "GET /_dash-component-suites/dash/deps/react@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:35] "GET /_dash-component-suites/dash/html/dash_html_components.v2_0_15m1752675922.min.js HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:35] "GET /_dash-component-suites/dash/dcc/dash_core_components.v2_12_1m1752675922.js HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:35] "GET /_dash-component-suites/dash/dash_table/bundle.v5_2_8m1752675922.js HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:35] "GET /_dash-component-suites/dash/dash-renderer/build/dash_renderer.v2_14_1m1752675922.min.js HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:37] "GET /_dash-layout HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:37] "GET /_dash-dependencies HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:39] "POST /_dash-update-component HTTP/1.1" 200 -
+192.197.201.114 - - [05/Aug/2025 08:46:43] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+147.185.132.188 - - [05/Aug/2025 16:49:17] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [06/Aug/2025 04:08:47] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [06/Aug/2025 04:10:53] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [06/Aug/2025 04:12:13] code 400, message Bad request version ('â{Î"¼=ýO\x89\x7fä7x\x1a¡ÉÝ?ÑA')
+3.131.215.38 - - [06/Aug/2025 04:12:13] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03çaö\\\x18[ \x13\x1fâ{Î"¼=ýO\x89\x7fä7x\x1a¡ÉÝ?ÑA" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [06/Aug/2025 04:13:24] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [06/Aug/2025 04:13:24] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [06/Aug/2025 04:14:31] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [06/Aug/2025 04:14:31] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ÉæÔ\x83\x0do\x90_\x0dtçi\x99@ùph\x00¶W7FvË\x0ekí#êÏ­Ú\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+91.231.89.204 - - [06/Aug/2025 08:08:35] code 400, message Bad request version ('À#À¬À®À+À')
+91.231.89.204 - - [06/Aug/2025 08:08:35] "\x16\x03\x03\x01§\x01\x00\x01£\x03\x039þÑ/+@ûÐÅ\x1a\x12é'2ß3\x12øú\x99'|rðÑ38#\x0e+²Ó àqkÚ\x7f=gûb\x87\x97¡M½Í\x0f~?¼\x97<-\x81òû.³§\x13\x8e\x83+\x00\x8a\x00\x16\x003\x00gÀ\x9eÀ¢\x00\x9e\x009\x00kÀ\x9fÀ£\x00\x9f\x00E\x00¾\x00\x88\x00Ä\x00\x9aÀ\x08À\x09À#À¬À®À+À" HTTPStatus.BAD_REQUEST -
+91.231.89.203 - - [06/Aug/2025 08:08:38] "GET / HTTP/1.1" 200 -
+147.185.133.198 - - [06/Aug/2025 17:18:57] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [07/Aug/2025 07:25:51] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [07/Aug/2025 07:27:56] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [07/Aug/2025 07:29:39] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [07/Aug/2025 07:29:39] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x039î\x97\x8fø\x1d\x11>'tnã\x94pu\x86Ø}²U\x85ÏTÒm´\x9cÐ\x97:$¡\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [07/Aug/2025 07:31:38] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [07/Aug/2025 07:31:38] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [07/Aug/2025 07:33:12] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [07/Aug/2025 07:33:12] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03[@7\x90/\x90®g~Ö5EÞÇmAl`ê\x84U3,¬\x0dÓ\x1d5\x07j¼Ý\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [08/Aug/2025 06:30:27] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [08/Aug/2025 06:31:14] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [08/Aug/2025 06:32:36] code 400, message Bad request version ('À\x14À')
+3.143.33.63 - - [08/Aug/2025 06:32:36] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ô\x1cÆ@H\x8bK*\x9b\x0e¸\x92«ó\x0eÄí\x98\x1dm=6»EñÜ\x11ETyC²\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [08/Aug/2025 06:34:03] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.143.33.63 - - [08/Aug/2025 06:34:03] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [08/Aug/2025 06:35:16] code 400, message Bad request version ('À\x14À')
+3.143.33.63 - - [08/Aug/2025 06:35:16] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ùÒe\x19ÊMNK\x91¡7-\x85²X\x08T\x89Ð\x87V,6á×9è¦n\x92ñC\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:39:37] code 400, message Bad request syntax ('JRMI\x00\x02K')
+51.195.190.33 - - [08/Aug/2025 17:39:37] "JRMI\x00\x02K" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:39:37] "GET / HTTP/1.0" 200 -
+51.195.190.33 - - [08/Aug/2025 17:39:37] "OPTIONS / HTTP/1.0" 200 -
+51.195.190.33 - - [08/Aug/2025 17:39:37] code 400, message Bad request version ('RTSP/1.0')
+51.195.190.33 - - [08/Aug/2025 17:39:37] "OPTIONS / RTSP/1.0" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:39:42] code 400, message Bad request version ('\x00\x01\x97|\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+51.195.190.33 - - [08/Aug/2025 17:39:42] "\x80\x00\x00(rþ\x1d\x13\x00\x00\x00\x00\x00\x00\x00\x02\x00\x01\x86 \x00\x01\x97|\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:39:47] code 400, message Bad HTTP/0.9 request type ('\x00')
+51.195.190.33 - - [08/Aug/2025 17:39:47] "\x00\x1e\x00\x06\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x07version\x04bind\x00\x00\x10\x00\x03" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:39:47] code 400, message Bad request syntax ('HELP')
+51.195.190.33 - - [08/Aug/2025 17:39:47] "HELP" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:39:47] code 400, message Bad request syntax ('\x16\x03\x00\x00S\x01\x00\x00O\x03\x00?G×÷º,îê²`~ó\x00ý\x82{¹Õ\x96Èw\x9bæÄÛ<=Ûoï\x10n\x00\x00(\x00\x16\x00\x13\x00')
+51.195.190.33 - - [08/Aug/2025 17:39:47] "\x16\x03\x00\x00S\x01\x00\x00O\x03\x00?G×÷º,îê²`~ó\x00ý\x82{¹Õ\x96Èw\x9bæÄÛ<=Ûoï\x10n\x00\x00(\x00\x16\x00\x13\x00" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:39:47] code 400, message Bad request version ('\x00/\x00')
+51.195.190.33 - - [08/Aug/2025 17:39:47] "\x16\x03\x00\x00i\x01\x00\x00e\x03\x03U\x1c§ärandom1random2random3random4\x00\x00\x0c\x00/\x00" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:39:47] code 400, message Bad request syntax ('\x00\x00\x00qj\x81n0\x81k¡\x03\x02\x01\x05¢\x03\x02\x01')
+51.195.190.33 - - [08/Aug/2025 17:39:47] "\x00\x00\x00qj\x81n0\x81k¡\x03\x02\x01\x05¢\x03\x02\x01" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:39:52] code 400, message Bad request version ('0.12\x00')
+51.195.190.33 - - [08/Aug/2025 17:39:52] "\x00\x00\x00¤ÿSMBr\x00\x00\x00\x00\x08\x01@\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00@\x06\x00\x00\x01\x00\x00\x81\x00\x02PC NETWORK PROGRAM 1.0\x00\x02MICROSOFT NETWORKS 1.03\x00\x02MICROSOFT NETWORKS 3.0\x00\x02LANMAN1.0\x00\x02LM1.2X002\x00\x02Samba\x00\x02NT LANMAN 1.0\x00\x02NT LM 0.12\x00" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:39:57] code 400, message Bad HTTP/0.9 request type ('l\x00')
+51.195.190.33 - - [08/Aug/2025 17:39:57] "l\x00\x0b\x00\x00\x00\x00\x00\x00\x00\x00\x00" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:39:57] code 400, message Bad request version ('SIP/2.0')
+51.195.190.33 - - [08/Aug/2025 17:39:57] "OPTIONS sip:nm SIP/2.0" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:40:02] code 400, message Bad HTTP/0.9 request type ('AMQP\x00\x00')
+51.195.190.33 - - [08/Aug/2025 17:40:02] "AMQP\x00\x00\x09\x01" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:40:02] "GET /devicedesc.xml HTTP/1.1" 200 -
+51.195.190.33 - - [08/Aug/2025 17:40:02] code 400, message Bad request syntax ('CONNECT')
+51.195.190.33 - - [08/Aug/2025 17:40:02] "CONNECT" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:40:02] code 400, message Bad request version ('\x00/\x00')
+51.195.190.33 - - [08/Aug/2025 17:40:02] "\x16\x03\x00\x00i\x01\x00\x00e\x03\x03U\x1c§ärandom1random2random3random4\x00\x00\x0c\x00/\x00" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:40:07] "GET / HTTP/1.1" 200 -
+51.195.190.33 - - [08/Aug/2025 17:40:12] code 400, message Bad request version (".õÃ)ñµU\x00\x9c\x13\x02\x13\x03\x13\x01\x003\x009\x005\x00/À,À0\x00£\x00\x9fÌ©Ì¨ÌªÀ¯À\xadÀ£À\x9fÀ]ÀaÀWÀSÀ+À/\x00¢\x00\x9eÀ®À¬À¢À\x9eÀ\\À`ÀVÀRÀ$À(\x00k\x00jÀsÀw\x00Ä\x00ÃÀ#À'\x00g\x00@ÀrÀv\x00¾\x00½À")
+51.195.190.33 - - [08/Aug/2025 17:40:12] "\x16\x03\x01\x02\x00\x01\x00\x01ü\x03\x03[\x1adÜ&ÄÊ¡c]G­\x8b\x13VÎ©ä\x84\x85WuðC\x8aß\x1bÕwNþî \x9ftÉ,Ö\x87\x13±Ê+nå\x1c]4<\x15\x13(\x92%H¤?\x1f.õÃ)ñµU\x00\x9c\x13\x02\x13\x03\x13\x01\x003\x009\x005\x00/À,À0\x00£\x00\x9fÌ©Ì¨ÌªÀ¯À­À£À\x9fÀ]ÀaÀWÀSÀ+À/\x00¢\x00\x9eÀ®À¬À¢À\x9eÀ\\À`ÀVÀRÀ$À(\x00k\x00jÀsÀw\x00Ä\x00ÃÀ#À'\x00g\x00@ÀrÀv\x00¾\x00½À" HTTPStatus.BAD_REQUEST -
+51.195.190.33 - - [08/Aug/2025 17:40:14] code 400, message Bad request syntax ('\x0e\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00bbbb0100000001')
+51.195.190.33 - - [08/Aug/2025 17:40:14] "\x0e\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00bbbb0100000001" HTTPStatus.BAD_REQUEST -
+167.99.234.119 - - [09/Aug/2025 04:00:37] "GET / HTTP/1.1" 200 -
+87.236.176.233 - - [09/Aug/2025 04:00:37] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+3.131.215.38 - - [09/Aug/2025 09:01:37] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [09/Aug/2025 09:01:37] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [09/Aug/2025 09:41:45] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [09/Aug/2025 09:45:02] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [09/Aug/2025 09:46:09] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [09/Aug/2025 09:46:09] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03±îxN\x05a\x0fzüÃJ\x1beícÀNW\x91wÌ\x1d-Ñ¤Ââo\x84$\x81\x95\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [09/Aug/2025 09:48:12] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [09/Aug/2025 09:48:12] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [09/Aug/2025 09:49:27] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [09/Aug/2025 09:49:27] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x9eô\x88è\x80Âî\x05£\x0d\x91´ËÊs)(9C2&\x04úÉ\x89\x87 +64O¯\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+65.49.20.69 - - [10/Aug/2025 02:03:24] "GET / HTTP/1.1" 200 -
+65.49.20.97 - - [10/Aug/2025 02:03:41] "GET /favicon.ico HTTP/1.1" 200 -
+3.143.33.63 - - [10/Aug/2025 08:21:24] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [10/Aug/2025 08:23:19] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [10/Aug/2025 08:24:04] code 400, message Bad request version ('À\x14À')
+3.143.33.63 - - [10/Aug/2025 08:24:04] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03¢\x87ß2ÂîÔÂÝ\x83\x7f¶×J\x11-K.úç¼?«áäò\x07ÌE\x19j\x85\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [10/Aug/2025 08:25:58] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.143.33.63 - - [10/Aug/2025 08:25:58] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [10/Aug/2025 08:27:21] code 400, message Bad request version ('À\x14À')
+3.143.33.63 - - [10/Aug/2025 08:27:21] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x97NÐØ\x0cM"%£Îî¤©\x8bs:\x0fEc\x95\x0cãje|\x0cß\x08G¾®W\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+64.62.197.122 - - [11/Aug/2025 00:03:36] "GET / HTTP/1.1" 200 -
+64.62.197.130 - - [11/Aug/2025 00:03:53] "GET /favicon.ico HTTP/1.1" 200 -
+3.137.73.221 - - [11/Aug/2025 08:42:46] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [11/Aug/2025 10:07:17] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [11/Aug/2025 10:09:30] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03#&í6\x0ef2/).üÀn¿Ö±KÖC¹pÙ7LQ\x9eK°üù[\x9a\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.134.148.59 - - [11/Aug/2025 10:09:30] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03#&í6\x0ef2/).üÀn¿Ö±KÖC¹pÙ7LQ\x9eK°üù[\x9a\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [11/Aug/2025 11:15:18] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [11/Aug/2025 11:16:36] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [11/Aug/2025 11:17:01] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [11/Aug/2025 11:17:01] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x13½IàÖ8ü\x84D\x09ô× \x14hÈÛ7¤¯OøB¤8¸LM\x96\x1di)\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [11/Aug/2025 11:18:09] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [11/Aug/2025 11:18:09] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [11/Aug/2025 11:18:53] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [11/Aug/2025 11:18:53] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Pæ¬÷F\x11ðOé|\x88©Kä\x0f\x92\x8fx\x81¸a÷-1k\x13j\x09pE\x8dp\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+147.185.133.163 - - [11/Aug/2025 14:49:05] "GET / HTTP/1.1" 200 -
+159.65.219.252 - - [12/Aug/2025 03:47:16] "GET / HTTP/1.1" 200 -
+185.247.137.117 - - [12/Aug/2025 03:47:17] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+3.131.215.38 - - [12/Aug/2025 09:20:29] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [12/Aug/2025 09:21:21] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [12/Aug/2025 09:22:43] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [12/Aug/2025 09:22:43] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ã ÜÉÑó,$\x89_I?VðB£\x9f\x7f¹zg\x8dÀ)á\x06Tú¬-Jæ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [12/Aug/2025 09:24:22] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [12/Aug/2025 09:24:22] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [12/Aug/2025 09:25:05] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [12/Aug/2025 09:25:05] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03q\x99{u{#\x12Þ§\x95\x97Úg>\x0b\x1d\x94\x17µó\x01\x1e\x09\x93(\x9byÐ\x85Ò>\x9d\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+35.203.210.106 - - [12/Aug/2025 14:51:13] "GET / HTTP/1.1" 200 -
+184.105.247.252 - - [12/Aug/2025 15:06:57] "GET / HTTP/1.1" 200 -
+184.105.247.252 - - [12/Aug/2025 15:07:08] "GET /favicon.ico HTTP/1.1" 200 -
+64.62.156.80 - - [13/Aug/2025 01:53:23] "GET / HTTP/1.1" 200 -
+64.62.156.84 - - [13/Aug/2025 01:53:34] "GET /favicon.ico HTTP/1.1" 200 -
+91.196.152.34 - - [13/Aug/2025 07:58:11] code 400, message Bad request version ('À#À¬À®À+À')
+91.196.152.34 - - [13/Aug/2025 07:58:11] "\x16\x03\x03\x01§\x01\x00\x01£\x03\x03¯s\x1d±"\x13\x1cx£\x1bÆæ\x0d¸¹".L\x10ûãC\x1d:2±±²øÄâ\x93 }nï#a\x8dM%1u2Í63\x12Ìm\x88!¢,\x8c;7;ª\x03>o\x91ø±\x00\x8a\x00\x16\x003\x00gÀ\x9eÀ¢\x00\x9e\x009\x00kÀ\x9fÀ£\x00\x9f\x00E\x00¾\x00\x88\x00Ä\x00\x9aÀ\x08À\x09À#À¬À®À+À" HTTPStatus.BAD_REQUEST -
+91.196.152.126 - - [13/Aug/2025 07:58:18] "GET / HTTP/1.1" 200 -
+91.231.89.2 - - [13/Aug/2025 08:13:32] "GET /_favicon.ico HTTP/1.1" 200 -
+3.134.148.59 - - [13/Aug/2025 10:15:20] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [13/Aug/2025 10:17:21] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [13/Aug/2025 10:18:29] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03%wr\x11\x05\x16h)¼^¹í\x8dð6Q1)L\x03x\x9dbHÚl¥)ø¬\x94\x97\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.134.148.59 - - [13/Aug/2025 10:18:29] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03%wr\x11\x05\x16h)¼^¹í\x8dð6Q1)L\x03x\x9dbHÚl¥)ø¬\x94\x97\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [13/Aug/2025 10:19:27] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [13/Aug/2025 10:19:27] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [13/Aug/2025 10:20:09] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [13/Aug/2025 10:20:09] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x0bJ\x9a\x1cw»m*|mK8\x9bõ³Ö¥\x8c\x1f§:\x0bIil\x14MÑY«´6\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [14/Aug/2025 11:15:54] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [14/Aug/2025 11:16:54] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [14/Aug/2025 11:17:59] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [14/Aug/2025 11:17:59] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x9fÌ5>£äwS÷+\x0cù]¤Ï^¾Ákí¼ó{ñ\x85`YÝ\x9c\x03X<\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [14/Aug/2025 11:19:09] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.132.23.201 - - [14/Aug/2025 11:19:09] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [14/Aug/2025 11:20:20] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [14/Aug/2025 11:20:20] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03b®öÐ\x8aÇ\x1dIIÅzRÛAÖý0}Lèo\x99\x12,jH\x0dSæï`2\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [14/Aug/2025 11:48:11] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [14/Aug/2025 11:49:11] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [14/Aug/2025 11:50:19] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [14/Aug/2025 11:50:19] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03$Õ]eñ<\x1dç\\òù*{8B}¼Gzå,Lr"T\x8a\x13¦ê&\x1bA\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [14/Aug/2025 11:51:28] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.132.23.201 - - [14/Aug/2025 11:51:28] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [14/Aug/2025 11:52:39] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [14/Aug/2025 11:52:39] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03^£\x1d¤\x84é'mf·&ùÞ4ÅT\x05RmÂoôU\x92Ê5e\\ô\x17t7\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+45.82.78.114 - - [15/Aug/2025 06:55:06] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+3.134.148.59 - - [15/Aug/2025 12:00:32] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [15/Aug/2025 12:03:05] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [15/Aug/2025 12:04:48] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [15/Aug/2025 12:04:48] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03p º+ò»[\x06ÛÊü«iy%Tm]dþ\x81¸\x0cÿþk0ß\x09[\x8aì\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [15/Aug/2025 12:06:31] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [15/Aug/2025 12:06:31] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [15/Aug/2025 12:07:49] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [15/Aug/2025 12:07:49] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ÎFîaº\x98zW\x80^\\\x0fX²³aØ=\x9a\x91bÓ\x18rÌ\x9eä\x7f\x85\x87^ë\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+87.236.176.111 - - [15/Aug/2025 12:26:55] "GET / HTTP/1.1" 200 -
+64.227.110.161 - - [15/Aug/2025 12:27:04] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+3.149.59.26 - - [16/Aug/2025 11:44:08] "GET / HTTP/1.1" 200 -
+3.149.59.26 - - [16/Aug/2025 11:44:08] "GET / HTTP/1.1" 200 -
+3.149.59.26 - - [16/Aug/2025 11:45:22] code 400, message Bad request version ('À\x14À')
+3.149.59.26 - - [16/Aug/2025 11:45:22] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x9c\x87{4\x8e\x11\x8d×;7â´ÿq¤\x1c\x104Ö\x1e\x82\x98§>\x06Ï\x05\x94ÏÑ\x15k\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.149.59.26 - - [16/Aug/2025 11:45:38] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.149.59.26 - - [16/Aug/2025 11:45:38] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.149.59.26 - - [16/Aug/2025 11:45:42] code 400, message Bad request version ('À\x14À')
+3.149.59.26 - - [16/Aug/2025 11:45:42] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03¾\x7fe\x16B\x03\x8d~\x17 á´ò\x9c\x17\x18\x8aÿ>Åz\x1d£\x93mÑÃ\x04$â1J\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:32] code 400, message Bad request syntax ('JRMI\x00\x02K')
+172.105.246.139 - - [16/Aug/2025 17:57:32] "JRMI\x00\x02K" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:32] "GET / HTTP/1.0" 200 -
+172.105.246.139 - - [16/Aug/2025 17:57:32] "OPTIONS / HTTP/1.0" 200 -
+172.105.246.139 - - [16/Aug/2025 17:57:32] code 400, message Bad request version ('RTSP/1.0')
+172.105.246.139 - - [16/Aug/2025 17:57:32] "OPTIONS / RTSP/1.0" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:38] code 400, message Bad request version ('\x00\x01\x97|\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00')
+172.105.246.139 - - [16/Aug/2025 17:57:38] "\x80\x00\x00(rþ\x1d\x13\x00\x00\x00\x00\x00\x00\x00\x02\x00\x01\x86 \x00\x01\x97|\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:43] code 400, message Bad HTTP/0.9 request type ('\x00')
+172.105.246.139 - - [16/Aug/2025 17:57:43] "\x00\x1e\x00\x06\x01\x00\x00\x01\x00\x00\x00\x00\x00\x00\x07version\x04bind\x00\x00\x10\x00\x03" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:43] code 400, message Bad request syntax ('HELP')
+172.105.246.139 - - [16/Aug/2025 17:57:43] "HELP" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:43] code 400, message Bad request syntax ('\x16\x03\x00\x00S\x01\x00\x00O\x03\x00?G×÷º,îê²`~ó\x00ý\x82{¹Õ\x96Èw\x9bæÄÛ<=Ûoï\x10n\x00\x00(\x00\x16\x00\x13\x00')
+172.105.246.139 - - [16/Aug/2025 17:57:43] "\x16\x03\x00\x00S\x01\x00\x00O\x03\x00?G×÷º,îê²`~ó\x00ý\x82{¹Õ\x96Èw\x9bæÄÛ<=Ûoï\x10n\x00\x00(\x00\x16\x00\x13\x00" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:43] code 400, message Bad request version ('\x00/\x00')
+172.105.246.139 - - [16/Aug/2025 17:57:43] "\x16\x03\x00\x00i\x01\x00\x00e\x03\x03U\x1c§ärandom1random2random3random4\x00\x00\x0c\x00/\x00" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:43] code 400, message Bad request syntax ('\x00\x00\x00qj\x81n0\x81k¡\x03\x02\x01\x05¢\x03\x02\x01')
+172.105.246.139 - - [16/Aug/2025 17:57:43] "\x00\x00\x00qj\x81n0\x81k¡\x03\x02\x01\x05¢\x03\x02\x01" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:48] code 400, message Bad request version ('0.12\x00')
+172.105.246.139 - - [16/Aug/2025 17:57:48] "\x00\x00\x00¤ÿSMBr\x00\x00\x00\x00\x08\x01@\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00@\x06\x00\x00\x01\x00\x00\x81\x00\x02PC NETWORK PROGRAM 1.0\x00\x02MICROSOFT NETWORKS 1.03\x00\x02MICROSOFT NETWORKS 3.0\x00\x02LANMAN1.0\x00\x02LM1.2X002\x00\x02Samba\x00\x02NT LANMAN 1.0\x00\x02NT LM 0.12\x00" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:53] code 400, message Bad HTTP/0.9 request type ('l\x00')
+172.105.246.139 - - [16/Aug/2025 17:57:53] "l\x00\x0b\x00\x00\x00\x00\x00\x00\x00\x00\x00" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:53] code 400, message Bad request version ('SIP/2.0')
+172.105.246.139 - - [16/Aug/2025 17:57:53] "OPTIONS sip:nm SIP/2.0" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:58] code 400, message Bad HTTP/0.9 request type ('AMQP\x00\x00')
+172.105.246.139 - - [16/Aug/2025 17:57:58] "AMQP\x00\x00\x09\x01" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:58] "GET /devicedesc.xml HTTP/1.1" 200 -
+172.105.246.139 - - [16/Aug/2025 17:57:58] code 400, message Bad request syntax ('CONNECT')
+172.105.246.139 - - [16/Aug/2025 17:57:58] "CONNECT" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:57:58] code 400, message Bad request version ('\x00/\x00')
+172.105.246.139 - - [16/Aug/2025 17:57:58] "\x16\x03\x00\x00i\x01\x00\x00e\x03\x03U\x1c§ärandom1random2random3random4\x00\x00\x0c\x00/\x00" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:58:03] "GET / HTTP/1.1" 200 -
+172.105.246.139 - - [16/Aug/2025 17:58:08] code 400, message Bad request version ('VB')
+172.105.246.139 - - [16/Aug/2025 17:58:08] "\x16\x03\x01\x02\x00\x01\x00\x01ü\x03\x03ÚâªqsòW?ßä\x88\x01Iï·\x08Mvç¡c¯£náô\x16m°\x85QR îp(\x89\x9b\x06e>\x8cC\x09îÑÉ9uwEÍ7A\x80]\x1eVB" HTTPStatus.BAD_REQUEST -
+172.105.246.139 - - [16/Aug/2025 17:58:18] code 400, message Bad request syntax ('\x0e\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00bbbb0100000001')
+172.105.246.139 - - [16/Aug/2025 17:58:18] "\x0e\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00bbbb0100000001" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [17/Aug/2025 12:41:36] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [17/Aug/2025 12:41:37] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [17/Aug/2025 12:43:14] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x9dz2¾\x06^â\x8bÔª\x86T\x94VÏ×Ï§èÐó¡q\x05\x9a?8â)ºþ\\\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.131.215.38 - - [17/Aug/2025 12:43:14] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x9dz2¾\x06^â\x8bÔª\x86T\x94VÏ×Ï§èÐó¡q\x05\x9a?8â)ºþ\\\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [17/Aug/2025 12:45:08] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [17/Aug/2025 12:45:08] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [17/Aug/2025 12:46:18] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [17/Aug/2025 12:46:18] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03V\x08ó¦&9<º6\x03'Û÷\x8dHj\x857t\x9fÌÒÎ'Ã\x82\x94K|Û´¶\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+216.218.206.69 - - [17/Aug/2025 12:53:32] "GET / HTTP/1.1" 200 -
+216.218.206.117 - - [17/Aug/2025 12:53:41] "GET /favicon.ico HTTP/1.1" 200 -
+104.234.115.6 - - [17/Aug/2025 22:02:46] code 400, message Bad request syntax ('\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03V\x1b£õa`&\x9c«f\x90Ü¾æX©¦Ü^T]ØsÙÿ')
+104.234.115.6 - - [17/Aug/2025 22:02:46] "\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03V\x1b£õa`&\x9c«f\x90Ü¾æX©¦Ü^T]ØsÙÿ" HTTPStatus.BAD_REQUEST -
+104.234.115.6 - - [17/Aug/2025 22:03:00] "GET / HTTP/1.1" 200 -
+104.234.115.6 - - [17/Aug/2025 22:03:10] code 400, message Bad request version ('À\x14À')
+104.234.115.6 - - [17/Aug/2025 22:03:10] "\x16\x03\x01\x00ú\x01\x00\x00ö\x03\x03÷U3\x1d_XwÁÿ\x14\x94¿\x83ä?§ ã\x86\x09æ\x11)i²G\x19½ò\x95já ì\x86\x9c²÷iæpuÜGêÝ| N%Ì¬Éþ0åX\x84\x1e\x98ê6 a`\x002À/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+104.234.115.6 - - [17/Aug/2025 22:03:10] "GET /favicon.ico HTTP/1.1" 200 -
+3.134.148.59 - - [18/Aug/2025 11:59:27] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [18/Aug/2025 12:00:05] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [18/Aug/2025 12:32:15] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [18/Aug/2025 12:32:15] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [18/Aug/2025 12:33:59] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [18/Aug/2025 12:33:59] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x0czVT\x02j\x9duù#2(\x98\x17SMãØQÇ¨m\x1a\x09ÚØaU\x8e\x12^t\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [18/Aug/2025 12:35:35] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [18/Aug/2025 12:35:35] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [18/Aug/2025 12:39:02] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [18/Aug/2025 12:39:02] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x94ØMª³xÆ^\x96\x89ÿ\x97\x1bZi\x91\x9e\x1eø\x94¥¹Fÿm6¾xY[\x13÷\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+35.203.211.193 - - [18/Aug/2025 14:18:52] "GET / HTTP/1.1" 200 -
+128.199.8.140 - - [18/Aug/2025 20:44:53] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [19/Aug/2025 12:54:01] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [19/Aug/2025 12:56:04] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [19/Aug/2025 12:57:08] code 400, message Bad HTTP/0.9 request type ("\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ý´T»¡k¼'°È´\x89Ýø\x80YÀìOQÔ\x83ÒÃg\x00ÌýpÕÚ¦\x00\x00\x1aÀ/À+À\x11À\x07À\x13À")
+3.130.96.91 - - [19/Aug/2025 12:57:08] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ý´T»¡k¼'°È´\x89Ýø\x80YÀìOQÔ\x83ÒÃg\x00ÌýpÕÚ¦\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [19/Aug/2025 12:57:56] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [19/Aug/2025 12:57:56] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [19/Aug/2025 13:27:42] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [19/Aug/2025 13:30:13] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [19/Aug/2025 13:31:20] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03M\x17<~\x96þá\x93\x03GëCu\x11I7¡\x93ì4Û\x0490E\x83\x02\x15¡WQW\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.132.23.201 - - [19/Aug/2025 13:31:20] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03M\x17<~\x96þá\x93\x03GëCu\x11I7¡\x93ì4Û\x0490E\x83\x02\x15¡WQW\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [19/Aug/2025 13:32:49] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.132.23.201 - - [19/Aug/2025 13:32:49] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [19/Aug/2025 13:33:26] code 400, message Bad request version (':Ò4è\x155x¼\x82\x84')
+3.132.23.201 - - [19/Aug/2025 13:33:26] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03æ\x18 aZ½u :Ò4è\x155x¼\x82\x84" HTTPStatus.BAD_REQUEST -
+91.231.89.7 - - [20/Aug/2025 07:43:38] code 400, message Bad request version ('À#À¬À®À+À')
+91.231.89.7 - - [20/Aug/2025 07:43:38] "\x16\x03\x03\x01§\x01\x00\x01£\x03\x03\x13c!8(\x8a|\x8dÞR\x1d¤g¤òþ½B>Ëæ\x07\x8e\x0d\x0d®°Â\x0b2Ê\x13 µÓJ\x80ÀH\x08voGa¯àF\x83\x10,´À\x0fò{c­\x18\x9evÍdØ7\x9e\x00\x8a\x00\x16\x003\x00gÀ\x9eÀ¢\x00\x9e\x009\x00kÀ\x9fÀ£\x00\x9f\x00E\x00¾\x00\x88\x00Ä\x00\x9aÀ\x08À\x09À#À¬À®À+À" HTTPStatus.BAD_REQUEST -
+91.231.89.0 - - [20/Aug/2025 07:43:42] "GET / HTTP/1.1" 200 -
+91.196.152.114 - - [20/Aug/2025 07:52:31] "GET /_favicon.ico HTTP/1.1" 200 -
+64.62.197.137 - - [20/Aug/2025 08:19:34] "GET / HTTP/1.1" 200 -
+64.62.197.139 - - [20/Aug/2025 08:19:46] "GET /favicon.ico HTTP/1.1" 200 -
+3.131.215.38 - - [20/Aug/2025 13:05:54] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [20/Aug/2025 13:07:36] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [20/Aug/2025 13:09:19] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [20/Aug/2025 13:09:19] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x033©\x9fã\x9fYáq7\x9f´\x98©M\x0b\x09ÿ[\x1d½\x8f\x15G#\x885\x07VPO\x02]\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [20/Aug/2025 13:10:55] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [20/Aug/2025 13:10:55] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [20/Aug/2025 13:12:44] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03»ÒÙÌ±\x15ÈÑo¢Eå÷:ÕÈ\x15\\\xad\x7fàr]}íí.ál\x86Ï}\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.131.215.38 - - [20/Aug/2025 13:12:44] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03»ÒÙÌ±\x15ÈÑo¢Eå÷:ÕÈ\x15\\­\x7fàr]}íí.ál\x86Ï}\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [20/Aug/2025 14:52:50] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [20/Aug/2025 14:54:30] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [20/Aug/2025 14:56:30] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ö\x80â&Kõo7^ê\x05\x86x\x98Å³[mìØÉU\x98\x81°\x04öÍRÐN\x80\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.137.73.221 - - [20/Aug/2025 14:56:30] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ö\x80â&Kõo7^ê\x05\x86x\x98Å³[mìØÉU\x98\x81°\x04öÍRÐN\x80\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [20/Aug/2025 14:58:23] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.137.73.221 - - [20/Aug/2025 14:58:23] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [20/Aug/2025 15:00:11] code 400, message Bad request version ('À\x14À')
+3.137.73.221 - - [20/Aug/2025 15:00:11] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x92ÝS\x97¬QM \x93\x04\x01c\x0f\x9e\x19\x80à,\x98ÄMê~µÞ&¹Ó}-\x93ÿ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [20/Aug/2025 15:24:47] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [20/Aug/2025 15:27:01] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [20/Aug/2025 15:28:38] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ÝÞ½âÛ3\x91¦Cè^àNÇ\x17!`\\\x86ÃJ¿\x93Eo\x97O\xad\x06ÁÒG\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.132.23.201 - - [20/Aug/2025 15:28:38] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ÝÞ½âÛ3\x91¦Cè^àNÇ\x17!`\\\x86ÃJ¿\x93Eo\x97O­\x06ÁÒG\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [20/Aug/2025 15:30:25] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.132.23.201 - - [20/Aug/2025 15:30:25] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [20/Aug/2025 15:31:53] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [20/Aug/2025 15:31:53] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03O\x15³EêÇ\x1e ªÙ\x17ãþûQ½ï\x8f\x16ú¶\x10mµo¡KÁV]%Ó\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [21/Aug/2025 14:45:44] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [21/Aug/2025 14:47:29] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [21/Aug/2025 14:48:30] code 400, message Bad request version ('À\x14À')
+3.137.73.221 - - [21/Aug/2025 14:48:30] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x03\x91uËv\x8a\x16\x93QÈ\x06\x0cÑ}å\x81)üËÖ¨´ºä;øk\x85:ÌË\x18\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [21/Aug/2025 14:49:45] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.137.73.221 - - [21/Aug/2025 14:49:45] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [21/Aug/2025 14:50:45] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x034\x04\x81É\x8aç\x93¶ÏB}¬ôý4wjp\x8e\x078nðë\x0eÅGºÐ¥Å¤\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.137.73.221 - - [21/Aug/2025 14:50:45] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x034\x04\x81É\x8aç\x93¶ÏB}¬ôý4wjp\x8e\x078nðë\x0eÅGºÐ¥Å¤\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [21/Aug/2025 15:39:14] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [21/Aug/2025 15:41:16] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [21/Aug/2025 15:42:48] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [21/Aug/2025 15:42:48] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ävß4%\x92\x8cB¿\x0dâ\x0fï\x05¨\x1cI\x8e:ö\x0bNß\x15ÜäE8äª3*\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [21/Aug/2025 15:43:53] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [21/Aug/2025 15:43:53] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [21/Aug/2025 15:45:34] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [21/Aug/2025 15:45:34] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ß=ÐÊAXF\x9dwÕö\x0c©óÑ§Sx[\x9cørÚ\x10Êë\x91\x0e¿ñ8\x0f\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+91.196.152.148 - - [22/Aug/2025 10:08:03] code 400, message Bad request version ('À#À¬À®À+À')
+91.196.152.148 - - [22/Aug/2025 10:08:03] "\x16\x03\x03\x01§\x01\x00\x01£\x03\x03²ÚÏÇ2\x81¹|\x140ÂÜ\x01\x04\x13>2GýÓ\x12K\x1c"\x89\x9f\x90\x9eã\x13\x01\x92 ,\x17Ñ¬F\x93}\x11 ë V,\x03-ýfù\x1c !ä={Aù\x87ò\x83Í>Û\x00\x8a\x00\x16\x003\x00gÀ\x9eÀ¢\x00\x9e\x009\x00kÀ\x9fÀ£\x00\x9f\x00E\x00¾\x00\x88\x00Ä\x00\x9aÀ\x08À\x09À#À¬À®À+À" HTTPStatus.BAD_REQUEST -
+91.196.152.164 - - [22/Aug/2025 10:08:07] "GET / HTTP/1.1" 200 -
+91.196.152.144 - - [22/Aug/2025 10:19:44] "GET /_favicon.ico HTTP/1.1" 200 -
+3.134.148.59 - - [22/Aug/2025 14:15:45] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [22/Aug/2025 14:18:13] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [22/Aug/2025 14:19:34] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [22/Aug/2025 14:19:34] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03g³\x0cM35p~¯th\x17Å\x14qr1Òv\x01\x13\x80\x0c¶£N\x92°V\x1fe¡\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [22/Aug/2025 14:21:18] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [22/Aug/2025 14:21:18] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [22/Aug/2025 14:22:08] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [22/Aug/2025 14:22:08] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x95©ç\x031dM\x0cÇ\x9c£n\x9c\x7f=Æ¬&3ð\x0eºÉD\x8c¦Q\x14Ø\x99¯O\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [22/Aug/2025 14:49:07] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [22/Aug/2025 14:51:04] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [22/Aug/2025 15:21:39] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [22/Aug/2025 15:23:19] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [22/Aug/2025 15:24:37] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x99\x18\x17f½\x90å1,þ\x89CZ\x06ñ\x97óB5N7ìbþG¬oK\x19E\x9eç\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.132.23.201 - - [22/Aug/2025 15:24:37] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x99\x18\x17f½\x90å1,þ\x89CZ\x06ñ\x97óB5N7ìbþG¬oK\x19E\x9eç\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [22/Aug/2025 15:26:19] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.132.23.201 - - [22/Aug/2025 15:26:19] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [22/Aug/2025 15:28:01] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [22/Aug/2025 15:28:01] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03í¯\x15S\x9aË7Û¬ô\x181\x08M\x0c\x1dë§~Lö\x1d¬\x027¹\x02\x1aúÊt¹\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+91.230.168.195 - - [22/Aug/2025 22:49:10] code 400, message Bad request version ('À#À¬À®À+À')
+91.230.168.195 - - [22/Aug/2025 22:49:10] "\x16\x03\x03\x01§\x01\x00\x01£\x03\x03þ\x08\x1d_ rþûã\x0d0Îÿ§\x8aMßÛð¾ÞÎ\x18/:¨\x1f\x13\x03'ØJ Ð3ñÛ]×Ù W\x0b"æ4ri£,,\x96ÃÓ\x1f\x10W§õnüò\x00\x1cr\x00\x8a\x00\x16\x003\x00gÀ\x9eÀ¢\x00\x9e\x009\x00kÀ\x9fÀ£\x00\x9f\x00E\x00¾\x00\x88\x00Ä\x00\x9aÀ\x08À\x09À#À¬À®À+À" HTTPStatus.BAD_REQUEST -
+91.230.168.197 - - [22/Aug/2025 22:49:14] "GET / HTTP/1.1" 200 -
+195.184.76.82 - - [22/Aug/2025 22:58:36] "GET /_favicon.ico HTTP/1.1" 200 -
+87.236.176.14 - - [23/Aug/2025 05:21:37] "GET / HTTP/1.1" 200 -
+45.55.186.92 - - [23/Aug/2025 05:21:45] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+64.62.197.2 - - [23/Aug/2025 11:18:11] "GET / HTTP/1.1" 200 -
+64.62.197.5 - - [23/Aug/2025 11:18:20] "GET /favicon.ico HTTP/1.1" 200 -
+3.130.96.91 - - [23/Aug/2025 13:48:14] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [23/Aug/2025 14:57:05] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [23/Aug/2025 14:57:30] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [23/Aug/2025 14:59:16] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [23/Aug/2025 14:59:16] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x08à?A;q:§à¼L{ªhr\x9a\x91\x0bp\x91¦I²\x0c\x9fë\x14R7\x11¥õ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [23/Aug/2025 15:00:50] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [23/Aug/2025 15:00:50] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [23/Aug/2025 15:01:34] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [23/Aug/2025 15:01:34] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x80\x81¥\x82t\x91D`öm\x05ª\x0f6\x85-P_>Ó\x00\x14o2\x11&\x1aXNIj[\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+35.203.211.10 - - [23/Aug/2025 17:31:00] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [24/Aug/2025 13:10:56] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [24/Aug/2025 13:10:57] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [24/Aug/2025 13:13:08] code 400, message Bad request version ('À\x14À')
+3.137.73.221 - - [24/Aug/2025 13:13:08] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03³»¡\x04Â\x0d\x9c\x11¿\x81\x0fA\x04Þ]0\x01Tá_\x9eæL¿zÊT²ère°\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [24/Aug/2025 13:14:25] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.137.73.221 - - [24/Aug/2025 13:14:25] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [25/Aug/2025 14:12:13] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [25/Aug/2025 14:13:47] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [25/Aug/2025 14:14:54] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [25/Aug/2025 14:14:54] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03xÅ{L\x16¥aR\\\x14É\x8f®dµ\x9d\x06\x859!4*(\x0bjÏ\x093³J»\x80\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [25/Aug/2025 14:16:30] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [25/Aug/2025 14:16:30] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [25/Aug/2025 14:17:36] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ëá)\x8ac\x10ü\x1aÊLÇ¤\x17c9M7ßÌêð&\x90d×\x99Õ\x8bÃ\x99÷Y\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.131.215.38 - - [25/Aug/2025 14:17:36] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ëá)\x8ac\x10ü\x1aÊLÇ¤\x17c9M7ßÌêð&\x90d×\x99Õ\x8bÃ\x99÷Y\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+147.185.133.3 - - [25/Aug/2025 17:43:57] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [26/Aug/2025 13:30:07] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [26/Aug/2025 13:31:39] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [26/Aug/2025 13:33:20] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [26/Aug/2025 13:33:20] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ÐEäÉ¦×\x10]Å¶_Î\x09&Õ\x9eF\x09Cqçªm2Öi \x13îtÀ\x18\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [26/Aug/2025 13:35:10] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [26/Aug/2025 13:35:10] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [26/Aug/2025 13:37:04] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [26/Aug/2025 13:37:04] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x039ÂX·»\x0cnCr#\x18¬\x84\x1e=Ï[þ\x99§óøÌ£\x84\x8fÕ\x8eXS¿D\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+87.236.176.205 - - [27/Aug/2025 02:35:20] "GET / HTTP/1.1" 200 -
+185.247.137.119 - - [27/Aug/2025 02:35:20] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+91.196.152.27 - - [27/Aug/2025 08:26:32] code 400, message Bad request version ('À#À¬À®À+À')
+91.196.152.27 - - [27/Aug/2025 08:26:32] "\x16\x03\x03\x01§\x01\x00\x01£\x03\x03àÍ&b\x98¯C?¿«\x9bóÏ±óß\x19ó\x01Z{àì~ÓÝ'òØ´q\x18 ÿó\x04(=ª\x80\x12ïÚÆsõbãÀº`¡ô\x08ë»kd£ÜÁ<\x7fÝé\x00\x8a\x00\x16\x003\x00gÀ\x9eÀ¢\x00\x9e\x009\x00kÀ\x9fÀ£\x00\x9f\x00E\x00¾\x00\x88\x00Ä\x00\x9aÀ\x08À\x09À#À¬À®À+À" HTTPStatus.BAD_REQUEST -
+91.196.152.113 - - [27/Aug/2025 08:26:36] "GET / HTTP/1.1" 200 -
+91.196.152.177 - - [27/Aug/2025 08:36:40] "GET /_favicon.ico HTTP/1.1" 200 -
+3.143.33.63 - - [27/Aug/2025 13:53:49] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [27/Aug/2025 13:55:12] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [27/Aug/2025 13:56:13] code 400, message Bad request version ('À\x14À')
+3.143.33.63 - - [27/Aug/2025 13:56:13] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03&ÁdqÅ?\x8a¹L%-çÚ\\Ý&\x96ÿÁÁ\x1e\x12dâÞ\x06M+ªF\x19\x84\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [27/Aug/2025 13:57:49] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.143.33.63 - - [27/Aug/2025 13:57:49] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [27/Aug/2025 13:59:15] code 400, message Bad request version ('À\x14À')
+3.143.33.63 - - [27/Aug/2025 13:59:15] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x9b5\x9c¹\x85iÎJs¬\x0bB>¢e8"{\x89)6¢®J\x95\x91<\x88½*C\x8d\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+64.62.197.152 - - [28/Aug/2025 01:54:33] "GET / HTTP/1.1" 200 -
+64.62.197.161 - - [28/Aug/2025 01:54:49] "GET /favicon.ico HTTP/1.1" 200 -
+3.130.96.91 - - [28/Aug/2025 13:47:15] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [28/Aug/2025 13:47:41] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [28/Aug/2025 13:49:17] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [28/Aug/2025 13:49:17] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ñ-îÀóX\x99\x13B\x92î&R\x9b²iýº\x1a´`\x09a¶\x056Ú\x06Ç{ÑN\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [28/Aug/2025 13:50:56] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [28/Aug/2025 13:50:56] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [28/Aug/2025 13:51:54] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [28/Aug/2025 13:51:54] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Ú\x86Ü7\x1a\x90¿ºÆ\x14À\x90\x98\x9e:\x1b= &WÌÂN¢\x94õ7ðxy5z\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+66.228.36.51 - - [29/Aug/2025 13:27:27] code 400, message Bad request syntax ('JRMI\x00\x02K')
+66.228.36.51 - - [29/Aug/2025 13:27:27] "JRMI\x00\x02K" HTTPStatus.BAD_REQUEST -
+66.228.36.51 - - [29/Aug/2025 13:27:27] "GET / HTTP/1.0" 200 -
+3.131.215.38 - - [29/Aug/2025 15:02:22] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [29/Aug/2025 15:04:34] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [29/Aug/2025 15:06:27] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [29/Aug/2025 15:06:27] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\\í-\x1a¤YL\x90ºu\x9b.\x03'pNJ\x0c\x8d\x84z«û\x89U\x1cñ\x98\x81a\x969\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [29/Aug/2025 15:08:20] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [29/Aug/2025 15:08:20] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [29/Aug/2025 15:10:16] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [29/Aug/2025 15:10:16] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03#Õ N\x98\x94y,ôpÁÎ©Ê¤¥\x97\x17}¥6¾¬m:\x14ûò«x¼\x94\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+192.81.131.131 - - [30/Aug/2025 01:46:19] "GET / HTTP/1.1" 200 -
+65.49.1.222 - - [30/Aug/2025 02:43:34] "GET / HTTP/1.1" 200 -
+65.49.1.231 - - [30/Aug/2025 02:43:47] "GET /favicon.ico HTTP/1.1" 200 -
+3.132.23.201 - - [30/Aug/2025 15:06:51] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [30/Aug/2025 15:06:51] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [30/Aug/2025 15:08:49] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [30/Aug/2025 15:08:49] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x11w¯\x14Rä\x15º Ô%Æ¯\x86%6QÙ°7¯WóÒ\x87×©+G\x8c\x0f\x02\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [30/Aug/2025 15:12:17] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.132.23.201 - - [30/Aug/2025 15:12:17] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [30/Aug/2025 15:12:33] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [30/Aug/2025 15:12:33] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x82è/Óê\x18[´Zú\x91ßÆø¤=\x84½KOA¿à\x03\x97\x92J\x85x5È\x9f\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+47.237.116.0 - - [30/Aug/2025 15:40:39] code 400, message Bad request version ('À\x13À')
+47.237.116.0 - - [30/Aug/2025 15:40:39] "\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03I\x06²ù¼\x99iÀYûøºe-\x83Ud]\x0e\x8d·b8´gÆÝ9dZ8f gÁ\x81i³öòË°©\x19NÖ½\x95g|püé<Z¡\x90T·é¥8'O;\x00&À+À/À,À0Ì©Ì¨À\x09À\x13À" HTTPStatus.BAD_REQUEST -
+47.237.116.0 - - [30/Aug/2025 15:40:49] "GET / HTTP/1.1" 200 -
+123.160.223.75 - - [30/Aug/2025 15:41:49] "GET / HTTP/1.1" 200 -
+123.160.223.72 - - [30/Aug/2025 15:41:49] "GET / HTTP/1.1" 200 -
+123.160.223.72 - - [30/Aug/2025 15:41:50] "GET /_dash-component-suites/dash/deps/react@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+123.160.223.72 - - [30/Aug/2025 15:41:50] "GET /_dash-component-suites/dash/dash-renderer/build/dash_renderer.v2_14_1m1752675922.min.js HTTP/1.1" 200 -
+123.160.223.73 - - [30/Aug/2025 15:41:50] "GET /_dash-component-suites/dash_bootstrap_components/_components/dash_bootstrap_components.v1_5_0m1752675929.min.js HTTP/1.1" 200 -
+123.160.223.73 - - [30/Aug/2025 15:41:50] "GET /_dash-component-suites/dash/html/dash_html_components.v2_0_15m1752675922.min.js HTTP/1.1" 200 -
+123.160.223.72 - - [30/Aug/2025 15:41:51] "GET /_dash-component-suites/dash/dash_table/bundle.v5_2_8m1752675922.js HTTP/1.1" 200 -
+192.197.201.114 - - [30/Aug/2025 15:41:55] "GET /_dash-component-suites/dash/dcc/dash_core_components.v2_12_1m1752675922.js HTTP/1.1" 200 -
+192.197.201.114 - - [30/Aug/2025 15:41:55] "GET /_dash-component-suites/dash/deps/polyfill@7.v2_14_1m1752675922.12.1.min.js HTTP/1.1" 200 -
+192.197.201.114 - - [30/Aug/2025 15:41:55] "GET /_dash-component-suites/dash/deps/prop-types@15.v2_14_1m1752675922.8.1.min.js HTTP/1.1" 200 -
+192.197.201.114 - - [30/Aug/2025 15:41:55] "GET /_dash-component-suites/dash/deps/react-dom@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+192.197.201.114 - - [30/Aug/2025 15:41:55] "GET /_dash-component-suites/dash/dcc/dash_core_components-shared.v2_12_1m1752675922.js HTTP/1.1" 200 -
+123.160.223.72 - - [30/Aug/2025 15:42:00] "GET /_dash-dependencies HTTP/1.1" 200 -
+123.160.223.72 - - [30/Aug/2025 15:42:02] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+3.137.73.221 - - [31/Aug/2025 16:09:10] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [31/Aug/2025 16:11:49] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [31/Aug/2025 16:13:35] code 400, message Bad request version ('À\x14À')
+3.137.73.221 - - [31/Aug/2025 16:13:35] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x13k\x89'\x9ft\x8fLm\x03©ë£\x1f8;õ4ú\x0d¨\\V\x07\x8f>û¹(©e\x89\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [31/Aug/2025 16:15:30] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.137.73.221 - - [31/Aug/2025 16:15:30] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [31/Aug/2025 16:17:10] code 400, message Bad request version ('À\x14À')
+3.137.73.221 - - [31/Aug/2025 16:17:10] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03XëåxÐ\x90e<\x849^:sö\x96©Cq\x0flW¾{SÀ\x0cé\x02³í\x01>\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+216.218.206.68 - - [01/Sep/2025 00:14:52] "GET / HTTP/1.1" 200 -
+216.218.206.124 - - [01/Sep/2025 00:15:13] "GET /favicon.ico HTTP/1.1" 200 -
+147.185.132.17 - - [01/Sep/2025 15:26:49] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [01/Sep/2025 15:27:59] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [01/Sep/2025 15:30:50] "GET / HTTP/1.1" 200 -
+3.143.33.63 - - [01/Sep/2025 15:32:16] code 400, message Bad request version ('À\x14À')
+3.143.33.63 - - [01/Sep/2025 15:32:16] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03É\x11\\Â\x92hÈM¯O\x93. ªb-\x02#\x88µ\x1fÄ\x13\x9c\x1aËýHµ\x97YÄ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.143.33.63 - - [01/Sep/2025 15:32:26] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.143.33.63 - - [01/Sep/2025 15:32:26] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [01/Sep/2025 16:06:16] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [01/Sep/2025 16:07:54] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [01/Sep/2025 16:09:10] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03BË\x86\x02\x17ù1&"÷_\x01êä}[e\x16\x04B*èø\x17VZ;Oj\x88»á\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.131.215.38 - - [01/Sep/2025 16:09:10] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03BË\x86\x02\x17ù1&"÷_\x01êä}[e\x16\x04B*èø\x17VZ;Oj\x88»á\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [01/Sep/2025 16:10:10] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [01/Sep/2025 16:10:10] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [01/Sep/2025 16:11:34] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [01/Sep/2025 16:11:34] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03j\x0e@/\x89\x1c\x8dö\\e\x1a6\x99\x96\x95\x1dK^^\x0d?ì5\x0f¤Së}{\x09Uß\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+35.203.211.76 - - [02/Sep/2025 14:16:57] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [02/Sep/2025 15:56:01] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [02/Sep/2025 15:57:19] "GET / HTTP/1.1" 200 -
+3.137.73.221 - - [02/Sep/2025 15:58:34] code 400, message Bad request version ('À\x14À')
+3.137.73.221 - - [02/Sep/2025 15:58:34] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03µ°\x0bH\x94ð\x8bRÎsª\x80A.>dê\x01\x85ÖìÚ»¹\x9e!:ùDåV\x10\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [02/Sep/2025 16:00:14] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.137.73.221 - - [02/Sep/2025 16:00:14] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.137.73.221 - - [02/Sep/2025 16:01:48] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Èû\x90\x88Wö¬>Âv©\x08\x00c3§2Éà\x91®\x83©~A½\x82¸jN&ß\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.137.73.221 - - [02/Sep/2025 16:01:48] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Èû\x90\x88Wö¬>Âv©\x08\x00c3§2Éà\x91®\x83©~A½\x82¸jN&ß\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+87.236.176.213 - - [02/Sep/2025 16:38:12] "GET / HTTP/1.1" 200 -
+185.247.137.111 - - [02/Sep/2025 16:38:13] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+162.216.149.146 - - [03/Sep/2025 15:38:06] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [03/Sep/2025 16:10:01] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [03/Sep/2025 16:11:28] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [03/Sep/2025 16:12:25] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [03/Sep/2025 16:12:25] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03·°ê\x1dw\x10\x80éöT¢\x98zæ0\x96yfo´\x18p÷·y~8Oºiº\x19\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [03/Sep/2025 16:13:33] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [03/Sep/2025 16:13:33] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [03/Sep/2025 16:14:43] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [03/Sep/2025 16:14:43] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03zÔêIBÞ¹\x92h\x9b\x14N\x1f<ÖÀoS,uUÄûN<Å8\x94 lØã\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+104.234.115.117 - - [03/Sep/2025 20:25:55] code 400, message Bad request version ('WzB\x03\x00e\x86$ÞM\x8d\x8a')
+104.234.115.117 - - [03/Sep/2025 20:25:55] "\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03\x1b"\x9e\x1d°JL\x95\x03Õ?\x92Kf]Î-\x1b&\x87\x1cý!è\x10Y\x9fø\x82ïÞ© *ªs\x90z\x9f\x1d«GÅøÛ\x9a\x85WzB\x03\x00e\x86$ÞM\x8d\x8a" HTTPStatus.BAD_REQUEST -
+104.234.115.117 - - [03/Sep/2025 20:26:20] "GET / HTTP/1.1" 200 -
+104.234.115.117 - - [03/Sep/2025 20:29:13] code 400, message Bad request version ('À\x14À')
+104.234.115.117 - - [03/Sep/2025 20:29:13] "\x16\x03\x01\x00ú\x01\x00\x00ö\x03\x03QqãÒ$\x1dÿÕö\x8d\x0eÎOó6@Ö%&\x1c®Xggá\x8cxuIÚ\x00» PhÊÒ\x838\x95\x84-ÐùÏGf\x9b Étâæ\x80\x930¦\x85±­50a\x83 \x002À/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+104.234.115.117 - - [03/Sep/2025 20:29:24] "GET /favicon.ico HTTP/1.1" 200 -
+8.219.48.65 - - [04/Sep/2025 11:42:33] code 400, message Bad request version ('À\x13À')
+8.219.48.65 - - [04/Sep/2025 11:42:33] "\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03I\x06²ù¼\x99iÀYûøºe-\x83Ud]\x0e\x8d·b8´gÆÝ9dZ8f gÁ\x81i³öòË°©\x19NÖ½\x95g|püé<Z¡\x90T·é¥8'O;\x00&À+À/À,À0Ì©Ì¨À\x09À\x13À" HTTPStatus.BAD_REQUEST -
+8.219.48.65 - - [04/Sep/2025 11:42:44] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [04/Sep/2025 14:50:44] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [04/Sep/2025 14:52:50] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [04/Sep/2025 14:53:35] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [04/Sep/2025 14:53:35] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x09ýìAé¯\x10b5\x06È\x8f½X\x10?¶_\x89fÂæ\x1a\x02_\x9b=\x99u\x07Z\x16\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [04/Sep/2025 14:54:49] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [04/Sep/2025 14:54:49] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [04/Sep/2025 14:55:37] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [04/Sep/2025 14:55:37] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Øôic9Û>\x15gîªÞÇ\x9e\x91ÌX\x89\x0c\x85È$@D\x89%w÷\x07\x81\x0bl\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+192.197.201.114 - - [05/Sep/2025 01:48:37] "GET / HTTP/1.1" 200 -
+192.197.201.114 - - [05/Sep/2025 01:48:41] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+64.62.197.212 - - [05/Sep/2025 06:38:28] "GET / HTTP/1.1" 200 -
+64.62.197.220 - - [05/Sep/2025 06:38:45] "GET /favicon.ico HTTP/1.1" 200 -
+3.131.215.38 - - [05/Sep/2025 16:19:26] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [05/Sep/2025 16:21:15] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [05/Sep/2025 16:22:50] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Õ\x8cÖÝ607âw|8Ñëý{b*ÙÚ]ñ|ÜØXÑ4·QÛ\x8d\x17\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.131.215.38 - - [05/Sep/2025 16:22:50] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Õ\x8cÖÝ607âw|8Ñëý{b*ÙÚ]ñ|ÜØXÑ4·QÛ\x8d\x17\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [05/Sep/2025 16:24:24] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [05/Sep/2025 16:24:24] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [05/Sep/2025 16:25:58] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [05/Sep/2025 16:25:58] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x05\x8a\x9c\x16Þ\x18\x81\x19eD_Öyá\x0c\x80ë1\x94;¤\x01ôD\x811º\x0b\x9dê°Â\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+65.49.20.68 - - [06/Sep/2025 02:19:26] "GET / HTTP/1.1" 200 -
+65.49.20.84 - - [06/Sep/2025 02:19:43] "GET /favicon.ico HTTP/1.1" 200 -
+159.65.219.252 - - [06/Sep/2025 12:09:10] "GET / HTTP/1.1" 200 -
+87.236.176.171 - - [06/Sep/2025 12:09:11] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+3.131.215.38 - - [06/Sep/2025 15:49:51] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [06/Sep/2025 15:51:35] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [06/Sep/2025 15:54:16] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [06/Sep/2025 15:54:16] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03P\x7fUe\x1a\x11g¤IN?YWÏ=­Úy\x01Þì\x99(\x89¥µ@i |H\x15\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [06/Sep/2025 15:56:03] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [06/Sep/2025 15:56:03] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [06/Sep/2025 15:57:10] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [06/Sep/2025 15:57:10] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x99PBÑ/\x9aÎ¨`òGR«ý6\x1a\x06Ë¿ô\x02På\\\x0d,\x19\\ÄÍ)\x9b\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+65.49.1.182 - - [07/Sep/2025 11:11:33] "GET / HTTP/1.1" 200 -
+65.49.1.189 - - [07/Sep/2025 11:11:49] "GET /favicon.ico HTTP/1.1" 200 -
+3.134.148.59 - - [07/Sep/2025 15:04:26] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [07/Sep/2025 15:05:41] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [07/Sep/2025 15:06:50] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [07/Sep/2025 15:06:50] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x1eÜÌ&~'zÐÒ\x98\x9aÂ\x05Ð\x10¥T\x8eèmÅI\x9c\x12}M\x15®-\x02L\x05\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [07/Sep/2025 15:08:37] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [07/Sep/2025 15:08:37] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [07/Sep/2025 15:09:44] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03c\x8e\x8a\x16bD«\x9cÐ\x7f¤\x95ù=ò-}à\x03<\x01?\x0f\x8d%\x12?{Fa^\\\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.134.148.59 - - [07/Sep/2025 15:09:44] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03c\x8e\x8a\x16bD«\x9cÐ\x7f¤\x95ù=ò-}à\x03<\x01?\x0f\x8d%\x12?{Fa^\\\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [08/Sep/2025 15:16:25] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [08/Sep/2025 15:18:33] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [08/Sep/2025 15:20:16] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03:2#æuD"ºE½çLMK»fÇ\x17\x19ÂIup\x10\x9aPQUQ\x92¾[\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.134.148.59 - - [08/Sep/2025 15:20:16] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03:2#æuD"ºE½çLMK»fÇ\x17\x19ÂIup\x10\x9aPQUQ\x92¾[\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [08/Sep/2025 15:22:12] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [08/Sep/2025 15:22:12] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [08/Sep/2025 15:22:40] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [08/Sep/2025 15:22:40] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x034Ä¼+\x15\x94(\x0eÞG@Ó´\x9a øªa\x0b\x10Vù6s\x98<\x03\x96÷\x84h\x88\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+35.203.210.180 - - [08/Sep/2025 17:00:41] "GET / HTTP/1.1" 200 -
+87.236.176.246 - - [09/Sep/2025 03:44:14] "GET / HTTP/1.1" 200 -
+87.236.176.109 - - [09/Sep/2025 03:44:15] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+47.251.93.165 - - [09/Sep/2025 06:55:42] code 400, message Bad request version ('À\x13À')
+47.251.93.165 - - [09/Sep/2025 06:55:42] "\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03I\x06²ù¼\x99iÀYûøºe-\x83Ud]\x0e\x8d·b8´gÆÝ9dZ8f gÁ\x81i³öòË°©\x19NÖ½\x95g|püé<Z¡\x90T·é¥8'O;\x00&À+À/À,À0Ì©Ì¨À\x09À\x13À" HTTPStatus.BAD_REQUEST -
+47.251.93.165 - - [09/Sep/2025 06:55:53] "GET / HTTP/1.1" 200 -
+123.160.223.72 - - [09/Sep/2025 06:56:33] "GET / HTTP/1.1" 200 -
+123.160.223.74 - - [09/Sep/2025 06:56:34] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+3.134.148.59 - - [09/Sep/2025 15:15:05] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [09/Sep/2025 15:16:26] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [09/Sep/2025 15:16:26] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ÿ\\N\x9a\x0fÌÀ?§æ#Ê\x06³§¨\x88\x1cÉV\x18m:\x90@â\x9bÝ\x170¤Â\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [09/Sep/2025 15:17:08] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [09/Sep/2025 15:17:08] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [09/Sep/2025 16:08:11] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [09/Sep/2025 16:10:00] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [09/Sep/2025 16:11:20] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [09/Sep/2025 16:11:20] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03¼ô§\x8a\x09ñº\x1c\x95ð¼,LÍ\x9eØ×/ëÉÔ\\´µèÅ$Jº-W\x06\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [09/Sep/2025 16:13:00] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.132.23.201 - - [09/Sep/2025 16:13:00] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [09/Sep/2025 16:14:43] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [09/Sep/2025 16:14:43] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03}ÚÚÌýÎ\x9a\x16Ö\x99@\x1dro2Ü}KIãØºö\x8a«\x9f\x85®\x86½K\x9e\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [10/Sep/2025 00:42:44] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [10/Sep/2025 00:44:30] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [10/Sep/2025 00:46:06] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [10/Sep/2025 00:46:06] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03|áýß\x9eÄn\x9f:¼\x15)Ó¾5r\x94s\x1aB\x0b\x94\x914 \x02$K\x17\x8fë\x0d\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [10/Sep/2025 00:48:16] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [10/Sep/2025 00:48:16] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [10/Sep/2025 00:49:45] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [10/Sep/2025 00:49:45] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03¸.\x13P\x93\x1cµÂè4êÛn³\x93ýÿ\x8667'ù\x1dÈY\x87è7ì\x80î\x83\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+65.49.1.222 - - [10/Sep/2025 08:20:13] "GET / HTTP/1.1" 200 -
+65.49.1.222 - - [10/Sep/2025 08:20:24] "GET /favicon.ico HTTP/1.1" 200 -
+91.196.152.6 - - [10/Sep/2025 08:38:15] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x03\x01§\x01\x00\x01£\x03\x03;ð\x9eûÿ<$F!ÌÔÁãË')
+91.196.152.6 - - [10/Sep/2025 08:38:15] "\x16\x03\x03\x01§\x01\x00\x01£\x03\x03;ð\x9eûÿ<$F!ÌÔÁãË\x1d\x0b=\x13qý\x14ª.*Q\x9dî\x13`Î" HTTPStatus.BAD_REQUEST -
+91.196.152.89 - - [10/Sep/2025 08:38:26] "GET / HTTP/1.1" 200 -
+35.203.210.184 - - [10/Sep/2025 15:26:32] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [11/Sep/2025 00:34:02] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [11/Sep/2025 00:35:58] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [11/Sep/2025 00:37:48] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [11/Sep/2025 00:37:48] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x92Óª\x10\x0eF¶\x0bÇ\x133ã\x8fû¸oúKæì{\x90_\x84ÆV)k\x93\x9a/{\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [11/Sep/2025 00:39:45] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [11/Sep/2025 00:39:45] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [11/Sep/2025 00:41:14] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [11/Sep/2025 00:41:14] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x12PCF]B\x94M\x7f³\x99\x13ç\x07MK<©Ë\x15\x0bÑ{m\x16NS\x99e1\x93Ý\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+65.49.1.80 - - [11/Sep/2025 05:37:49] "GET / HTTP/1.1" 200 -
+65.49.1.92 - - [11/Sep/2025 05:38:06] "GET /favicon.ico HTTP/1.1" 200 -
+3.130.96.91 - - [12/Sep/2025 00:33:33] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [12/Sep/2025 00:33:33] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [12/Sep/2025 00:35:22] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03úï\x190\x83ë\x8eq|ygÌ\x98×\x00]ï\x0f\x9cTQ£Zï¥wuý.\x18_\x03\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.130.96.91 - - [12/Sep/2025 00:35:22] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03úï\x190\x83ë\x8eq|ygÌ\x98×\x00]ï\x0f\x9cTQ£Zï¥wuý.\x18_\x03\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [12/Sep/2025 00:36:32] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [12/Sep/2025 00:36:32] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [12/Sep/2025 00:37:09] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [12/Sep/2025 00:37:09] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Y\x14fï\x7f\x95þÚDÎ\x88ö":\x1d0\x97\x09[ó/¦ávÁ4Ta<\x13he\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+87.236.176.198 - - [12/Sep/2025 16:11:46] "GET / HTTP/1.1" 200 -
+64.62.156.132 - - [13/Sep/2025 08:16:19] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [13/Sep/2025 21:38:24] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [13/Sep/2025 21:40:30] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [13/Sep/2025 21:41:23] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [13/Sep/2025 21:41:23] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03 ´\x8d\x97Ò\x1f\x1bÕ\x85-K\x1cú9(úÖ3ìöÍBª\x90\x92n»eÌ\x85X\x0c\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [13/Sep/2025 21:44:03] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [13/Sep/2025 21:44:03] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03=fÄ©Û8½\x04Ùô\x91Ý\x92Ø>çaZ\x8d\x92<>\x0eÒUë(\x89"u\x8b\x0b\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.149.59.26 - - [14/Sep/2025 06:42:57] "GET / HTTP/1.1" 200 -
+3.149.59.26 - - [14/Sep/2025 06:45:22] "GET / HTTP/1.1" 200 -
+3.149.59.26 - - [14/Sep/2025 06:46:58] code 400, message Bad request version ('À\x14À')
+3.149.59.26 - - [14/Sep/2025 06:46:58] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03Z\x96:Ô\x89¢ÞîCæè´-ckTDs\x95y«\x97 r]\x0f\x90\x8f½\x0b\\®\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.149.59.26 - - [14/Sep/2025 06:48:30] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.149.59.26 - - [14/Sep/2025 06:48:30] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.149.59.26 - - [14/Sep/2025 06:50:09] code 400, message Bad request version ('À\x14À')
+3.149.59.26 - - [14/Sep/2025 06:50:09] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03+¶áU\x9bog÷x¶Õùù+S\x1dÙ\x97\x98\x16 \x07`\x9f\x98¥M9»¾\x1a\x1c\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+216.180.246.167 - - [14/Sep/2025 23:13:23] code 400, message Bad request version ('À\x14À')
+216.180.246.167 - - [14/Sep/2025 23:13:23] "\x16\x03\x01\x00î\x01\x00\x00ê\x03\x03Óü4q\x98Ð#ìË\x08¾\x15\x06\x1a%\x9e\x92ïÊ &z<¨×ÔýO\x89Ü\x8d\x9f ²\x15?\x84\x9e\x10_e\x17\x12A*Þ©`üÄ\x81d´l_®ÎÒøæb'\x11Ð~\x00&Ì¨Ì©À/À0À+À,À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+216.180.246.167 - - [14/Sep/2025 23:13:45] "GET / HTTP/1.1" 200 -
+216.180.246.167 - - [14/Sep/2025 23:16:45] code 400, message Bad request version ('À\x14À')
+216.180.246.167 - - [14/Sep/2025 23:16:45] "\x16\x03\x01\x00ú\x01\x00\x00ö\x03\x03\x9fð_Íïç\x08d\x1dÛ\x8cå\x02R\x17Ä\x10ã\x8cµ¤\x10\x8eìW^@¯5Öÿ\x02 \x0d\x8aÂ8­Åb&°äVd\x86ñ§ßuñ\x90-\x9aQÑ²\x16\x09\x18QÚ1²D\x002À/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+216.180.246.167 - - [14/Sep/2025 23:16:46] "GET /favicon.ico HTTP/1.1" 200 -
+3.134.148.59 - - [15/Sep/2025 00:59:34] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [15/Sep/2025 01:01:29] "GET / HTTP/1.1" 200 -
+3.134.148.59 - - [15/Sep/2025 01:02:15] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x0ef@\x19âsr\x86Ö\'bói½"#´Ò\x81¿\x13Wè/g\x01KÑ\xad`«µ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.134.148.59 - - [15/Sep/2025 01:02:15] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x0ef@\x19âsr\x86Ö'bói½"#´Ò\x81¿\x13Wè/g\x01KÑ­`«µ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [15/Sep/2025 01:03:31] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.134.148.59 - - [15/Sep/2025 01:03:31] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.134.148.59 - - [15/Sep/2025 01:05:00] code 400, message Bad request version ('À\x14À')
+3.134.148.59 - - [15/Sep/2025 01:05:00] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x86ãî\x0e/\x01Ú\x04i¾\x05ñ\x84&/\x84æ\x15å\x80È\x18Õ\x9c\x83\x85$â[ç2Z\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+64.62.156.172 - - [15/Sep/2025 05:23:07] "GET / HTTP/1.1" 200 -
+64.62.156.172 - - [15/Sep/2025 05:23:19] "GET /favicon.ico HTTP/1.1" 200 -
+87.236.176.202 - - [15/Sep/2025 20:05:32] "GET / HTTP/1.1" 200 -
+185.247.137.21 - - [15/Sep/2025 20:05:32] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+3.131.215.38 - - [16/Sep/2025 01:12:23] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [16/Sep/2025 01:14:03] "GET / HTTP/1.1" 200 -
+3.131.215.38 - - [16/Sep/2025 01:15:00] code 400, message Bad request version ('À\x14À')
+3.131.215.38 - - [16/Sep/2025 01:15:00] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03RN\\@\x99\x1eåF\x00\x84ç\x99e\x8aÒ\x8e1hÿNE Ú\x18Û\x15)Âþ#Ôþ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [16/Sep/2025 01:16:49] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.131.215.38 - - [16/Sep/2025 01:16:49] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.131.215.38 - - [16/Sep/2025 01:17:53] code 400, message Bad request syntax ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x08¹zWA»êÁ\x10\x9bG\x9bàÙ¯Ïe\x9e¹e\x1aNÃ_Ò\x8fQÒ')
+3.131.215.38 - - [16/Sep/2025 01:17:53] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x08¹zWA»êÁ\x10\x9bG\x9bàÙ¯Ïe\x9e¹e\x1aNÃ_Ò\x8fQÒ" HTTPStatus.BAD_REQUEST -
+64.62.197.17 - - [16/Sep/2025 11:11:53] "GET / HTTP/1.1" 200 -
+64.62.197.18 - - [16/Sep/2025 11:12:06] "GET /favicon.ico HTTP/1.1" 200 -
+35.203.211.6 - - [16/Sep/2025 17:24:21] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [17/Sep/2025 00:40:09] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [17/Sep/2025 00:42:20] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [17/Sep/2025 00:43:07] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03/UQþK\x88{B²]\x9fsN½*®X\x02#rT¶7³·.lQö4Új\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.130.96.91 - - [17/Sep/2025 00:43:07] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03/UQþK\x88{B²]\x9fsN½*®X\x02#rT¶7³·.lQö4Új\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [17/Sep/2025 00:44:52] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [17/Sep/2025 00:44:52] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [17/Sep/2025 00:45:21] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ä$\x0fé¢\x17\x06ÏªµD*P·°\x1a\x19\x0f+¹\x1bý\x18û\x8d/\x0eµ@½\x9eÎ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.130.96.91 - - [17/Sep/2025 00:45:21] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03ä$\x0fé¢\x17\x06ÏªµD*P·°\x1a\x19\x0f+¹\x1bý\x18û\x8d/\x0eµ@½\x9eÎ\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+65.49.1.222 - - [17/Sep/2025 01:50:16] "GET / HTTP/1.1" 200 -
+65.49.1.222 - - [17/Sep/2025 01:50:34] "GET /favicon.ico HTTP/1.1" 200 -
+91.196.152.188 - - [17/Sep/2025 08:29:42] code 400, message Bad request version ('À#À¬À®À+À')
+91.196.152.188 - - [17/Sep/2025 08:29:42] "\x16\x03\x03\x01§\x01\x00\x01£\x03\x03òN/÷l¬ÊÁ\x93t\\Jã4_\x03ëa+È\x9b.ÃÁ\x13\x84\x9fÍBÁÈÃ \x02\x93³\x92=©zg\x1bQ<2Þ`ÌËj\x1c×ÒùÚKú\x18\x18?\x1fºÿé\x08\x00\x8a\x00\x16\x003\x00gÀ\x9eÀ¢\x00\x9e\x009\x00kÀ\x9fÀ£\x00\x9f\x00E\x00¾\x00\x88\x00Ä\x00\x9aÀ\x08À\x09À#À¬À®À+À" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [18/Sep/2025 00:57:01] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [18/Sep/2025 00:57:50] "GET / HTTP/1.1" 200 -
+3.130.96.91 - - [18/Sep/2025 00:59:51] code 400, message Bad request syntax ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03¶õ?')
+3.130.96.91 - - [18/Sep/2025 00:59:51] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03¶õ?" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [18/Sep/2025 01:00:46] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.130.96.91 - - [18/Sep/2025 01:00:46] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.130.96.91 - - [18/Sep/2025 01:01:32] code 400, message Bad request version ('À\x14À')
+3.130.96.91 - - [18/Sep/2025 01:01:32] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x0d\x9c\x16ÀòñeÇÇ³JR\x06Ú\x90\x0fµ\x011û\x06\x9bõ\x15ã\x0cñptÌr\x03\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+64.62.156.122 - - [18/Sep/2025 04:38:17] "GET / HTTP/1.1" 200 -
+64.62.156.125 - - [18/Sep/2025 04:38:29] "GET /favicon.ico HTTP/1.1" 200 -
+87.236.176.159 - - [18/Sep/2025 17:46:10] "GET / HTTP/1.1" 200 -
+185.247.137.180 - - [18/Sep/2025 17:46:11] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+3.132.23.201 - - [19/Sep/2025 02:09:46] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [19/Sep/2025 02:10:41] "GET / HTTP/1.1" 200 -
+3.132.23.201 - - [19/Sep/2025 02:12:27] code 400, message Bad HTTP/0.9 request type ('\x16\x03\x01\x00{\x01\x00\x00w\x03\x03a£¼M\x95\x17(ÿ£RU¨ÀWÔ\x86Ô\x89\x8b\x822\x12Ò|Þ\x13ã³¸ÞE$\x00\x00\x1aÀ/À+À\x11À\x07À\x13À')
+3.132.23.201 - - [19/Sep/2025 02:12:27] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03a£¼M\x95\x17(ÿ£RU¨ÀWÔ\x86Ô\x89\x8b\x822\x12Ò|Þ\x13ã³¸ÞE$\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [19/Sep/2025 02:14:02] code 400, message Bad request syntax ('SSH-2.0-Go')
+3.132.23.201 - - [19/Sep/2025 02:14:02] "SSH-2.0-Go" HTTPStatus.BAD_REQUEST -
+3.132.23.201 - - [19/Sep/2025 02:15:33] code 400, message Bad request version ('À\x14À')
+3.132.23.201 - - [19/Sep/2025 02:15:33] "\x16\x03\x01\x00{\x01\x00\x00w\x03\x03\x1c:6Â_ÍíÐ8\x88â?Lyý\x0d\x17ûÕ\x9b>®ûv8æ\x9e°DF¸\x93\x00\x00\x1aÀ/À+À\x11À\x07À\x13À\x09À\x14À" HTTPStatus.BAD_REQUEST -
+64.62.197.47 - - [19/Sep/2025 10:19:04] "GET / HTTP/1.1" 200 -
+64.62.197.48 - - [19/Sep/2025 10:19:20] "GET /favicon.ico HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:44] "GET / HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:44] "GET /assets/style.css?m=1752675847.927767 HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:44] "GET /assets/style_cargar_datos.css?m=1752675847.927767 HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /assets/style_sessionReport.css?m=1758309896.966492 HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-component-suites/dash/deps/react@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-component-suites/dash/deps/react-dom@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-component-suites/dash/deps/polyfill@7.v2_14_1m1752675922.12.1.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-component-suites/dash/deps/prop-types@15.v2_14_1m1752675922.8.1.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-component-suites/dash_bootstrap_components/_components/dash_bootstrap_components.v1_5_0m1752675929.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-component-suites/dash/dash-renderer/build/dash_renderer.v2_14_1m1752675922.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-component-suites/dash/dcc/dash_core_components.v2_12_1m1752675922.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-component-suites/dash/dcc/dash_core_components-shared.v2_12_1m1752675922.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-component-suites/dash/html/dash_html_components.v2_0_15m1752675922.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-component-suites/dash/dash_table/bundle.v5_2_8m1752675922.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-dependencies HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_dash-layout HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:25:45] "GET /assets/images/logo.png HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:04] "GET / HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:05] "GET /assets/style.css?m=1752675847.927767 HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:05] "GET /assets/style_cargar_datos.css?m=1752675847.927767 HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:05] "GET /assets/style_sessionReport.css?m=1758309896.966492 HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:05] "GET /_dash-component-suites/dash/deps/polyfill@7.v2_14_1m1752675922.12.1.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:05] "GET /_dash-component-suites/dash/deps/react@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:05] "GET /_dash-component-suites/dash/deps/react-dom@16.v2_14_1m1752675922.14.0.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:05] "GET /_dash-component-suites/dash/deps/prop-types@15.v2_14_1m1752675922.8.1.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:05] "GET /_dash-component-suites/dash_bootstrap_components/_components/dash_bootstrap_components.v1_5_0m1752675929.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:05] "GET /_dash-component-suites/dash/dash-renderer/build/dash_renderer.v2_14_1m1752675922.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:05] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:06] "GET /_dash-component-suites/dash/dcc/dash_core_components.v2_12_1m1752675922.js HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:06] "GET /_dash-component-suites/dash/dcc/dash_core_components-shared.v2_12_1m1752675922.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:06] "GET /_dash-component-suites/dash/dcc/async-upload.js HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:06] "GET /_dash-component-suites/dash/html/dash_html_components.v2_0_15m1752675922.min.js HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:06] "GET /_dash-component-suites/dash/dash_table/bundle.v5_2_8m1752675922.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:06] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:08] "GET /_dash-layout HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:08] "GET /_dash-dependencies HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:08] "GET /_dash-component-suites/dash/dcc/async-graph.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:08] "GET /_dash-component-suites/dash/dcc/async-datepicker.js HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:08] "GET /_favicon.ico?v=2.14.1 HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:08] "GET /_dash-component-suites/dash/dcc/async-dropdown.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:08] "GET /_dash-component-suites/plotly/package_data/plotly.min.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:08] "POST /_dash-update-component HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:08] "GET /assets/images/logo.png HTTP/1.1" 200 -
+186.158.144.195 - - [19/Sep/2025 19:26:08] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:08] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:08] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:09] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:09] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:09] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:09] "POST /_dash-update-component HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:10] "GET /_dash-component-suites/dash/dash_table/async-highlight.js HTTP/1.1" 200 -
+188.80.5.182 - - [19/Sep/2025 19:26:10] "GET /_dash-component-suites/dash/dash_table/async-table.js HTTP/1.1" 200 -

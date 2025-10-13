@@ -77,9 +77,9 @@ References.register_callbacks(app)
 Benchmarking.register_callbacks(app)
 
 # Para ejecutar localmente
-if __name__ == '__main__':
-    app.run(debug=True)
+# if __name__ == '__main__':
+#    app.run(debug=True)
 
 #Para ejecutar en el servidor
-# if __name__ == '__main__':
-#    app.run(host='0.0.0.0', port=8050, debug=False)
+ if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=8050, debug=False)

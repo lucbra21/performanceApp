@@ -66,16 +66,32 @@ def apply_standard_filters(df):
     Returns:
         pl.DataFrame: DataFrame filtrado y limpio
     """
-    return (df.filter(pl.col('Match Day') != 'Rehab')
-              .filter(pl.col('Player') != 'TEAM')
-              .filter(pl.col('Team ') != 'TEAM')
-              .filter(pl.col('Selection') == 'Drills')
-              .with_columns(
-                  pl.when(pl.col('Team ').str.contains('Sporting'))
-                  .then(pl.lit('Sporting de Gijón'))
-                  .otherwise(pl.col('Team '))
-                  .alias('Team ')
-              ))
+    # Detectar el nombre correcto de la columna de equipo
+    team_col = "Team" if "Team" in df.columns else "Team "
+    df_filtered = (
+        df.filter(pl.col('Match Day') != 'Rehab')
+          .filter(pl.col('Player') != 'TEAM')
+          .filter(pl.col(team_col) != 'TEAM')
+          .filter(pl.col('Selection') == 'Drills')
+    )
+    # Normalizar el nombre del equipo Sporting solo si la columna existe
+    if "Team" in df_filtered.columns:
+        df_filtered = df_filtered.with_columns(
+            pl.when(pl.col('Team').str.contains('Sporting'))
+            .then(pl.lit('Sporting de Gijón'))
+            .otherwise(pl.col('Team'))
+            .alias('Team')
+        )
+    elif "Team " in df_filtered.columns:
+        # Renombrar "Team " a "Team" y luego normalizar
+        df_filtered = df_filtered.rename({"Team ": "Team"})
+        df_filtered = df_filtered.with_columns(
+            pl.when(pl.col('Team').str.contains('Sporting'))
+            .then(pl.lit('Sporting de Gijón'))
+            .otherwise(pl.col('Team'))
+            .alias('Team')
+        )
+    return df_filtered
 
 
 def load_metrics_mapping():
@@ -608,10 +624,18 @@ def calcular_metricas(df, columnas, estadistica):
             valor = df[columna].min()
         elif estadistica == "p75":
             valor = df[columna].quantile(0.75)
+        elif estadistica == "p25":
+            valor = df[columna].quantile(0.25)
         elif estadistica == "p90":
             valor = df[columna].quantile(0.90)
         elif estadistica == "p95":
             valor = df[columna].quantile(0.95)
+        elif estadistica == "p1":
+            valor = df[columna].quantile(0.01)
+        elif estadistica == "p99":
+            valor = df[columna].quantile(0.99)
+        elif estadistica == "desviacion":
+            valor = df[columna].std()
         else:
             continue
             
@@ -619,164 +643,367 @@ def calcular_metricas(df, columnas, estadistica):
     return resultado
 
 
+
 def calcular_estadisticas_por_matchday():
     """
     Calcula estadísticas para cada Match Day de todos los datos históricos.
-    
-    Esta función procesa todos los datos GPS disponibles, los filtra, obtiene las columnas
-    de interés, calcula métricas por minuto para cada Match Day y luego agrupa los datos
-    por Match Day calculando estadísticas descriptivas para jugadores, posiciones y equipos.
-    
-    Returns:
-        tuple: (df_jugadores, df_posiciones, df_equipos) con estadísticas calculadas por Match Day
+    Incluye tiempos absoluto y efectivo, normaliza nombres de columnas,
+    y reordena columnas con formato limpio.
     """
-        # Cargar datos GPS usando función auxiliar
+    # Cargar datos GPS usando función auxiliar
     df = load_gps_data()
     if df is None:
         print("Error al cargar datos GPS")
         return None, None, None
-        
+    
+
     try:
         if df.height == 0:
             print("DataFrame está vacío después del filtrado")
             return None, None, None
+
+        # --- Renombrar columnas problemáticas ---
+        df = df.rename({
+            "Team ": "Team"})
+
+        # --- Convertir Date a fecha ---
+        if "Date" in df.columns and df["Date"].dtype == pl.Utf8:
+            df = df.with_columns(
+                pl.col("Date").str.strptime(pl.Date, format="%d/%m/%Y", strict=False)
+            )
+
+        # --- Función para pasar HH:MM:SS a minutos ---
+        def hms_to_minutes(x) -> float:
+            if x is None or x == "" or x.lower() == "nan":
+                return None
+            try:
+                # Formato HH:MM:SS
+                parts = [float(p) for p in str(x).split(":")]
+                if len(parts) == 3:
+                    h, m, s = parts
+                elif len(parts) == 2:
+                    h = 0
+                    m, s = parts
+                elif len(parts) == 1:
+                    h = 0
+                    m = float(parts[0])
+                    s = 0
+                else:
+                    return None
+                return h * 60 + m + s / 60
+            except Exception:
+                return None
         
-        # Aplicar filtros estándar
-        df = apply_standard_filters(df)
+        def filtrar_jugadores_sin_partido_valido(df: pl.DataFrame) -> pl.DataFrame:
+            """
+            Elimina del DataFrame los registros de jugadores que no alcanzaron 45 min en partidos MD de Fútbol_11v11,
+            pero **mantiene todos los drills**, reemplazando Duration_min solo en los días válidos.
+            """
+
+            # 1️⃣ Filtrar solo los registros de partido
+            df_partidos = df.filter(
+                (pl.col("Match Day") == "MD") &
+                (pl.col("Selection").str.contains("Fútbol_1"))
+            )
+
+            if df_partidos.height == 0:
+                return df  # no hay partidos, devolvemos igual
+
+            # 2️⃣ Sumar duración total por jugador y fecha
+            df_duracion_total = (
+                df_partidos
+                .group_by(["Player", "Date"])
+                .agg(pl.col("Duration_min").sum().alias("minutos_totales"))
+            )
+
+            # 3️⃣ Detectar jugadores válidos (>=45 min)
+            df_validos = df_duracion_total.filter(pl.col("minutos_totales") >= 45)
+
+            # 4️⃣ Mantener todos los registros, reemplazando Duration_min solo si el día es válido y es Drill
+            df_result = (
+                df.join(
+                    df_validos.select(["Player", "Date", "minutos_totales"]),
+                    on=["Player", "Date"],
+                    how="left"
+                )
+                .with_columns([
+                    pl.when(
+                        (pl.col("Selection") == "Drills") & pl.col("minutos_totales").is_not_null()
+                    )
+                    .then(pl.col("minutos_totales"))
+                    .otherwise(pl.col("Duration_min"))
+                    .alias("Duration_min")
+                ])
+                .drop("minutos_totales")
+            )
+
+            return df_result
+
+
+
+        def reemplazar_drills_por_partido(df: pl.DataFrame) -> pl.DataFrame:
+            """
+            Reemplaza los valores de 'Drills' en días de partido (Match Day = MD)
+            por los consolidados de 'Fútbol_11v11_105x68m' del mismo jugador y fecha,
+            excluyendo los calentamientos, y manteniendo el schema original.
+            """
+            # --- 1️⃣ Filtrar registros de partido reales ---
+            df_partido = df.filter(
+                (pl.col("Match Day") == "MD") &
+                (pl.col("Selection").str.contains("Fútbol_1")) &
+                (~pl.col("Selection").str.to_lowercase().str.contains("calentamiento"))
+            )
+
+
+            if df_partido.height == 0:
+                return df  # no hay partidos, devolvemos igual
+
+
+             # --- 3️⃣ Consolidar métricas por jugador y fecha ---
+            metricas_sumar = [
+                "Duration_min", "Distance (m)", "HSR Rel (m)", "Sprint Abs (m)",
+                "Player Load (a.u.)", "HMLD (m)", "Energy Expenditure (kcal)"
+            ]
+            metricas_max = [
+                "MAX Speed(km/h)", "MAX Acc(m/s²)", "MAX Dec(m/s²)"
+            ]
+
+            agg_exprs = [
+                pl.col(m).sum().alias(m) for m in metricas_sumar if m in df.columns
+            ] + [
+                pl.col(m).max().alias(m) for m in metricas_max if m in df.columns
+            ]
+
+            df_consolidado = df_partido.group_by(["Player", "Date"]).agg(agg_exprs)
+
+            # --- 4️⃣ Identificar los drills del día de partido ---
+            df_drills_md = df.filter(
+                (pl.col("Selection") == "Drills") &
+                (pl.col("Match Day") == "MD")
+            )
+
+            if df_drills_md.height == 0:
+                print("⚠️ No hay drills en días de partido para reemplazar.")
+                return df
+
+            # --- 5️⃣ Hacer join para traer las métricas consolidadas ---
+            df_drills_md = df_drills_md.join(
+                df_consolidado, on=["Player", "Date"], how="left", suffix="_new"
+            )
+
+            # --- 6️⃣ Reemplazar las columnas consolidadas ---
+            for m in metricas_sumar + metricas_max:
+                if f"{m}_new" in df_drills_md.columns:
+                    df_drills_md = df_drills_md.with_columns(
+                        pl.when(pl.col(f"{m}_new").is_not_null())
+                        .then(pl.col(f"{m}_new").cast(df_drills_md[m].dtype))
+                        .otherwise(pl.col(m))
+                        .alias(m)
+                    ).drop(f"{m}_new")
+
+            # --- 7️⃣ Reconstruir DataFrame final manteniendo todo lo demás ---
+            df_sin_drills_md = df.filter(
+                ~((pl.col("Selection") == "Drills") & (pl.col("Match Day") == "MD"))
+            )
+
+            df_final = pl.concat([df_sin_drills_md, df_drills_md], how="vertical")
+
+            return df_final
+
+                # --- 1️⃣ Convertir la duración a minutos ---
         
-        # Obtener columnas de interés base
-        columnas_interes = get_columns_of_interest().copy()
-        
-        # Calcular métricas por minuto de forma eficiente 
-        # Converter Drills Duration para minutos para todo el DataFrame de una vez
         df = df.with_columns([
-            pl.col('Drills Duration').str.split(':').list.eval(
-                pl.element().cast(pl.Int32)
-            ).list.eval(
-                pl.when(pl.int_range(pl.len()) == 0).then(pl.element() * 60)  # horas * 60
-                .when(pl.int_range(pl.len()) == 1).then(pl.element())         # minutos
-                .when(pl.int_range(pl.len()) == 2).then(pl.element() / 60)    # segundos / 60
-                .otherwise(0)
-            ).list.sum().alias('session_minutes')
+            pl.col("Drills Duration").map_elements(hms_to_minutes, return_dtype=pl.Float64).alias("Duration_min")
         ])
-        
-        # Calcular métricas por minuto para todo el DataFrame de una vez
-        if 'Explosive Dist (m)' in df.columns:
-            df = df.with_columns(
-                (pl.col('Explosive Dist (m)') / pl.col('session_minutes')).alias('Explosive Dist (m)/min')
-            )
-            columnas_interes.append('Explosive Dist (m)/min')
-        
-        if 'Abs HSR(m)' in df.columns:
-            df = df.with_columns(
-                (pl.col('Abs HSR(m)') / pl.col('session_minutes')).alias('Abs HSR(m)/Min')
-            )
-            columnas_interes.append('Abs HSR(m)/Min')
-        
-        if 'Distance (m)' in df.columns:
-            df = df.with_columns(
-                (pl.col('Distance (m)') / pl.col('session_minutes')).alias('Distance (m)/min')
-            )
-            columnas_interes.append('Distance (m)/min')
-        
-        # Ordenar columnas de interés
-        columnas_interes = sorted(columnas_interes)
 
-        # Obtener valores únicos para agrupación
-        match_days = df['Match Day'].unique().to_list()
-        jugadores = df['Player'].unique().to_list()
-        posiciones = df['Position'].unique().to_list() 
-        equipos = df['Team '].unique().to_list()
 
-        # Estadísticas a calcular
-        estadisticas = ["mean", "median", "max", "min", "p75", "p90", "p95"]
-        
-        # Inicializar listas de resultados
-        resultados_jugadores = []
-        resultados_position = []
-        resultados_team = []
+        # --- 2️⃣ Primero: filtrar jugadores válidos y reemplazar drills de partido ---
+        df = filtrar_jugadores_sin_partido_valido(df)
 
-        # Calcular estadísticas para jugadores por Match Day
+        df = reemplazar_drills_por_partido(df)
+
+
+        # --- 🔹 Ajustar métricas a 94min solo para partidos MD válidos ---
+        metricas_tiempo = [
+            "Distance (m)", "HSR Rel (m)", "Sprint Abs (m)",
+            "Player Load (a.u.)", "HMLD (m)", "Energy Expenditure (kcal)"
+        ]
+
+        df = df.with_columns([
+            pl.when(
+                (pl.col("Match Day") == "MD") & (pl.col("Duration_min") > 0)
+            )
+            .then(pl.col(m) * 94 / pl.col("Duration_min"))
+            .otherwise(pl.col(m))
+            .alias(m)
+            for m in metricas_tiempo if m in df.columns
+        ])
+
+
+        # 🔍 IMPORTANTE: en este punto el DataFrame sigue teniendo Sessions y Drills corregidos
+        # Ya están los MD bien reemplazados, así que recién ahora pasamos a separar
+
+
+        # --- 3️⃣ Separar sesiones y ejercicios ---
+        df_session = (
+            df.filter(pl.col("Selection") == "Session")
+            .select(["Date", "Duration_min"])
+            .rename({"Duration_min": "Tiempo absoluto"})
+        )
+
+        df_drills = (
+            df.filter(pl.col("Selection") == "Drills")
+            .with_columns([
+                pl.col("Duration_min").alias("Tiempo efectivo")
+            ])
+        )
+
+
+        # --- 4️⃣ Unir por Date para asignar Tiempo absoluto a cada Drill del mismo día ---
+        df_final = df_drills.join(df_session, on="Date", how="left")
+
+
+        # --- 5️⃣ Aplicar el filtro estándar ---
+        df = apply_standard_filters(df_final)
+
+
+        # --- Columnas de interés ---
+        columnas_interes = get_columns_of_interest().copy()
+        columnas_interes += ["Tiempo absoluto", "Tiempo efectivo"]
+
+        # Métricas por minuto
+        if "Explosive Dist (m)" in df.columns:
+            df = df.with_columns(
+                (pl.col("Explosive Dist (m)") / pl.col("Tiempo efectivo")).alias("Explosive Dist (m)/min")
+            )
+            columnas_interes.append("Explosive Dist (m)/min")
+
+        if "Distance (m)" in df.columns:
+            df = df.with_columns(
+                (pl.col("Distance (m)") / pl.col("Tiempo efectivo")).alias("Distance (m)/min")
+            )
+            columnas_interes.append("Distance (m)/min")
+
+        columnas_interes = sorted(set(columnas_interes))
+
+        # --- Valores únicos ---
+        match_days = df["Match Day"].unique().to_list()
+        jugadores = df["Player"].unique().to_list()
+        posiciones = df["Position"].unique().to_list()
+        equipos = df["Team"].unique().to_list()
+
+        estadisticas = ["mean", "median", "p1", "p99", "p75", "p25","desviacion"]
+
+        resultados_jugadores, resultados_position, resultados_team = [], [], []
+
+        # --- Jugadores por Match Day ---
         for jugador in jugadores:
-            df_jugador = df.filter(pl.col('Player') == jugador)
-            posicion_jugador = df_jugador['Position'][0] if df_jugador.height > 0 else "Desconocida"
-            
+            df_jugador = df.filter(pl.col("Player") == jugador)
+            posicion_jugador = df_jugador["Position"][0] if df_jugador.height > 0 else "Desconocida"
+            equipo_jugador = df_jugador["Team"][0] if df_jugador.height > 0 else "Desconocido"
+
             for match_day in match_days:
-                df_match = df_jugador.filter(pl.col('Match Day') == match_day)
+                df_match = df_jugador.filter(pl.col("Match Day") == match_day)
                 if df_match.height == 0:
                     continue
-                    
+
                 for estadistica in estadisticas:
                     registro = {
                         "Player": jugador,
+                        "Team": equipo_jugador,
                         "Position": posicion_jugador,
                         "Match Day": match_day,
+                        "Date": df_match["Date"][0],
                         "Estadistica": estadistica
                     }
-                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
+                    # 🔹 Aquí redondeamos a enteros
+                    registro.update({
+                        k: (int(v) if v is not None else None)
+                        for k, v in calcular_metricas(df_match, columnas_interes, estadistica).items()
+                    })
                     resultados_jugadores.append(registro)
 
-        # Calcular estadísticas para posiciones por Match Day
+        # --- Posiciones por Match Day ---
         for posicion in posiciones:
-            df_posicion = df.filter(pl.col('Position') == posicion)
+            df_posicion = df.filter(pl.col("Position") == posicion)
             for match_day in match_days:
-                df_match = df_posicion.filter(pl.col('Match Day') == match_day)
+                df_match = df_posicion.filter(pl.col("Match Day") == match_day)
                 if df_match.height == 0:
                     continue
-                    
                 for estadistica in estadisticas:
                     registro = {
                         "Position": posicion,
                         "Match Day": match_day,
+                        "Date": df_match["Date"][0],
                         "Estadistica": estadistica
                     }
-                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
+                    registro.update({
+                        k: (int(v) if v is not None else None)
+                        for k, v in calcular_metricas(df_match, columnas_interes, estadistica).items()
+                    })
                     resultados_position.append(registro)
 
-        # Calcular estadísticas para equipos por Match Day
+        # --- Equipos por Match Day ---
         for equipo in equipos:
-            df_equipo = df.filter(pl.col('Team ') == equipo)
+            df_equipo = df.filter(pl.col("Team") == equipo)
             for match_day in match_days:
-                df_match = df_equipo.filter(pl.col('Match Day') == match_day)
+                df_match = df_equipo.filter(pl.col("Match Day") == match_day)
                 if df_match.height == 0:
                     continue
-                    
                 for estadistica in estadisticas:
                     registro = {
                         "Team": equipo,
                         "Match Day": match_day,
+                        "Date": df_match["Date"][0],
                         "Estadistica": estadistica
                     }
-                    registro.update(calcular_metricas(df_match, columnas_interes, estadistica))
+                    registro.update({
+                        k: (int(v) if v is not None else None)
+                        for k, v in calcular_metricas(df_match, columnas_interes, estadistica).items()
+                    })
                     resultados_team.append(registro)
 
-        # Crear DataFrames con los resultados
+        # --- DataFrames finales ---
         df_estadisticas = pl.DataFrame(resultados_jugadores)
         df_estadisticas_position = pl.DataFrame(resultados_position)
         df_estadisticas_team = pl.DataFrame(resultados_team)
 
-        # Crear carpeta data/processed si no existe
-        processed_path = os.path.join(BASE_PATH, 'data', 'processed','references')
+        # Guardar parquet combinado
+        processed_path = os.path.join(BASE_PATH, "data", "processed", "references")
         ensure_dir(processed_path)
-        
-        # Combinar todos los DataFrames en uno solo para guardar
-        # Agregar columna de tipo para identificar cada DataFrame
-        df_estadisticas_with_type = df_estadisticas.with_columns(pl.lit("jugador").alias("tipo"))
-        df_position_with_type = df_estadisticas_position.with_columns(pl.lit("posicion").alias("tipo"))
-        df_team_with_type = df_estadisticas_team.with_columns(pl.lit("equipo").alias("tipo"))
-        
-        # Concatenar todos los DataFrames
+
         df_combined = pl.concat([
-            df_estadisticas_with_type,
-            df_position_with_type, 
-            df_team_with_type
+            df_estadisticas.with_columns(pl.lit("Jugador").alias("Tipo")),
+            df_estadisticas_position.with_columns(pl.lit("Posicion").alias("Tipo")),
+            df_estadisticas_team.with_columns(pl.lit("Equipo").alias("Tipo")),
         ], how="diagonal")
-        
-        # Guardar el DataFrame combinado
-        output_path = os.path.join(processed_path, 'estadisticas_matchday.parquet')
+
+        # --- Reordenar columnas ---
+        orden_columnas = ["Tipo"] + [c for c in df_combined.columns if c != "Tipo"]
+        df_combined = df_combined.select(orden_columnas)
+
+        # Mover tiempos después de Date
+        cols = df_combined.columns
+        if "Date" in cols and "Tiempo absoluto" in cols and "Tiempo efectivo" in cols:
+            cols.remove("Tiempo absoluto")
+            cols.remove("Tiempo efectivo")
+            idx_date = cols.index("Date") + 1
+            cols = cols[:idx_date] + ["Tiempo absoluto", "Tiempo efectivo"] + cols[idx_date:]
+            df_combined = df_combined.select(cols)
+
+        df_combined = df_combined.rename({
+            "Accelerations": "# Accelerations",
+            "Decelerations": "# Decelerations"
+        })
+
+
+        # Guardar parquet
+        output_path = os.path.join(processed_path, "estadisticas_matchday.parquet")
+        print("Guardando parquet en:", output_path)
+        print(">>> Filas a guardar:", df_combined.shape)
         df_combined.write_parquet(output_path)
-        
-        print(f"Estadísticas por Match Day calculadas y guardadas exitosamente en: {output_path}")
+        print(">>> Parquet guardado correctamente:", os.path.exists(output_path))
+
         return df_estadisticas, df_estadisticas_position, df_estadisticas_team
 
     except Exception as e:
@@ -1349,7 +1576,7 @@ def generate_color_styles_from_zscore(zscore_matrix):
         if zscore_matrix is None:
             return []
         
-        # Recopilar todos los z-scores válidos para normalización
+        # Recopilar todos los zscores válidos para normalización
         all_zscores = []
         for row_data in zscore_matrix.values():
             for zscore in row_data.values():
@@ -1449,7 +1676,7 @@ def calculate_metrics_for_94min(last_games=4):
     columns_of_interest = get_columns_of_interest()
                            
     # Filtrar para mantener solo las columnas de interés
-    columns = ['Date', 'Match Day', 'Team ', 'Selection', 'Player', 'Position', 'Drills Duration'] + columns_of_interest
+    columns = ['Date', 'Match Day', 'Team', 'Selection', 'Player', 'Position', 'Drills Duration'] + columns_of_interest
     df = df.select(columns)
     if df is None:
         print("No se pudo cargar el dataset principal.")
@@ -1461,13 +1688,13 @@ def calculate_metrics_for_94min(last_games=4):
     # Aplicar filtros adicionales
     df_filtered = (df_md.filter(pl.col('Match Day') != 'Rehab')
                         .filter(pl.col('Player') != 'TEAM')
-                        .filter(pl.col('Team ') != 'TEAM')
+                        .filter(pl.col('Team') != 'TEAM')
                         .filter(pl.col('Selection').is_in(['Fútbol_11v11_105x68m', 'Fútbol_10v10_105x68m']))
                         .with_columns(
-                            pl.when(pl.col('Team ').str.contains('Sporting'))
+                            pl.when(pl.col('Team').str.contains('Sporting'))
                             .then(pl.lit('Sporting de Gijón'))
-                            .otherwise(pl.col('Team '))
-                            .alias('Team ')
+                            .otherwise(pl.col('Team'))
+                            .alias('Team')
                         ))
 
     # Obtener todas las fechas únicas de todos los partidos
@@ -1496,7 +1723,7 @@ def calculate_metrics_for_94min(last_games=4):
 
             # Aplicar regra de três simples se total_minutes > 50
             if total_minutes > 50:
-                # Calcular métricas usando métodos específicos para cada coluna
+                # Calcular métricas usando métodos específicos para cada columna
                 metrics_94min = {}
                 
                 for col in columns_of_interest:
@@ -1654,9 +1881,9 @@ def calculate_player_statistics_94min(last_games=None):
             
             result_dataframes.append(df_stat)
         
-        # 2. Calcular estadísticas por posição
+        # 2. Calcular estadísticas por posición
         for stat_name, agg_function in stat_functions.items():
-            # Agrupar por posição e calcular a estadística para cada métrica
+            # Agrupar por posición e calcular a estadística para cada métrica
             df_position_stat = df_94min.group_by('Position').agg([
                 agg_function(col) for col in metric_columns
             ])
@@ -1902,7 +2129,7 @@ def calculate_percentage_difference_vs_reference(selected_date, num_games=None, 
                     ).alias(f'{col}_diff_pct')
                     percentage_diff_expressions.append(percentage_diff_expr)
                 
-                # Crear DataFrame com diferencias por posição
+                # Crear DataFrame com diferencias por posición
                 df_position = df_joined_pos.select(percentage_diff_expressions)
                 
                 result_dataframes.append(df_position)
@@ -1924,7 +2151,7 @@ def calculate_percentage_difference_vs_reference(selected_date, num_games=None, 
                 pl.lit('Team').alias('Player')
             )
             
-            # Seleccionar columnas de referência da equipe
+            # Seleccionar columnas de referencia da equipe
             df_reference_team_selected = df_reference_team.select(['Player'] + ref_metric_columns)
             
             # Realizar join
@@ -1964,4 +2191,4 @@ def calculate_percentage_difference_vs_reference(selected_date, num_games=None, 
     except Exception as e:
         print(f"Error al calcular diferencias porcentuales: {str(e)}")
         return pl.DataFrame()
-        
+

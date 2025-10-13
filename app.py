@@ -16,7 +16,7 @@ app = dash.Dash(__name__,
 server = app.server
 
 # Importar páginas después de inicializar la app
-from pages import BenchmarkMD, IndividualValues, MicrocycleLoad, MicrocyclesContents, cargar_datos, sessionReport, settings, summary, preTraining, postTraining, Drills, TrainingContents, References
+from pages import BenchmarkMD, IndividualValues, MicrocycleLoad, MicrocyclesContents, cargar_datos, sessionReport, settings, summary, preTraining, postTraining, Drills, TrainingContents, References, Benchmarking
 
 # Layout principal con sidebar y área de contenido
 app.layout = html.Div([
@@ -64,6 +64,8 @@ def display_page(pathname):
         return BenchmarkMD.layout
     elif pathname == '/references':
         return References.layout
+    elif pathname == '/training/benchmarking':
+        return Benchmarking.layout
 
     else:
         return html.H1('Bienvenido a Performance APP')
@@ -72,6 +74,7 @@ def display_page(pathname):
 cargar_datos.register_callbacks(app)
 sessionReport.register_callbacks(app)
 References.register_callbacks(app)
+Benchmarking.register_callbacks(app)
 
 # Para ejecutar localmente
 if __name__ == '__main__':

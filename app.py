@@ -18,7 +18,7 @@ app = dash.Dash(__name__,
 server = app.server
 
 # Importar páginas después de inicializar la app
-from pages import BenchmarkMD, IndividualValues, MicrocycleLoad, MicrocyclesContents, cargar_datos, sessionReport, settings, summary, preTraining, postTraining, Drills, TrainingContents, References
+from pages import BenchmarkMD, IndividualValues, MicrocycleLoad, MicrocyclesContents, cargar_datos, sessionReport, settings, summary, preTraining, postTraining, Drills, TrainingContents, References, Benchmarking
 
 # Layout principal (incluye memoria de sesión)
 app.layout = html.Div([
@@ -80,11 +80,12 @@ register_login_callbacks(app)
 cargar_datos.register_callbacks(app)
 sessionReport.register_callbacks(app)
 References.register_callbacks(app)
+Benchmarking.register_callbacks(app)
 
 # Para ejecutar localmente
 if __name__ == '__main__':
-    app.run(debug=True)
+   app.run(debug=True)
 
 #Para ejecutar en el servidor
 # if __name__ == '__main__':
-#    app.run(host='0.0.0.0', port=8050, debug=False)
+#     app.run(host='0.0.0.0', port=8050, debug=False)

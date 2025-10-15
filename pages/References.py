@@ -1,55 +1,33 @@
 # ============================================================================
 # IMPORTACIONES
 # ============================================================================
-
-# Importaciones de Dash
 from dash import html, dcc, Output, Input, State, callback_context, dash_table
 import dash
-
-# Importaciones del sistema y utilidades
 import os
 from datetime import datetime
 import polars as pl
 import pandas as pd
 import numpy as np
 from utils.utils import *
-
-# Importaciones del Plotly para gráficos
 import plotly.graph_objects as go
 import plotly.express as px
 
 # ============================================================================
 # CONSTANTES Y CONFIGURACIÓN
 # ============================================================================
-
-# Ruta al archivo de estadísticas de match day
 ESTADISTICAS_MATCHDAY_PATH = os.path.join('data', 'processed', 'references', 'estadisticas_matchday.parquet')
 
 # ============================================================================
 # FUNCIONES AUXILIARES
 # ============================================================================
-
 def load_estadisticas_matchday():
-    """
-    Carga y procesa los datos de estadísticas de match day.
-    
-    Aplica los filtros solicitados:
-    - Reemplaza valores nulos en Position por 'Team'
-    - Reemplaza valores '0' en Position por 'Team'
-    - Mantiene todos los Match Days (incluyendo 'MD')
-    
-    Returns:
-        pl.DataFrame: DataFrame procesado con las estadísticas de match day
-    """
     try:
         if not os.path.exists(ESTADISTICAS_MATCHDAY_PATH):
             print(f"No se encontró el archivo: {ESTADISTICAS_MATCHDAY_PATH}")
             return None
         
-        # Cargar datos
         df = pl.read_parquet(ESTADISTICAS_MATCHDAY_PATH)
         
-        # Reemplazar valores nulos y '0' en Position por 'Team'
         df_processed = df.with_columns([
             pl.when(pl.col('Position').is_null() | (pl.col('Position') == '0'))
             .then(pl.lit('Team'))
@@ -63,54 +41,31 @@ def load_estadisticas_matchday():
         print(f"Error al cargar estadísticas de match day: {e}")
         return None
 
+
 def get_unique_values_from_estadisticas():
-    """
-    Obtiene todos los valores únicos de las columnas principales para los dropdowns.
-    
-    Returns:
-        dict: Diccionario con listas de valores únicos para cada columna
-    """
     df = load_estadisticas_matchday()
     if df is None:
         return {
-            'match_days': [],
-            'estadisticas': [],
-            'players': [],
-            'positions': []
+            'match_days': [], 'estadisticas': [], 'players': [], 'positions': [], 'tipos': []
         }
     
     try:
-        # Obtener valores únicos filtrando nulos
-        match_days = df.filter(pl.col('Match Day').is_not_null())['Match Day'].unique().sort().to_list()
-        estadisticas = df.filter(pl.col('Estadistica').is_not_null())['Estadistica'].unique().sort().to_list()
-        players = df.filter(pl.col('Player').is_not_null())['Player'].unique().sort().to_list()
-        positions = df.filter(pl.col('Position').is_not_null())['Position'].unique().sort().to_list()
-        
         return {
-            'match_days': match_days,
-            'estadisticas': estadisticas,
-            'players': players,
-            'positions': positions
+            'match_days': df.filter(pl.col('Match Day').is_not_null())['Match Day'].unique().sort().to_list(),
+            'estadisticas': df.filter(pl.col('Estadistica').is_not_null())['Estadistica'].unique().sort().to_list(),
+            'players': df.filter(pl.col('Player').is_not_null())['Player'].unique().sort().to_list(),
+            'positions': df.filter(pl.col('Position').is_not_null())['Position'].unique().sort().to_list(),
+            'tipos': df.filter(pl.col('Tipo').is_not_null())['Tipo'].unique().sort().to_list()
         }
     except Exception as e:
         print(f"Error al obtener valores únicos: {e}")
         return {
-            'match_days': [],
-            'estadisticas': [],
-            'players': [],
-            'positions': []
+            'match_days': [], 'estadisticas': [], 'players': [], 'positions': [], 'tipos': []
         }
 
+
 def get_available_dates_from_estadisticas():
-    """
-    Obtiene las fechas disponibles en los datos de estadísticas.
-    
-    Returns:
-        list: Lista de fechas ordenadas cronológicamente
-    """
     try:
-        # Usar la función existente de utils para obtener fechas del GPS
-        # ya que las fechas deben coincidir entre ambos datasets
         return get_sorted_dates()
     except Exception as e:
         print(f"Error al obtener fechas disponibles: {e}")
@@ -119,20 +74,14 @@ def get_available_dates_from_estadisticas():
 # ============================================================================
 # LAYOUT DE LA PÁGINA
 # ============================================================================
-
 layout = html.Div([
-    
-    # Título de la página
     html.H2('Referencias - Estadísticas Match Day', className="page-title"),
     html.Hr(),
     
-    # Contenedor principal
     html.Div([
-        # Container para selección de parámetros
         html.Div([
             html.H4('Seleccionar Parámetros', className="section-title"),
             html.Div([
-                # Input para rango de fechas (primer campo)
                 html.Div([
                     html.Label('Rango de Fechas:', className="input-label"),
                     dcc.DatePickerRange(
@@ -145,8 +94,7 @@ layout = html.Div([
                         className="date-picker-range"
                     )
                 ], className="input-item"),
-                
-                # Input para estadística
+
                 html.Div([
                     html.Label('Estadística:', className="input-label"),
                     dcc.Dropdown(
@@ -156,8 +104,7 @@ layout = html.Div([
                         multi=True
                     )
                 ], className="input-item"),
-                
-                # Input para Match Day
+
                 html.Div([
                     html.Label('Match Day:', className="input-label"),
                     dcc.Dropdown(
@@ -167,8 +114,7 @@ layout = html.Div([
                         multi=True
                     )
                 ], className="input-item"),
-                
-                # Input para Player
+
                 html.Div([
                     html.Label('Jugador:', className="input-label"),
                     dcc.Dropdown(
@@ -178,221 +124,178 @@ layout = html.Div([
                         multi=True
                     )
                 ], className="input-item"),
-                
-                # Input para Position
+
                 html.Div([
-                    html.Label('Posición:', className="input-label"),
+                    html.Label('Posicion:', className="input-label"),
                     dcc.Dropdown(
                         id='ref-position-selector',
                         placeholder='Selecciona una o más posiciones...',
                         className="statistic-dropdown",
                         multi=True
                     )
-                ], className="input-item")
-                
+                ], className="input-item"),
+
+                html.Div([
+                    html.Label('Tipo:', className="input-label"),
+                    dcc.Dropdown(
+                        id='ref-tipo-selector',
+                        placeholder='Selecciona uno o más tipos...',
+                        className="statistic-dropdown",
+                        multi=True
+                    )
+                ], className="input-item"),
+
             ], className="inputs-row", style={'display': 'flex', 'flex-wrap': 'wrap', 'gap': '20px'})
         ], className="date-selection-container"),
         
-        # Container para mostrar los datos filtrados
         html.Div([
             html.H4('Datos de Referencia', className="section-title", style={'margin-top': '30px'}),
             html.Div(id='ref-data-output')
         ], className="references-data-container")
-        
     ])
 ])
 
 # ============================================================================
 # CALLBACKS
 # ============================================================================
-
 def register_callbacks(app):
-    """
-    Registra todos los callbacks de la página References.
-    
-    Esta función configura toda la interactividad de la página mediante callbacks
-    de Dash que manejan la navegación de fechas, actualización de dropdowns y
-    filtrado de datos de referencia.
-    
-    Args:
-        app (dash.Dash): Instancia de la aplicación Dash donde se registrarán los callbacks
-    """
-    
-    # ============================================================================
-    # CALLBACKS - Configuración de rango de fechas
-    # ============================================================================
-    
     @app.callback(
         [Output('ref-date-range-selector', 'min_date_allowed'),
          Output('ref-date-range-selector', 'max_date_allowed')],
         [Input('ref-date-range-selector', 'id')]
     )
     def configure_date_range_limits(selector_id):
-        """
-        Configura los límites mínimo y máximo para el selector de rango de fechas.
-        
-        Args:
-            selector_id: ID del selector (para inicialización)
-        
-        Returns:
-            tuple: (fecha_mínima, fecha_máxima)
-        """
         try:
             fechas_ordenadas = get_available_dates_from_estadisticas()
-            
             if not fechas_ordenadas:
                 return None, None
-            
-            # Configurar límites del calendario
             min_date = datetime.strptime(fechas_ordenadas[0], '%d/%m/%Y').date()
             max_date = datetime.strptime(fechas_ordenadas[-1], '%d/%m/%Y').date()
-            
             return min_date, max_date
-            
         except Exception as e:
             print(f"Error al configurar límites de fechas: {e}")
             return None, None
-    
-    # ============================================================================
-    # CALLBACKS - Actualización de opciones de dropdowns
-    # ============================================================================
-    
+
     @app.callback(
         [Output('ref-estadistica-selector', 'options'),
          Output('ref-matchday-selector', 'options'),
          Output('ref-player-selector', 'options'),
-         Output('ref-position-selector', 'options')],
+         Output('ref-position-selector', 'options'),
+         Output('ref-tipo-selector', 'options')],
         [Input('ref-date-range-selector', 'start_date'),
          Input('ref-date-range-selector', 'end_date')]
     )
     def update_dropdown_options(start_date, end_date):
-        """
-        Actualiza las opciones de todos los dropdowns basado en los datos disponibles.
-        
-        Args:
-            start_date (str): Fecha de inicio del rango (no se usa para filtrar por ahora)
-            end_date (str): Fecha de fin del rango (no se usa para filtrar por ahora)
-        
-        Returns:
-            tuple: Tupla con las opciones para cada dropdown
-        """
         try:
             unique_values = get_unique_values_from_estadisticas()
             
-            # Crear opciones para estadísticas
             estadistica_options = [
                 {'label': 'Media', 'value': 'mean'},
                 {'label': 'Mediana', 'value': 'median'},
-                {'label': 'Máximo', 'value': 'max'},
-                {'label': 'Mínimo', 'value': 'min'},
+                {'label': 'Desv Estándar', 'value': 'std'},
                 {'label': 'Percentil 75', 'value': 'p75'},
-                {'label': 'Percentil 90', 'value': 'p90'},
-                {'label': 'Percentil 95', 'value': 'p95'}
+                {'label': 'Percentil 25', 'value': 'p25'},
+                {'label': 'Percentil 99', 'value': 'p99'},
+                {'label': 'Percentil 1', 'value': 'p1'}
             ]
             
-            # Crear opciones para Match Day
             matchday_options = [{'label': md, 'value': md} for md in unique_values['match_days']]
-            
-            # Crear opciones para Players
-            player_options = [{'label': player, 'value': player} for player in unique_values['players']]
-            
-            # Crear opciones para Positions
+            player_options = [{'label': p, 'value': p} for p in unique_values['players']]
             position_options = [{'label': pos, 'value': pos} for pos in unique_values['positions']]
+            tipo_options = [{'label': t, 'value': t} for t in unique_values['tipos']]
             
-            return estadistica_options, matchday_options, player_options, position_options
-            
+            return estadistica_options, matchday_options, player_options, position_options, tipo_options
         except Exception as e:
             print(f"Error al actualizar opciones de dropdowns: {e}")
-            return [], [], [], []
-    
-    # ============================================================================
-    # CALLBACKS - Mostrar datos filtrados
-    # ============================================================================
-    
+            return [], [], [], [], []
+
     @app.callback(
-        Output('ref-data-output', 'children'),
-        [Input('ref-date-range-selector', 'start_date'),
-         Input('ref-date-range-selector', 'end_date'),
-         Input('ref-estadistica-selector', 'value'),
-         Input('ref-matchday-selector', 'value'),
-         Input('ref-player-selector', 'value'),
-         Input('ref-position-selector', 'value')]
+    Output('ref-data-output', 'children'),
+    [Input('ref-date-range-selector', 'start_date'),
+     Input('ref-date-range-selector', 'end_date'),
+     Input('ref-estadistica-selector', 'value'),
+     Input('ref-matchday-selector', 'value'),
+     Input('ref-player-selector', 'value'),
+     Input('ref-position-selector', 'value'),
+     Input('ref-tipo-selector', 'value')]
     )
     def update_reference_data(start_date, end_date, selected_estadistica, selected_matchday, 
-                            selected_player, selected_position):
-        """
-        Actualiza la visualización de los datos de referencia basado en los filtros seleccionados.
-        
-        Args:
-            start_date (str): Fecha de inicio del rango
-            end_date (str): Fecha de fin del rango
-            selected_estadistica (list): Lista de estadísticas seleccionadas
-            selected_matchday (list): Lista de Match Days seleccionados
-            selected_player (list): Lista de jugadores seleccionados
-            selected_position (list): Lista de posiciones seleccionadas
-        
-        Returns:
-            html.Div: Componente con los datos filtrados
-        """
+                            selected_player, selected_position, selected_tipo):
         try:
             df = load_estadisticas_matchday()
             if df is None:
-                return html.Div("No se pudieron cargar los datos de referencia.", 
-                              className="error-message")
+                return html.Div("No se pudieron cargar los datos de referencia.", className="error-message")
             
-            # Aplicar filtros según las selecciones (ahora soporta múltiples valores)
             df_filtered = df
             
-            # Filtrar por rango de fechas si están seleccionadas
+            # Filtrar por fechas
             if start_date and end_date:
-                try:
-                    # Convertir fechas del formato YYYY-MM-DD a dd/mm/yyyy para comparar
-                    start_dt = datetime.strptime(start_date, '%Y-%m-%d')
-                    end_dt = datetime.strptime(end_date, '%Y-%m-%d')
-                    
-                    # Filtrar fechas que estén dentro del rango (usando columna 'Date' en lugar de 'Fecha')
-                    df_filtered = df_filtered.filter(
-                        pl.col('Date').str.strptime(pl.Date, format='%d/%m/%Y')
-                        .is_between(start_dt.date(), end_dt.date())
-                    )
-                except Exception as e:
-                    print(f"Error al filtrar por rango de fechas: {e}")
+                start_dt = datetime.strptime(start_date, '%Y-%m-%d')
+                end_dt = datetime.strptime(end_date, '%Y-%m-%d')
+                df_filtered = df_filtered.filter(pl.col('Date').is_between(start_dt.date(), end_dt.date()))
             
-            if selected_estadistica and len(selected_estadistica) > 0:
+            # Filtrar por estadística
+            if selected_estadistica:
                 df_filtered = df_filtered.filter(pl.col('Estadistica').is_in(selected_estadistica))
             
-            if selected_matchday and len(selected_matchday) > 0:
+            # Filtrar por matchday
+            if selected_matchday:
                 df_filtered = df_filtered.filter(pl.col('Match Day').is_in(selected_matchday))
             
-            if selected_player and len(selected_player) > 0:
-                df_filtered = df_filtered.filter(pl.col('Player').is_in(selected_player))
+            # Filtrar por tipo
+            if selected_tipo:
+                df_filtered = df_filtered.filter(pl.col('Tipo').is_in(selected_tipo))
             
-            if selected_position and len(selected_position) > 0:
-                df_filtered = df_filtered.filter(pl.col('Position').is_in(selected_position))
+            # -----------------------------
+            # Aquí
+            # -----------------------------
+            frames = []
+
+            # 1️⃣ Filtrar por jugadores seleccionados
+            if selected_player:
+                df_players = df_filtered.filter(pl.col('Player').is_in(selected_player))
+                frames.append(df_players)
+
+                # 2️⃣ Agregar la(s) posición(es) de esos jugadores
+                for jugador in selected_player:
+                    pos = df_filtered.filter(pl.col('Player') == jugador)['Position'].unique().to_list()
+                    if pos:
+                        posicion = pos[0]  # en caso de que haya varias, tomamos la primera
+                        df_pos_ref = df_filtered.filter(
+                            (pl.col('Position') == posicion) & (pl.col('Tipo') == 'Posicion')
+                        )
+                        if df_pos_ref.height > 0:
+                            frames.append(df_pos_ref)
+
+            # 3️⃣ Agregar la fila del equipo completo
+                df_team = df_filtered.filter(pl.col('Tipo') == 'Equipo')
+                if df_team.height > 0:
+                    frames.append(df_team)
+            else:
+                # Si no hay jugadores seleccionados, solo aplicamos los filtros normales
+                frames.append(df_filtered)
+
+            # Concatenar todo
+            df_final = pl.concat(frames).unique()  # unique() para evitar filas duplicadas
+
+            if df_final.height == 0:
+                return html.Div("No se encontraron datos con los filtros seleccionados.", className="warning-message")
             
-            if df_filtered.height == 0:
-                return html.Div("No se encontraron datos con los filtros seleccionados.", 
-                              className="warning-message")
+            df_pandas = df_final.to_pandas()
+
+            # Convertir columna de fecha a formato legible si existe
+            if "Date" in df_pandas.columns:
+                df_pandas["Date"] = pd.to_datetime(df_pandas["Date"], errors="coerce").dt.strftime("%d/%m/%Y")
+
             
-            # Convertir a pandas para mostrar en tabla
-            df_pandas = df_filtered.to_pandas()
-            
-            # Crear tabla con los datos filtrados
             return html.Div([
                 html.P(f"Mostrando {len(df_pandas)} registros", className="info-text"),
                 dash_table.DataTable(
                     data=df_pandas.to_dict('records'),
                     columns=[{"name": col, "id": col} for col in df_pandas.columns],
                     style_table={'overflowX': 'auto'},
-                    style_cell={
-                        'textAlign': 'left',
-                        'padding': '10px',
-                        'fontFamily': 'Arial'
-                    },
-                    style_header={
-                        'backgroundColor': 'rgb(230, 230, 230)',
-                        'fontWeight': 'bold'
-                    },
+                    style_cell={'textAlign': 'left','padding': '10px','fontFamily': 'Arial'},
+                    style_header={'backgroundColor': 'rgb(230, 230, 230)','fontWeight': 'bold'},
                     page_size=20,
                     sort_action="native",
                     filter_action="native"
@@ -401,5 +304,4 @@ def register_callbacks(app):
             
         except Exception as e:
             print(f"Error al actualizar datos de referencia: {e}")
-            return html.Div(f"Error al procesar los datos: {str(e)}", 
-                          className="error-message")
+            return html.Div(f"Error al procesar los datos: {str(e)}", className="error-message")

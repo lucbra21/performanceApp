@@ -1235,7 +1235,7 @@ def register_callbacks(app):
                                 domain={'x': [0, 1], 'y': [0, 1]},
                                 number={
                                     'suffix': '%',
-                                    'font': {'size': 40}
+                                    'font': {'size': 25}
                                 },
                                 gauge=gauge_config,
                                 title={
@@ -1255,7 +1255,7 @@ def register_callbacks(app):
                                 dcc.Graph(
                                     figure=fig,
                                     config={'displayModeBar': False},
-                                    style={'height': '300px', 'width': '300px', 'margin': '0 auto'}
+                                    style={'height': '200px', 'width': '200px', 'margin': '0 auto'}
                                 )
                             ]
                             
@@ -1356,7 +1356,6 @@ def register_callbacks(app):
             else:
                 df_94_stats = pd.DataFrame(columns=['Player', 'Distance (m)_94min'])
 
-            # jugadores de referencia
             # --- calcular % de cumplimiento respecto a 94min (Distance) ---
             df_dist_pct = pd.merge(
                 df_players.groupby("Player", as_index=False)["Distance"].sum(),
@@ -1384,7 +1383,7 @@ def register_callbacks(app):
 
             # valores alineados al nuevo orden
             distance_y = df_dist_pct["Distance_pct"].fillna(0).values
-            text_line = df_dist_pct["Distance_pct"].round(0).astype(str) + "%"
+            text_line = df_dist_pct["Distance_pct"].fillna(0).astype(int).astype(str) + "%"
 
             # Metros/min para esos jugadores en el mismo orden
             df_metros_min = (
@@ -1395,71 +1394,117 @@ def register_callbacks(app):
                 .values
             )
 
+            # Distance total ordenado
+            df_agrupado1_sorted = df_agrupado1.set_index('Player').reindex(players_x).reset_index()
+
+            # --- Colores más vivos (mismo estilo que HSR) ---
+            COLOR_BARRAS = "rgba(180, 200, 240, 0.4)"
+            COLOR_LINEA = "#dc2626"
+            COLOR_CIRCULOS = "#0052cc"
+            COLOR_TEXTO = "#1a202c"
+
+            # --- Graficar ---
             fig1 = go.Figure()
+
+            # 1. BARRAS (Distance total) - Al fondo, eje derecho (y2)
+            fig1.add_trace(go.Bar(
+                x=players_x,
+                y=df_agrupado1_sorted['Distance'],
+                name="Distance total (m)",
+                yaxis='y2',
+                marker=dict(color=COLOR_BARRAS, line=dict(width=0)),
+                hovertemplate='%{x}<br>Distancia: %{y:.0f} m<extra></extra>',
+                showlegend=True
+            ))
+
+            # 2. LÍNEA ROJA (% cumplimiento)
+            fig1.add_trace(go.Scatter(
+                x=players_x,
+                y=distance_y,
+                mode='lines+markers+text',
+                name=f"Cumplimiento 94min",
+                line=dict(color=COLOR_LINEA, width=3),
+                marker=dict(size=6, color=COLOR_LINEA),
+                text=text_line,
+                textposition='top center',
+                textfont=dict(color=COLOR_LINEA, size=10, family='Arial'),
+                hovertemplate='%{x}<br>Cumplimiento: %{y:.0f}%<extra></extra>',
+                showlegend=True
+            ))
+
+            # 3. CÍRCULOS AZULES (Metros/min) - Al frente
             fig1.add_trace(go.Scatter(
                 x=players_x,
                 y=df_metros_min,
                 mode='markers+text',
                 name='Metros/min',
-                marker=dict(size=30, color='#80bfff', symbol='circle'),
-                text=np.round(df_metros_min),
+                marker=dict(
+                    size=36,
+                    color=COLOR_CIRCULOS,
+                    line=dict(color='white', width=2)
+                ),
+                text=np.round(df_metros_min, 1),
                 textposition='middle center',
-                textfont=dict(color='white', size=12),
-                hovertemplate='<b>%{x}</b><br>Metros/min: %{y:.1f} m/min<extra></extra>'
+                textfont=dict(color='white', size=12, family='Arial'),
+                hovertemplate='%{x}<br>Metros/min: %{y:.1f}<extra></extra>',
+                showlegend=True
             ))
 
-            # Crear texto como string entero
-            text_line = df_dist_pct["Distance_pct"].fillna(0).astype(int).astype(str) + "%"
-
-            # --- Línea roja de % Cumplimiento (eje Y principal) ---
-            fig1.add_trace(go.Scatter(
-                x=players_x,
-                y=distance_y,
-                mode='lines+markers+text',
-                name=f"Cumplimiento vs 94min ({selected_statistic})",
-                text=text_line,
-                textposition='top center',
-                textfont=dict(color='red', size=11),
-                marker=dict(color='red', size=8),
-                line=dict(color='red'),
-                hovertemplate='<b>%{x}</b><br>Cumplimiento: %{text}<extra></extra>'  # 👈 usar %{text} para entero
-            ))
-
-            # --- Barras de Distance (van al eje Y2, detrás) ---
-            fig1.add_trace(go.Bar(
-                x=df_agrupado1['Player'],
-                y=df_agrupado1['Distance'],
-                name="Distance total",
-                yaxis='y2',
-                marker_color='lightgray',
-                opacity=0.5,
-                text=df_agrupado1['Distance'].round(0).astype(int),  # 👈 valores enteros
-                textposition="outside",  # 👈 texto arriba de la barra
-                textfont=dict(color="black", size=11),
-                hovertemplate='<b>%{x}</b><br>Distance: %{y:.0f} m<extra></extra>'
-            ))
-
-            # --- Layout ---
+            # --- Layout minimalista ---
             fig1.update_layout(
-                title='<b>Distancia total, Cumplimiento 94min y Metros/min por Jugador</b>',
-                xaxis_title='Jugador',
+                title=dict(
+                    text='Distancia Total por Jugador',
+                    x=0.5,
+                    xanchor='center',
+                    font=dict(size=18, color=COLOR_TEXTO, family='Arial')
+                ),
+                xaxis=dict(
+                    title=None,
+                    showgrid=False,
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO),
+                    showline=False,
+                    tickangle=-45
+                ),
                 yaxis=dict(
-                    title='Metros/min y % Cumplimiento',
-                    range=[0, max(max(df_metros_min), max(distance_y)) * 1.2],
-                    layer="above traces"   # 👈 Esto pone las líneas/puntos por encima de las barras
+                    title='Metros/min',
+                    titlefont=dict(size=12, color=COLOR_TEXTO),
+                    showgrid=True,
+                    gridwidth=0.5,
+                    gridcolor='rgba(200, 200, 200, 0.2)',
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO)
                 ),
                 yaxis2=dict(
-                    title='Distance total (m)',
+                    title='Distance (m)',
+                    titlefont=dict(size=12, color=COLOR_TEXTO),
                     overlaying='y',
-                    side='right'
+                    side='right',
+                    showgrid=False,
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO)
                 ),
                 plot_bgcolor='white',
                 paper_bgcolor='white',
-                font=dict(size=12),
+                font=dict(family='Arial', size=11, color=COLOR_TEXTO),
                 height=600,
-                margin=dict(t=80, b=50, l=50, r=50),
+                margin=dict(t=60, b=80, l=60, r=60),
+                hovermode='x unified',
+                legend=dict(
+                    x=0.99,
+                    y=0.99,
+                    bgcolor='rgba(255, 255, 255, 0)',
+                    bordercolor='rgba(0, 0, 0, 0)',
+                    font=dict(size=10),
+                    yanchor='top',
+                    xanchor='right'
+                ),
+                showlegend=True,
                 barmode='overlay'
             )
+
+            fig1.update_xaxes(showline=False)
+            fig1.update_yaxes(showline=False)
 
 
             # ================= FIGURA 5: HSR =================
@@ -1489,13 +1534,13 @@ def register_callbacks(app):
 
             # --- Calcular % cumplimiento ---
             df_hsr_pct = pd.merge(
-                df_hsr[['Player', 'Abs HSR(m)']],  # valores del día
-                df_hsr_stats,                      # referencia
+                df_hsr[['Player', 'Abs HSR(m)']],
+                df_hsr_stats,
                 on='Player',
                 how='left'
             )
 
-            # asegurar tipos numéricos
+            # Asegurar tipos numéricos
             df_hsr_pct['Abs HSR(m)'] = pd.to_numeric(df_hsr_pct['Abs HSR(m)'], errors='coerce')
             df_hsr_pct['Abs HSR(m)_94min'] = pd.to_numeric(df_hsr_pct['Abs HSR(m)_94min'], errors='coerce')
 
@@ -1510,75 +1555,119 @@ def register_callbacks(app):
 
             players_x = df_hsr_pct["Player"].tolist()
             y_line_hsr = df_hsr_pct["HSR_pct"].fillna(0).values
-            text_line_hsr = df_hsr_pct["HSR_pct"].round(0).astype(str) + "%"
+            text_line_hsr = df_hsr_pct["HSR_pct"].fillna(0).astype(int).astype(str) + "%"
 
             # HSR/min en el mismo orden
             df_hsr_sorted = df_hsr.set_index("Player").reindex(players_x).reset_index()
             hsr_min_values = df_hsr_sorted["HSR/min"].fillna(0).values
 
+            # --- Colores más vivos ---
+            COLOR_BARRAS = "rgba(180, 200, 240, 0.4)"
+            COLOR_LINEA = "#dc2626"
+            COLOR_CIRCULOS = "#0052cc"
+            COLOR_TEXTO = "#1a202c"
+
             # --- Graficar ---
             fig_hsr = go.Figure()
 
-            # --- Barras = Abs HSR (m), eje derecho (y2) ---
+            # 1. BARRAS (Abs HSR) - Al fondo
             fig_hsr.add_trace(go.Bar(
                 x=players_x,
                 y=df_hsr_sorted["Abs HSR(m)"],
                 name="Abs HSR (m)",
                 yaxis="y2",
-                marker_color="lightgray",
-                opacity=0.5,
-                hovertemplate='<b>%{x}</b><br>Abs HSR: %{y:.0f} m<extra></extra>'
+                marker=dict(color=COLOR_BARRAS, line=dict(width=0)),
+                hovertemplate='%{x}<br>Distancia: %{y:.0f} m<extra></extra>',
+                showlegend=True
             ))
 
-            # --- Puntos azules = HSR/min, eje izquierdo (y) ---
+            # 2. LÍNEA ROJA (% cumplimiento)
+            fig_hsr.add_trace(go.Scatter(
+                x=players_x,
+                y=y_line_hsr,
+                mode='lines+markers+text',
+                name=f"Cumplimiento 94min",
+                line=dict(color=COLOR_LINEA, width=3),
+                marker=dict(size=6, color=COLOR_LINEA),
+                text=text_line_hsr,
+                textposition='top center',
+                textfont=dict(color=COLOR_LINEA, size=10, family='Arial'),
+                hovertemplate='%{x}<br>Cumplimiento: %{y:.0f}%<extra></extra>',
+                showlegend=True
+            ))
+
+            # 3. CÍRCULOS AZULES (HSR/min) - Al frente
             fig_hsr.add_trace(go.Scatter(
                 x=players_x,
                 y=hsr_min_values,
                 mode='markers+text',
                 name='HSR/min',
-                marker=dict(size=30, color='#80bfff', symbol='circle'),
+                marker=dict(
+                    size=36,
+                    color=COLOR_CIRCULOS,
+                    line=dict(color='white', width=2)
+                ),
                 text=np.round(hsr_min_values, 1),
                 textposition='middle center',
-                textfont=dict(color='white', size=12),
-                hovertemplate='<b>%{x}</b><br>HSR/min: %{y:.1f} m/min<extra></extra>'
+                textfont=dict(color='white', size=12, family='Arial'),
+                hovertemplate='%{x}<br>HSR/min: %{y:.2f}<extra></extra>',
+                showlegend=True
             ))
 
-            # Crear texto como string entero
-            text_line_hsr = df_hsr_pct["HSR_pct"].fillna(0).astype(int).astype(str) + "%"
-
-            # --- Línea roja = % cumplimiento ---
-            fig_hsr.add_trace(go.Scatter(
-                x=players_x,
-                y=y_line_hsr,
-                mode='lines+markers+text',
-                name=f"HSR vs 94min ({selected_statistic})",
-                text=text_line_hsr,
-                textposition='top center',
-                textfont=dict(color='red', size=11),
-                marker=dict(color='red', size=8),
-                line=dict(color='red'),
-                hovertemplate='<b>%{x}</b><br>Cumplimiento: %{text}<extra></extra>'  # 👈 usar %{text} en lugar de %{y}
-            ))
-
-            # --- Layout ---
+            # --- Layout minimalista ---
             fig_hsr.update_layout(
-                title='<b>HSR Absoluto, Cumplimiento 94min y HSR/min por Jugador</b>',
-                xaxis_title='Jugador',
+                title=dict(
+                    text='HSR por Jugador',
+                    x=0.5,
+                    xanchor='center',
+                    font=dict(size=18, color=COLOR_TEXTO, family='Arial')
+                ),
+                xaxis=dict(
+                    title=None,
+                    showgrid=False,
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO),
+                    showline=False,
+                    tickangle=-45
+                ),
                 yaxis=dict(
-                    title='HSR/min y % Cumplimiento'
+                    title='HSR/min',
+                    titlefont=dict(size=12, color=COLOR_TEXTO),
+                    showgrid=True,
+                    gridwidth=0.5,
+                    gridcolor='rgba(200, 200, 200, 0.2)',
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO)
                 ),
                 yaxis2=dict(
                     title='Abs HSR (m)',
+                    titlefont=dict(size=12, color=COLOR_TEXTO),
                     overlaying='y',
-                    side='right'
+                    side='right',
+                    showgrid=False,
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO)
                 ),
                 plot_bgcolor='white',
                 paper_bgcolor='white',
-                font=dict(size=12),
+                font=dict(family='Arial', size=11, color=COLOR_TEXTO),
                 height=600,
-                margin=dict(t=80, b=50, l=50, r=50),
-                barmode='overlay'
+                margin=dict(t=60, b=80, l=60, r=60),
+                hovermode='x unified',
+                legend=dict(
+                    x=0.99,
+                    y=0.99,
+                    bgcolor='rgba(255, 255, 255, 0)',
+                    bordercolor='rgba(0, 0, 0, 0)',
+                    font=dict(size=10),
+                    yanchor='top',
+                    xanchor='right'
+                ),
+                showlegend=True
             )
+
+            fig_hsr.update_xaxes(showline=False)
+            fig_hsr.update_yaxes(showline=False)
 
             # ================= FIGURA 2: Velocidad =================
             # --- Calcular Nº de Sprints por jugador ---
@@ -1638,66 +1727,116 @@ def register_callbacks(app):
 
             sprints_values = df_agrupado2.set_index("Player").reindex(players_x)["Nº de Sprints"].fillna(0).values
 
+            # --- Colores más vivos (mismo estilo que HSR) ---
+            COLOR_BARRAS = "rgba(180, 200, 240, 0.4)"
+            COLOR_LINEA_ROJA = "#dc2626"
+            COLOR_LINEA_AZUL = "#0052cc"
+            COLOR_TEXTO = "#1a202c"
+
             # --- Graficar ---
             fig2 = go.Figure()
 
-            # --- Barras grises = Nº de Sprints (eje derecho, y2) ---
+            # 1. BARRAS (Nº de Sprints) - Al fondo, eje derecho (y2)
             fig2.add_trace(go.Bar(
                 x=players_x,
                 y=sprints_values,
                 name="Nº de Sprints",
                 yaxis="y2",
-                marker_color="lightgray",
-                opacity=0.6,
-                text=sprints_values,                  # <- valores como texto
-                textposition='outside',               # <- arriba de la barra
-                textfont=dict(color='black', size=11), # <- estilo del texto
-                hovertemplate='<b>%{x}</b><br>Nº de Sprints: %{y}<extra></extra>'
+                marker=dict(color=COLOR_BARRAS, line=dict(width=0)),
+                hovertemplate='%{x}<br>Nº de Sprints: %{y}<extra></extra>',
+                showlegend=True
             ))
 
-            # --- Línea azul = Vel Máx del día (km/h), eje izquierdo ---
-            fig2.add_trace(go.Scatter(
-                x=players_x,
-                y=speed_day,
-                name='Vel Máx (día)',
-                mode='lines+markers+text',  # línea + marcador + texto
-                line=dict(color='darkblue', width=2),
-                marker=dict(color='darkblue', size=6),
-                text=np.round(speed_day, 1),
-                textposition='bottom center',
-                textfont=dict(color='darkblue', size=11),
-                hovertemplate='<b>%{x}</b><br>Vel Máx día: %{y:.1f} km/h<extra></extra>',
-                yaxis='y1'
-            ))
-
-            # --- Línea roja = % cumplimiento, eje izquierdo ---
+            # 2. LÍNEA ROJA (% cumplimiento)
             fig2.add_trace(go.Scatter(
                 x=players_x,
                 y=speed_pct,
                 mode='lines+markers+text',
-                name=f"Cumplimiento vs 94min ({selected_statistic})",
+                name=f"Cumplimiento 94min",
+                line=dict(color=COLOR_LINEA_ROJA, width=3),
+                marker=dict(size=6, color=COLOR_LINEA_ROJA),
                 text=speed_pct_text,
                 textposition='top center',
-                textfont=dict(color='red', size=11),
-                marker=dict(color='red', size=8),
-                line=dict(color='red'),
-                hovertemplate='<b>%{x}</b><br>Cumplimiento: %{y:.0f}%<extra></extra>',  
-                yaxis='y1'
+                textfont=dict(color=COLOR_LINEA_ROJA, size=10, family='Arial'),
+                hovertemplate='%{x}<br>Cumplimiento: %{y:.0f}%<extra></extra>',
+                yaxis='y1',
+                showlegend=True
             ))
 
-            # --- Layout ---
+            # 3. LÍNEA AZUL (Vel Máx del día) - Al frente
+            fig2.add_trace(go.Scatter(
+                x=players_x,
+                y=speed_day,
+                name='Vel Máx (km/h)',
+                mode='lines+markers+text',
+                line=dict(color=COLOR_LINEA_AZUL, width=3),
+                marker=dict(size=6, color=COLOR_LINEA_AZUL),
+                text=np.round(speed_day, 1),
+                textposition='bottom center',
+                textfont=dict(color=COLOR_LINEA_AZUL, size=10, family='Arial'),
+                hovertemplate='%{x}<br>Vel Máx: %{y:.1f} km/h<extra></extra>',
+                yaxis='y1',
+                showlegend=True
+            ))
+
+            # --- Layout minimalista ---
             fig2.update_layout(
-                title='<b>Velocidad Máxima y Nº de Sprints: Día vs 94min</b>',
-                xaxis=dict(title='Jugador', categoryorder='array', categoryarray=players_x),
-                yaxis=dict(title='Vel Máx Día (km/h) y % Cumplimiento', side='left'),
-                yaxis2=dict(title='Nº de Sprints', overlaying='y', side='right'),
+                title=dict(
+                    text='Velocidad Máxima y Sprints por Jugador',
+                    x=0.5,
+                    xanchor='center',
+                    font=dict(size=18, color=COLOR_TEXTO, family='Arial')
+                ),
+                xaxis=dict(
+                    title=None,
+                    showgrid=False,
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO),
+                    showline=False,
+                    tickangle=-45,
+                    categoryorder='array',
+                    categoryarray=players_x
+                ),
+                yaxis=dict(
+                    title='Vel Máx (km/h)',
+                    titlefont=dict(size=12, color=COLOR_TEXTO),
+                    showgrid=True,
+                    gridwidth=0.5,
+                    gridcolor='rgba(200, 200, 200, 0.2)',
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO),
+                    side='left'
+                ),
+                yaxis2=dict(
+                    title='Nº de Sprints',
+                    titlefont=dict(size=12, color=COLOR_TEXTO),
+                    overlaying='y',
+                    side='right',
+                    showgrid=False,
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO)
+                ),
                 plot_bgcolor='white',
                 paper_bgcolor='white',
-                font=dict(family='Arial', size=12),
-                height=500,
-                margin=dict(t=70, b=50, l=60, r=60),
+                font=dict(family='Arial', size=11, color=COLOR_TEXTO),
+                height=600,
+                margin=dict(t=60, b=80, l=60, r=60),
+                hovermode='x unified',
+                legend=dict(
+                    x=0.99,
+                    y=0.99,
+                    bgcolor='rgba(255, 255, 255, 0)',
+                    bordercolor='rgba(0, 0, 0, 0)',
+                    font=dict(size=10),
+                    yanchor='top',
+                    xanchor='right'
+                ),
+                showlegend=True,
                 barmode="overlay"
             )
+
+            fig2.update_xaxes(showline=False)
+            fig2.update_yaxes(showline=False)
 
 
             # ================= FIGURA 3: ACC y DCC =================
@@ -1755,94 +1894,128 @@ def register_callbacks(app):
 
             players_order = df_merge['Player'].tolist()
 
-            # --- Graficar líneas + barras ---
+            # --- Colores más vivos (mismo estilo) ---
+            COLOR_BARRA_ACC = "rgba(134, 239, 172, 0.5)"      # Verde claro
+            COLOR_BARRA_DCC = "rgba(252, 165, 165, 0.5)"      # Rojo claro
+            COLOR_LINEA_ACC = "#16a34a"                        # Verde vivo
+            COLOR_LINEA_DCC = "#dc2626"                        # Rojo vivo
+            COLOR_TEXTO = "#1a202c"
+
+            # --- Graficar ---
             fig3 = go.Figure()
 
-            # Barras verdes = ACC Count
+            # 1. BARRAS VERDES (ACC Count) - Al fondo
             fig3.add_trace(go.Bar(
                 x=players_order,
                 y=df_merge['ACC Count'],
                 name="ACC Count",
                 yaxis="y2",
-                marker_color="lightgreen",
-                opacity=0.7,
-                text=df_merge['ACC Count'],
-                textposition="outside",
-                textfont=dict(color="darkgreen", size=11),
-                hovertemplate="<b>%{x}</b><br>ACC Count: %{y}<extra></extra>"
+                marker=dict(color=COLOR_BARRA_ACC, line=dict(width=0)),
+                hovertemplate='%{x}<br>ACC Count: %{y}<extra></extra>',
+                showlegend=True
             ))
 
-            # Barras rojas = DCC Count
+            # 2. BARRAS ROJAS (DCC Count) - Al fondo
             fig3.add_trace(go.Bar(
                 x=players_order,
                 y=df_merge['DCC Count'],
                 name="DCC Count",
                 yaxis="y2",
-                marker_color="lightcoral",
-                opacity=0.7,
-                text=df_merge['DCC Count'],
-                textposition="outside",
-                textfont=dict(color="darkred", size=11),
-                hovertemplate="<b>%{x}</b><br>DCC Count: %{y}<extra></extra>"
+                marker=dict(color=COLOR_BARRA_DCC, line=dict(width=0)),
+                hovertemplate='%{x}<br>DCC Count: %{y}<extra></extra>',
+                showlegend=True
             ))
 
-            # Línea verde = ACC (%)
-            fig3.add_trace(go.Scatter(
-                x=players_order,
-                y=df_merge['ACC_pct'],
-                mode='lines+markers+text',
-                name=f"ACC vs 94min ({selected_statistic})",
-                line=dict(color='green', width=2),
-                marker=dict(color='green', size=6),
-                text=df_merge['ACC_pct'].fillna(0).astype(int).astype(str) + "%",
-                textposition='top center',
-                textfont=dict(color='green', size=11),
-                hovertemplate='<b>%{x}</b><br>Cumplimiento ACC: %{y:.1f}%<extra></extra>',
-                yaxis='y1'
-            ))
-
-            # Línea roja = DCC (%)
+            # 3. LÍNEA ROJA (DCC %) - Al frente
             fig3.add_trace(go.Scatter(
                 x=players_order,
                 y=df_merge['DCC_pct'],
                 mode='lines+markers+text',
-                name=f"DCC vs 94min ({selected_statistic})",
-                line=dict(color='red', width=2),
-                marker=dict(color='red', size=6),
+                name=f"DCC Cumplimiento 94min",
+                line=dict(color=COLOR_LINEA_DCC, width=3),
+                marker=dict(size=6, color=COLOR_LINEA_DCC),
                 text=df_merge['DCC_pct'].fillna(0).astype(int).astype(str) + "%",
                 textposition='top center',
-                textfont=dict(color='red', size=11),
-                hovertemplate='<b>%{x}</b><br>Cumplimiento DCC: %{y:.0f}%<extra></extra>',
-                yaxis='y1'
+                textfont=dict(color=COLOR_LINEA_DCC, size=10, family='Arial'),
+                hovertemplate='%{x}<br>Cumplimiento DCC: %{y:.0f}%<extra></extra>',
+                yaxis='y1',
+                showlegend=True
             ))
 
-            # Layout
+            # 4. LÍNEA VERDE (ACC %) - Al frente
+            fig3.add_trace(go.Scatter(
+                x=players_order,
+                y=df_merge['ACC_pct'],
+                mode='lines+markers+text',
+                name=f"ACC Cumplimiento 94min",
+                line=dict(color=COLOR_LINEA_ACC, width=3),
+                marker=dict(size=6, color=COLOR_LINEA_ACC),
+                text=df_merge['ACC_pct'].fillna(0).astype(int).astype(str) + "%",
+                textposition='top center',
+                textfont=dict(color=COLOR_LINEA_ACC, size=10, family='Arial'),
+                hovertemplate='%{x}<br>Cumplimiento ACC: %{y:.1f}%<extra></extra>',
+                yaxis='y1',
+                showlegend=True
+            ))
+
+            # --- Layout minimalista ---
             fig3.update_layout(
-                title='<b>Aceleraciones y Deceleraciones: Día vs 94min</b>',
+                title=dict(
+                    text='Aceleraciones y Deceleraciones por Jugador',
+                    x=0.5,
+                    xanchor='center',
+                    font=dict(size=18, color=COLOR_TEXTO, family='Arial')
+                ),
                 xaxis=dict(
-                    title='Jugador',
+                    title=None,
+                    showgrid=False,
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO),
+                    showline=False,
+                    tickangle=-45,
                     categoryorder='array',
                     categoryarray=players_order
                 ),
                 yaxis=dict(
                     title='Cumplimiento (%)',
-                    side='left',
+                    titlefont=dict(size=12, color=COLOR_TEXTO),
                     showgrid=True,
-                    range=[0, 120]
+                    gridwidth=0.5,
+                    gridcolor='rgba(200, 200, 200, 0.2)',
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO),
+                    side='left'
                 ),
                 yaxis2=dict(
                     title='Recuento ACC/DCC',
+                    titlefont=dict(size=12, color=COLOR_TEXTO),
                     overlaying='y',
                     side='right',
-                    showgrid=False
+                    showgrid=False,
+                    zeroline=False,
+                    tickfont=dict(size=11, color=COLOR_TEXTO)
                 ),
-                barmode='group',  # para que las barras ACC y DCC queden una al lado de la otra
                 plot_bgcolor='white',
                 paper_bgcolor='white',
-                height=500,
-                font=dict(family='Arial', size=12, color='#2c3e50'),
-                margin=dict(t=60, b=40, l=80, r=80)
+                font=dict(family='Arial', size=11, color=COLOR_TEXTO),
+                height=600,
+                margin=dict(t=60, b=80, l=60, r=60),
+                hovermode='x unified',
+                legend=dict(
+                    x=0.99,
+                    y=0.99,
+                    bgcolor='rgba(255, 255, 255, 0)',
+                    bordercolor='rgba(0, 0, 0, 0)',
+                    font=dict(size=10),
+                    yanchor='top',
+                    xanchor='right'
+                ),
+                showlegend=True,
+                barmode='group'
             )
+
+            fig3.update_xaxes(showline=False)
+            fig3.update_yaxes(showline=False)
 
             return [fig1, fig2, fig3, fig_hsr]
 
@@ -2137,29 +2310,32 @@ def register_callbacks(app):
                     value_name='Distancia'
                 )
 
-                # Renombrar zonas para la leyenda y asignar colores
+                # Renombrar zonas para la leyenda
                 zona_map = {
-                    "Speed Zones (m) [0.0, 6.0]km/h (m)": "[0.0, 6.0]",
-                    "Speed Zones (m) [6.0, 12.0]km/h (m)": "[6.0, 12.0]",
-                    "Speed Zones (m) [12.0, 18.0]km/h (m)": "[12.0, 18.0]",
-                    "Speed Zones (m) [18.0, 21.0]km/h (m)": "[18.0, 21.0]",
-                    "Speed Zones (m) [21.0, 24.0]km/h (m)": "[21.0, 24.0]",
-                    "Speed Zones (m) [24.0, 27.0]km/h (m)": "[24.0, 27.0]",
-                    "Speed Zones (m) [27.0, 30.0]km/h (m)": "[27.0, 30.0]",
-                    "Speed Zones (m) [30.0, 50.0]km/h (m)": "[30.0, 50.0]"
+                    "Speed Zones (m) [0.0, 6.0]km/h (m)": "[0-6]",
+                    "Speed Zones (m) [6.0, 12.0]km/h (m)": "[6-12]",
+                    "Speed Zones (m) [12.0, 18.0]km/h (m)": "[12-18]",
+                    "Speed Zones (m) [18.0, 21.0]km/h (m)": "[18-21]",
+                    "Speed Zones (m) [21.0, 24.0]km/h (m)": "[21-24]",
+                    "Speed Zones (m) [24.0, 27.0]km/h (m)": "[24-27]",
+                    "Speed Zones (m) [27.0, 30.0]km/h (m)": "[27-30]",
+                    "Speed Zones (m) [30.0, 50.0]km/h (m)": "[30-50]"
                 }
                 df_melted['Zona'] = df_melted['Zona'].replace(zona_map)
 
+                # Colores minimalistas con gradiente elegante
                 color_map = {
-                    "[0.0, 6.0]": "#e4dcc6",
-                    "[6.0, 12.0]": "#d9cdb2",
-                    "[12.0, 18.0]": "#cfc09e",
-                    "[18.0, 21.0]": "#c3b89a",
-                    "[21.0, 24.0]": "#FF0000",
-                    "[24.0, 27.0]": "#CF0000",
-                    "[27.0, 30.0]": "#9F0000",
-                    "[30.0, 50.0]": "#6F0000"
+                    "[0-6]": "#f1f5f9",      # Gris muy claro
+                    "[6-12]": "#cbd5e1",     # Gris claro
+                    "[12-18]": "#94a3b8",    # Gris medio
+                    "[18-21]": "#64748b",    # Gris azulado
+                    "[21-24]": "#ef4444",    # Rojo claro
+                    "[24-27]": "#dc2626",    # Rojo medio
+                    "[27-30]": "#b91c1c",    # Rojo oscuro
+                    "[30-50]": "#7f1d1d"     # Rojo muy oscuro
                 }
+
+                COLOR_TEXTO = "#1a202c"
 
                 # Crear gráfico de barras apiladas
                 fig_distance = px.bar(
@@ -2167,45 +2343,63 @@ def register_callbacks(app):
                     x="Player",
                     y="Distancia",
                     color="Zona",
-                    title="<b>Distancia por Zonas de Velocidad</b>",
                     color_discrete_map=color_map,
                     labels={
                         "Distancia": "Distancia (m)",
                         "Player": "Jugador",
-                        "Zona": "Zona de Velocidad"
+                        "Zona": "Velocidad (km/h)"
                     }
                 )
 
-                # Ajustes de layout
+                # Ajustes de layout minimalista
                 fig_distance.update_layout(
+                    title=dict(
+                        text='Distancia por Zonas de Velocidad',
+                        x=0.5,
+                        xanchor='center',
+                        font=dict(size=18, color=COLOR_TEXTO, family='Arial')
+                    ),
                     plot_bgcolor="white",
                     paper_bgcolor="white",
-                    font=dict(family="Arial, sans-serif", size=12, color="#2c3e50"),
-                    title=dict(x=0.5, font=dict(size=16, color="#2c3e50")),
-                    margin=dict(t=80, b=120, l=60, r=50),
+                    font=dict(family="Arial", size=11, color=COLOR_TEXTO),
+                    margin=dict(t=80, b=80, l=60, r=60),
                     barmode="stack",
-                    height=550,
+                    height=600,
                     legend=dict(
-                        orientation="h",
+                        title=dict(text='<b>Zonas (km/h)</b>', font=dict(size=11)),
+                        orientation="v",
                         yanchor="top",
-                        y=1.5,
-                        xanchor="center",
-                        x=0.5
-                    )
+                        y=0.99,
+                        xanchor="right",
+                        x=0.99,
+                        bgcolor='rgba(255, 255, 255, 0)',
+                        bordercolor='rgba(0, 0, 0, 0)',
+                        font=dict(size=10)
+                    ),
+                    hovermode='x unified'
                 )
 
                 fig_distance.update_xaxes(
-                    title_font=dict(size=14, color="#2c3e50"),
-                    tickfont=dict(size=11, color="#2c3e50"),
-                    gridcolor="#ecf0f1",
-                    showgrid=True
+                    title=None,
+                    tickfont=dict(size=11, color=COLOR_TEXTO),
+                    showgrid=False,
+                    showline=False,
+                    tickangle=-45
                 )
 
                 fig_distance.update_yaxes(
-                    title_font=dict(size=14, color="#2c3e50"),
-                    tickfont=dict(size=11, color="#2c3e50"),
-                    gridcolor="#ecf0f1",
-                    showgrid=True
+                    title='Distancia (m)',
+                    title_font=dict(size=12, color=COLOR_TEXTO),
+                    tickfont=dict(size=11, color=COLOR_TEXTO),
+                    gridcolor='rgba(200, 200, 200, 0.2)',
+                    gridwidth=0.5,
+                    showgrid=True,
+                    showline=False
+                )
+
+                # Mejorar hover
+                fig_distance.update_traces(
+                    hovertemplate='%{x}<br>%{fullData.name}: %{y:.0f} m<extra></extra>'
                 )
             
             # ============================================================================

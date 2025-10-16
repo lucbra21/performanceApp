@@ -611,6 +611,9 @@ def calcular_metricas(df, columnas, estadistica):
     """
     resultado = {}
     for columna in columnas:
+        if df[columna].null_count() == df.height:
+            print(f"Columna '{columna}' está vacía para este grupo, se omite.")
+            continue
         if columna not in df.columns:
             continue
             
@@ -867,24 +870,121 @@ def calcular_estadisticas_por_matchday():
         df = apply_standard_filters(df_final)
 
 
-        # --- Columnas de interés ---
-        columnas_interes = get_columns_of_interest().copy()
-        columnas_interes += ["Tiempo absoluto", "Tiempo efectivo"]
+        # --- NUEVA LISTA DE MÉTRICAS Y CÁLCULOS ---
+        # Sumar todas las zonas de High Impact
+        if all(col in df.columns for col in [
+            "H. Impacts Zones (count) [0.0, 3.0]",
+            "H. Impacts Zones (count) [3.0, 5.0]",
+            "H. Impacts Zones (count) [5.0, 8.0]",
+            "H. Impacts Zones (count) [8.0, 100.0]"
+        ]):
+            df = df.with_columns(
+                (
+                    pl.col("H. Impacts Zones (count) [0.0, 3.0]") +
+                    pl.col("H. Impacts Zones (count) [3.0, 5.0]") +
+                    pl.col("H. Impacts Zones (count) [5.0, 8.0]") +
+                    pl.col("H. Impacts Zones (count) [8.0, 100.0]")
+                ).alias("High impact")
+            )
+        else:
+            df = df.with_columns(pl.lit(None).alias("High impact"))
+
+        # Step Balance (%)
+        if "Step Balance (%)" in df.columns:
+            df = df.rename({"Step Balance (%)": "Step balance"})
+        else:
+            df = df.with_columns(pl.lit(None).alias("Step balance"))
+
+        # High Acceleration y High Deceleration
+        # Si tienes "High Intensity Acc Abs (count)" y "High Intensity Dec Abs (count)" (o similar), úsalas
+        if "High Intensity Acc Abs (count)" in df.columns:
+            df = df.rename({"High Intensity Acc Abs (count)": "High Acceleration"})
+        else:
+            df = df.with_columns(pl.lit(None).alias("High Acceleration"))
+
+        if "High Intensity Dec Abs (count)" in df.columns:
+            df = df.rename({"High Intensity Dec Abs (count)": "High Decceleration"})
+        else:
+            df = df.with_columns(pl.lit(None).alias("High Decceleration"))
+
+        # Diferencia ACC/DEL
+        if "High Acceleration" in df.columns and "High Decceleration" in df.columns:
+            df = df.with_columns(
+                (pl.col("High Acceleration") - pl.col("High Decceleration")).alias("Diff ACC/DEL")
+            )
+        else:
+            df = df.with_columns(pl.lit(None).alias("Diff ACC/DEL"))
+
+        # DSL y DSL/Time
+        if "DSL (a.u.)" in df.columns:
+            df = df.rename({"DSL (a.u.)": "DSL"})
+            if "Tiempo efectivo" in df.columns:
+                df = df.with_columns(
+                    (pl.col("DSL") / pl.col("Tiempo efectivo")).alias("DSL/Time")
+                )
+            else:
+                df = df.with_columns(pl.lit(None).alias("DSL/Time"))
+        else:
+            df = df.with_columns([
+                pl.lit(None).alias("DSL"),
+                pl.lit(None).alias("DSL/Time")
+            ])
 
         # Métricas por minuto
         if "Explosive Dist (m)" in df.columns:
             df = df.with_columns(
                 (pl.col("Explosive Dist (m)") / pl.col("Tiempo efectivo")).alias("Explosive Dist (m)/min")
             )
-            columnas_interes.append("Explosive Dist (m)/min")
 
         if "Distance (m)" in df.columns:
             df = df.with_columns(
                 (pl.col("Distance (m)") / pl.col("Tiempo efectivo")).alias("Distance (m)/min")
             )
-            columnas_interes.append("Distance (m)/min")
+        if "HSR Abs Cnt" in df.columns:
+            df = df.rename({"HSR Abs Cnt": "N° HSR"})
 
-        columnas_interes = sorted(set(columnas_interes))
+        if "Abs HSR(m)" in df.columns and "Tiempo efectivo" in df.columns:
+            df = df.with_columns(
+                (pl.col("Abs HSR(m)") / pl.col("Tiempo efectivo")).alias("HSR/time")
+            )
+        elif "HSR Rel (m)" in df.columns:
+            # Si no tienes la absoluta, puedes usar la relativa (aunque ya podría ser por tiempo)
+            df = df.rename({"HSR Rel (m)": "HSR/time"})
+
+        # Renombrar columnas para coincidir con la nueva lista
+        rename_dict = {
+            "Tiempo absoluto": "Total time",
+            "Tiempo efectivo": "Effective time",
+            "Distance (m)": "Distance",
+            "Distance (m)/min": "Distance/time",
+            "Explosive Dist (m)": "Explosive Distance",
+            "Explosive Dist (m)/min": "Explosive/time",
+            "Abs HSR(m)": "HSR Distance",
+            "Sprint Abs (m)": "Sprint Distance",
+            "MAX Speed(km/h)": "Max speed",
+        }
+        df = df.rename({k: v for k, v in rename_dict.items() if k in df.columns})
+
+        # --- Seleccionar y ordenar columnas finales ---
+        columnas_finales = [
+            "Tipo", "Player", "Team", "Position", "Match Day", "Date", "Estadistica",
+            "Total time", "Effective time", "Distance", "Distance/time",
+            "Explosive Distance", "Explosive/time", "HSR Distance", "N° HSR", "HSR/time",
+            "Sprint Distance", "Max speed", "High Acceleration", "High Decceleration",
+            "Diff ACC/DEL", "Max Acceleration", "High impact", "DSL", "DSL/Time", "Step balance"
+        ]
+        # Asegúrate de que todas existan
+        for col in columnas_finales:
+            if col not in df.columns:
+                df = df.with_columns(pl.lit(None).alias(col))
+        df = df.select([c for c in columnas_finales if c in df.columns])
+
+        columnas_finales_metricas = [
+            "Total time", "Effective time", "Distance", "Distance/time",
+            "Explosive Distance", "Explosive/time", "HSR Distance", "N° HSR", "HSR/time",
+            "Sprint Distance", "Max speed", "High Acceleration", "High Decceleration",
+            "Diff ACC/DEL", "Max Acceleration", "High impact", "DSL", "DSL/Time", "Step balance"
+        ]
 
         # --- Valores únicos ---
         match_days = df["Match Day"].unique().to_list()
@@ -918,8 +1018,12 @@ def calcular_estadisticas_por_matchday():
                     }
                     # 🔹 Aquí redondeamos a enteros
                     registro.update({
-                        k: (int(v) if v is not None else None)
-                        for k, v in calcular_metricas(df_match, columnas_interes, estadistica).items()
+                        k: (
+                            round(v, 3) if k == "Step balance" and v is not None
+                            else round(v, 1) if v is not None
+                            else None
+                        )
+                        for k, v in calcular_metricas(df_match, columnas_finales_metricas, estadistica).items()
                     })
                     resultados_jugadores.append(registro)
 
@@ -938,8 +1042,12 @@ def calcular_estadisticas_por_matchday():
                         "Estadistica": estadistica
                     }
                     registro.update({
-                        k: (int(v) if v is not None else None)
-                        for k, v in calcular_metricas(df_match, columnas_interes, estadistica).items()
+                        k: (
+                            round(v, 3) if k == "Step balance" and v is not None
+                            else round(v, 1) if v is not None
+                            else None
+                        )
+                        for k, v in calcular_metricas(df_match, columnas_finales_metricas, estadistica).items()
                     })
                     resultados_position.append(registro)
 
@@ -958,8 +1066,12 @@ def calcular_estadisticas_por_matchday():
                         "Estadistica": estadistica
                     }
                     registro.update({
-                        k: (int(v) if v is not None else None)
-                        for k, v in calcular_metricas(df_match, columnas_interes, estadistica).items()
+                        k: (
+                            round(v, 3) if k == "Step balance" and v is not None
+                            else round(v, 1) if v is not None
+                            else None
+                        )
+                        for k, v in calcular_metricas(df_match, columnas_finales_metricas, estadistica).items()
                     })
                     resultados_team.append(registro)
 
@@ -990,11 +1102,6 @@ def calcular_estadisticas_por_matchday():
             idx_date = cols.index("Date") + 1
             cols = cols[:idx_date] + ["Tiempo absoluto", "Tiempo efectivo"] + cols[idx_date:]
             df_combined = df_combined.select(cols)
-
-        df_combined = df_combined.rename({
-            "Accelerations": "# Accelerations",
-            "Decelerations": "# Decelerations"
-        })
 
 
         # Guardar parquet
@@ -2191,4 +2298,6 @@ def calculate_percentage_difference_vs_reference(selected_date, num_games=None, 
     except Exception as e:
         print(f"Error al calcular diferencias porcentuales: {str(e)}")
         return pl.DataFrame()
-
+    
+if __name__ == "__main__":
+    calcular_estadisticas_por_matchday()

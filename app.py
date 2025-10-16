@@ -81,5 +81,5 @@ Benchmarking.register_callbacks(app)
 #    app.run(debug=True)
 
 #Para ejecutar en el servidor
- if __name__ == '__main__':
+if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8050, debug=False)

@@ -1775,6 +1775,9 @@ def calculate_metrics_for_94min(last_games=4):
     if df is None:
         print("No se pudo cargar el dataset principal.")
         return None
+    
+    if "Team " in df.columns:
+        df = df.rename({"Team ": "Team"})
     # Cargar el mapeo de métricas
     metrics_mapping = load_metrics_mapping()
     

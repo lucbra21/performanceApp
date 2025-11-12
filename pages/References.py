@@ -145,6 +145,16 @@ layout = html.Div([
                     )
                 ], className="input-item"),
 
+                html.Div([
+                    html.Label('Team:', className="input-label"),
+                    dcc.Dropdown(
+                        id='ref-team-selector',
+                        placeholder='Selecciona un equipo...',
+                        className="statistic-dropdown",
+                        multi=False  # o True si querés varios equipos
+                                )
+                            ], className="input-item"),
+
             ], className="inputs-row", style={'display': 'flex', 'flex-wrap': 'wrap', 'gap': '20px'})
         ], className="date-selection-container"),
         
@@ -178,12 +188,13 @@ def register_callbacks(app):
 
     @app.callback(
         [Output('ref-estadistica-selector', 'options'),
-         Output('ref-matchday-selector', 'options'),
-         Output('ref-player-selector', 'options'),
-         Output('ref-position-selector', 'options'),
-         Output('ref-tipo-selector', 'options')],
+        Output('ref-matchday-selector', 'options'),
+        Output('ref-player-selector', 'options'),
+        Output('ref-position-selector', 'options'),
+        Output('ref-tipo-selector', 'options'),
+        Output('ref-team-selector', 'options')],  # 👈 nuevo output
         [Input('ref-date-range-selector', 'start_date'),
-         Input('ref-date-range-selector', 'end_date')]
+        Input('ref-date-range-selector', 'end_date')]
     )
     def update_dropdown_options(start_date, end_date):
         try:
@@ -204,104 +215,128 @@ def register_callbacks(app):
             position_options = [{'label': pos, 'value': pos} for pos in unique_values['positions']]
             tipo_options = [{'label': t, 'value': t} for t in unique_values['tipos']]
             
-            return estadistica_options, matchday_options, player_options, position_options, tipo_options
+            df = load_estadisticas_matchday()
+            team_options = []
+            if df is not None and "Team" in df.columns:
+                team_options = [
+                    {'label': t, 'value': t}
+                    for t in df["Team"].drop_nulls().unique().to_list()
+                    if t not in [None, "", "null"]
+                ]
+
+            return (
+                estadistica_options,
+                matchday_options,
+                player_options,
+                position_options,
+                tipo_options,
+                team_options
+            )
         except Exception as e:
             print(f"Error al actualizar opciones de dropdowns: {e}")
-            return [], [], [], [], []
+            return [], [], [], [], [], []
 
     @app.callback(
     Output('ref-data-output', 'children'),
-    [Input('ref-date-range-selector', 'start_date'),
-     Input('ref-date-range-selector', 'end_date'),
-     Input('ref-estadistica-selector', 'value'),
-     Input('ref-matchday-selector', 'value'),
-     Input('ref-player-selector', 'value'),
-     Input('ref-position-selector', 'value'),
-     Input('ref-tipo-selector', 'value')]
-    )
+    [
+        Input('ref-date-range-selector', 'start_date'),
+        Input('ref-date-range-selector', 'end_date'),
+        Input('ref-estadistica-selector', 'value'),
+        Input('ref-matchday-selector', 'value'),
+        Input('ref-player-selector', 'value'),
+        Input('ref-position-selector', 'value'),
+        Input('ref-tipo-selector', 'value'),
+        Input('ref-team-selector', 'value')  # 👈 nuevo input
+    ]
+)
     def update_reference_data(start_date, end_date, selected_estadistica, selected_matchday, 
-                            selected_player, selected_position, selected_tipo):
+                          selected_player, selected_position, selected_tipo, selected_team):
         try:
             df = load_estadisticas_matchday()
             if df is None:
                 return html.Div("No se pudieron cargar los datos de referencia.", className="error-message")
             
             df_filtered = df
-            
-            # Filtrar por fechas
+
+            # 🔹 Filtrar por equipo
+            if selected_team:
+                df_filtered = df_filtered.filter(pl.col("Team") == selected_team)
+
+            # 🔹 Filtrar por fechas
             if start_date and end_date:
                 start_dt = datetime.strptime(start_date, '%Y-%m-%d')
                 end_dt = datetime.strptime(end_date, '%Y-%m-%d')
                 df_filtered = df_filtered.filter(pl.col('Date').is_between(start_dt.date(), end_dt.date()))
             
-            # Filtrar por estadística
+            # 🔹 Filtrar por estadística
             if selected_estadistica:
                 df_filtered = df_filtered.filter(pl.col('Estadistica').is_in(selected_estadistica))
             
-            # Filtrar por matchday
+            # 🔹 Filtrar por matchday
             if selected_matchday:
                 df_filtered = df_filtered.filter(pl.col('Match Day').is_in(selected_matchday))
             
-            # Filtrar por tipo
+            # 🔹 Filtrar por tipo
             if selected_tipo:
                 df_filtered = df_filtered.filter(pl.col('Tipo').is_in(selected_tipo))
-            
-            # -----------------------------
-            # Aquí
-            # -----------------------------
+
+            # 🔹 Filtrar por posición
+            if selected_position:
+                df_filtered = df_filtered.filter(pl.col('Position').is_in(selected_position))
+
+            # ==============================================================
+            # Armado del DataFrame final (jugadores, posición, equipo)
+            # ==============================================================
             frames = []
 
-            # 1️⃣ Filtrar por jugadores seleccionados
+            # 1️⃣ Si hay jugadores seleccionados
             if selected_player:
                 df_players = df_filtered.filter(pl.col('Player').is_in(selected_player))
                 frames.append(df_players)
 
-                # 2️⃣ Agregar la(s) posición(es) de esos jugadores
+                # 2️⃣ Agregar referencias por posición
                 for jugador in selected_player:
                     pos = df_filtered.filter(pl.col('Player') == jugador)['Position'].unique().to_list()
                     if pos:
-                        posicion = pos[0]  # en caso de que haya varias, tomamos la primera
+                        posicion = pos[0]
                         df_pos_ref = df_filtered.filter(
                             (pl.col('Position') == posicion) & (pl.col('Tipo') == 'Posicion')
                         )
                         if df_pos_ref.height > 0:
                             frames.append(df_pos_ref)
 
-            # 3️⃣ Agregar la fila del equipo completo
+                # 3️⃣ Agregar referencia del equipo completo
                 df_team = df_filtered.filter(pl.col('Tipo') == 'Equipo')
                 if df_team.height > 0:
                     frames.append(df_team)
             else:
-                # Si no hay jugadores seleccionados, solo aplicamos los filtros normales
                 frames.append(df_filtered)
 
             # Concatenar todo
-            df_final = pl.concat(frames).unique()  # unique() para evitar filas duplicadas
+            df_final = pl.concat(frames).unique()
 
             if df_final.height == 0:
                 return html.Div("No se encontraron datos con los filtros seleccionados.", className="warning-message")
             
             df_pandas = df_final.to_pandas()
 
-            # Convertir columna de fecha a formato legible si existe
             if "Date" in df_pandas.columns:
                 df_pandas["Date"] = pd.to_datetime(df_pandas["Date"], errors="coerce").dt.strftime("%d/%m/%Y")
 
-            
             return html.Div([
                 html.P(f"Mostrando {len(df_pandas)} registros", className="info-text"),
                 dash_table.DataTable(
                     data=df_pandas.to_dict('records'),
                     columns=[{"name": col, "id": col} for col in df_pandas.columns],
                     style_table={'overflowX': 'auto'},
-                    style_cell={'textAlign': 'left','padding': '10px','fontFamily': 'Arial'},
-                    style_header={'backgroundColor': 'rgb(230, 230, 230)','fontWeight': 'bold'},
+                    style_cell={'textAlign': 'left', 'padding': '10px', 'fontFamily': 'Arial'},
+                    style_header={'backgroundColor': 'rgb(230, 230, 230)', 'fontWeight': 'bold'},
                     page_size=20,
                     sort_action="native",
                     filter_action="native"
                 )
             ])
-            
+        
         except Exception as e:
             print(f"Error al actualizar datos de referencia: {e}")
             return html.Div(f"Error al procesar los datos: {str(e)}", className="error-message")

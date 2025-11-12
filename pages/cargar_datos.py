@@ -13,6 +13,7 @@ import re
 import polars as pl
 import datetime
 import json
+import fastexcel
 
 # Importación de funciones desde utils
 from utils.utils import calcular_estadisticas_por_matchday
